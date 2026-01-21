@@ -5,7 +5,7 @@ import 'src/layout/main_layout.dart'; // Import file layout đã tách
 void main() {
   runApp(const FinanceApp());
 }
-
+//VTĐ check commit
 class FinanceApp extends StatelessWidget {
   const FinanceApp({super.key});
 
