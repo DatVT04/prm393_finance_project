@@ -1,6 +1,7 @@
 // lib/src/layout/main_layout.dart
 import 'package:flutter/material.dart';
 import '../features/dashboard/dashboard_screen.dart'; // Import màn hình Dashboard
+import '../features/transactions/transaction_screen.dart'; // Import màn hình Transaction
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -15,7 +16,7 @@ class _MainLayoutState extends State<MainLayout> {
   // Danh sách các màn hình con
   final List<Widget> _screens = [
     const DashboardScreen(), // Màn hình 1: Dashboard
-    const Center(child: Text("Màn hình Giao dịch (Đang phát triển)")), // Placeholder Member 4
+    const TransactionScreen(), // Màn hình 2: Giao dịch
     const Center(child: Text("Màn hình Báo cáo (Đang phát triển)")),   // Placeholder Member 3
     const Center(child: Text("Cài đặt (Đang phát triển)")),            // Placeholder Member 5
   ];
