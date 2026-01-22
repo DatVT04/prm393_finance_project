@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'src/core/theme/app_theme.dart';
 import 'src/core/constants/app_constants.dart';
 import 'src/features/auth/login_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const ProviderScope(child: FinanceApp()));
@@ -22,6 +23,12 @@ class FinanceApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       initialRoute: '/',
       routes: {'/': (context) => const LoginScreen()},
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('vi', 'VN'), Locale('en', 'US')],
     );
   }
 }
