@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/transactions/transaction_screen.dart';
+import '../features/report/report_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -18,9 +19,7 @@ class _MainLayoutState extends State<MainLayout> {
   final List<Widget> _screens = [
     const DashboardScreen(), // Màn hình 1: Dashboard
     const TransactionScreen(), // Màn hình 2: Giao dịch
-    const Center(
-      child: Text("Màn hình Báo cáo (Đang phát triển)"),
-    ), // Placeholder Member 3
+    const ReportScreen(), // Màn hình 3: Báo cáo
     const Center(
       child: Text("Cài đặt (Đang phát triển)"),
     ), // Placeholder Member 5

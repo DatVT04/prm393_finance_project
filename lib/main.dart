@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'src/core/theme/app_theme.dart';
 import 'src/core/constants/app_constants.dart';
-import 'src/layout/main_layout.dart';
+import 'src/features/auth/login_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: FinanceApp()));
@@ -20,7 +20,8 @@ class FinanceApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
-      home: const MainLayout(),
+      initialRoute: '/',
+      routes: {'/': (context) => const LoginScreen()},
     );
   }
 }
