@@ -23,7 +23,7 @@ class AppTheme {
       // Card Theme: Soft & Modern
       cardTheme: CardThemeData(
         elevation:
-            0, // Flat by default, handled by custom shadows usually or low elevation
+        0, // Flat by default, handled by custom shadows usually or low elevation
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -91,7 +91,7 @@ class AppTheme {
           fontSize: 20,
           fontWeight: FontWeight.bold,
           fontFamily:
-              'Outfit_Regular', // Will be applied by textTheme globally usually
+          'Outfit_Regular', // Will be applied by textTheme globally usually
         ),
         iconTheme: IconThemeData(color: Color(0xFF2D3250)),
       ),
