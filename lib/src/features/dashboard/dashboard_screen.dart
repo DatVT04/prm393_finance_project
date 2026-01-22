@@ -14,16 +14,17 @@ class DashboardScreen extends StatelessWidget {
     // Sử dụng hàm formatCurrency thay cho NumberFormat
     final formattedAmount = formatCurrency(25000000);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Xin chào, User!",
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 20),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Xin chào, User!",
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 20),
 
           // Card Tổng tiền
           Container(
@@ -40,7 +41,8 @@ class DashboardScreen extends StatelessWidget {
           ),
 
           // ... Phần Chart và List code tiếp ở dưới ...
-        ],
+          ],
+        ),
       ),
     );
   }
