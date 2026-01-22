@@ -10,15 +10,18 @@ class TotalBalanceCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF11998e), Color(0xFF38ef7d)], // Teal Gradient
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary, // Deep Teal
+            const Color(0xFF004D40), // Darker shade
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF11998e).withOpacity(0.4),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

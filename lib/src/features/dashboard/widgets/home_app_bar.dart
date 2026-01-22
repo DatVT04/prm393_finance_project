@@ -23,12 +23,14 @@ class HomeAppBar extends StatelessWidget {
                   ),
                   fit: BoxFit.cover,
                 ),
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: Colors.white, width: 3),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),

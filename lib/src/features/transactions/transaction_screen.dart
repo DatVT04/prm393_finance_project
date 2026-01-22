@@ -115,15 +115,19 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.teal.shade50,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.05),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.account_balance_wallet_outlined,
                       size: 64,
-                      color: Colors.teal.shade200,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.4),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -132,7 +136,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -201,7 +205,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddTransactionModal(context),
-        backgroundColor: Colors.teal,
+        // backgroundColor: Colors.teal, // Handled by theme
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -224,28 +228,37 @@ class _TransactionScreenState extends State<TransactionScreen> {
       key: Key(tx.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        color: Colors.red.shade100,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(20),
+        ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.red),
       ),
       onDismissed: (_) => _deleteTransaction(tx.id),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: const Color(0xFF006D5B).withOpacity(0.05), // Tinted shadow
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
+          ),
           leading: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: _getCategoryColor(tx.category).withOpacity(0.1),
               shape: BoxShape.circle,
@@ -273,7 +286,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Colors.red,
+              color: Color(0xFFE53935), // We slightly sharper red
             ),
           ),
         ),
