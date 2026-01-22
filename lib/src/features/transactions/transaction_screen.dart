@@ -142,225 +142,227 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Tiêu đề
-              Text(
-                'Thêm Giao dịch',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 24),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tiêu đề
+                Text(
+                  'Thêm Giao dịch',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 24),
 
-              // Form nhập liệu
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      // TextField nhập tiền
-                      TextFormField(
-                        controller: _amountController,
-                        decoration: const InputDecoration(
-                          labelText: 'Số tiền',
-                          hintText: 'Nhập số tiền',
-                          prefixIcon: Icon(Icons.attach_money),
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Vui lòng nhập số tiền';
-                          }
-                          final amount = double.tryParse(value);
-                          if (amount == null) {
-                            return 'Số tiền không hợp lệ';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // TextField nhập ghi chú
-                      TextFormField(
-                        controller: _noteController,
-                        decoration: const InputDecoration(
-                          labelText: 'Ghi chú',
-                          hintText: 'Nhập ghi chú (tùy chọn)',
-                          prefixIcon: Icon(Icons.note),
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // DropdownButton chọn danh mục
-                      DropdownButtonFormField<String>(
-                        value: _selectedCategory,
-                        decoration: const InputDecoration(
-                          labelText: 'Danh mục',
-                          prefixIcon: Icon(Icons.category),
-                          border: OutlineInputBorder(),
-                        ),
-                        items: _categories.map((String category) {
-                          return DropdownMenuItem<String>(
-                            value: category,
-                            child: Text(category),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Vui lòng chọn danh mục';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // DatePicker chọn ngày
-                      InkWell(
-                        onTap: () => _selectDate(context),
-                        child: InputDecorator(
+                // Form nhập liệu
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        // TextField nhập tiền
+                        TextFormField(
+                          controller: _amountController,
                           decoration: const InputDecoration(
-                            labelText: 'Ngày',
-                            prefixIcon: Icon(Icons.calendar_today),
+                            labelText: 'Số tiền',
+                            hintText: 'Nhập số tiền',
+                            prefixIcon: Icon(Icons.attach_money),
                             border: OutlineInputBorder(),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(formatDate(_selectedDate)),
-                              const Icon(Icons.arrow_drop_down),
-                            ],
-                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Vui lòng nhập số tiền';
+                            }
+                            final amount = double.tryParse(value);
+                            if (amount == null) {
+                              return 'Số tiền không hợp lệ';
+                            }
+                            return null;
+                          },
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
-                      // Nút Lưu
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _saveTransaction,
-                          icon: const Icon(Icons.save),
-                          label: const Text('Lưu'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                        // TextField nhập ghi chú
+                        TextFormField(
+                          controller: _noteController,
+                          decoration: const InputDecoration(
+                            labelText: 'Ghi chú',
+                            hintText: 'Nhập ghi chú (tùy chọn)',
+                            prefixIcon: Icon(Icons.note),
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // DropdownButton chọn danh mục
+                        DropdownButtonFormField<String>(
+                          value: _selectedCategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Danh mục',
+                            prefixIcon: Icon(Icons.category),
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _categories.map((String category) {
+                            return DropdownMenuItem<String>(
+                              value: category,
+                              child: Text(category),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedCategory = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Vui lòng chọn danh mục';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // DatePicker chọn ngày
+                        InkWell(
+                          onTap: () => _selectDate(context),
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Ngày',
+                              prefixIcon: Icon(Icons.calendar_today),
+                              border: OutlineInputBorder(),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(formatDate(_selectedDate)),
+                                const Icon(Icons.arrow_drop_down),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+
+                        // Nút Lưu
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _saveTransaction,
+                            icon: const Icon(Icons.save),
+                            label: const Text('Lưu'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 32),
+                const SizedBox(height: 32),
 
-              // Danh sách giao dịch
-              Text(
-                'Danh sách Giao dịch',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 16),
+                // Danh sách giao dịch
+                Text(
+                  'Danh sách Giao dịch',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
 
-              // ListView.builder để hiển thị danh sách
-              _transactions.isEmpty
-                  ? Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.inbox,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Chưa có giao dịch nào',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _transactions.length,
-                      itemBuilder: (context, index) {
-                        final transaction = _transactions[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.teal,
-                              child: Icon(
-                                _getCategoryIcon(transaction.category),
-                                color: Colors.white,
-                              ),
-                            ),
-                            title: Text(
-                              transaction.category,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                // ListView.builder để hiển thị danh sách
+                _transactions.isEmpty
+                    ? Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Center(
+                            child: Column(
                               children: [
-                                if (transaction.note.isNotEmpty)
-                                  Text(transaction.note),
+                                Icon(
+                                  Icons.inbox,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
                                 Text(
-                                  formatDate(transaction.date),
+                                  'Chưa có giao dịch nào',
                                   style: TextStyle(
                                     color: Colors.grey[600],
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  formatCurrency(transaction.amount),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: Colors.teal,
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                // IconButton xóa
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  color: Colors.red,
-                                  onPressed: () =>
-                                      _deleteTransaction(transaction.id),
                                 ),
                               ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-            ],
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _transactions.length,
+                        itemBuilder: (context, index) {
+                          final transaction = _transactions[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.teal,
+                                child: Icon(
+                                  _getCategoryIcon(transaction.category),
+                                  color: Colors.white,
+                                ),
+                              ),
+                              title: Text(
+                                transaction.category,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (transaction.note.isNotEmpty)
+                                    Text(transaction.note),
+                                  Text(
+                                    formatDate(transaction.date),
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    formatCurrency(transaction.amount),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.teal,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // IconButton xóa
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    color: Colors.red,
+                                    onPressed: () =>
+                                        _deleteTransaction(transaction.id),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ],
+            ),
           ),
         ),
       ),
