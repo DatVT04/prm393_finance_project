@@ -15,8 +15,11 @@ class ReportSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.teal.shade50,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: Colors.grey.shade100),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
