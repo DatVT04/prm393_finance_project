@@ -169,7 +169,7 @@ function GoodParent({ items }) {
 if command -v npx >/dev/null 2>&1; then
   if [ -d "build/static/js" ]; then
     echo "CRA detected - analyzing bundle..."
-    npx webpack-bundle-analyzer build/static/js/*.js --no-open --report bundle-report.html
+    npx webpack-bundle-analyzer build/static/js/*.js --no-open --reports bundle-reports.html
   elif [ -f "next.config.js" ]; then
     echo "Next.js detected - use ANALYZE=true npm run build"
   elif [ -f "vite.config.js" ]; then
@@ -658,7 +658,7 @@ function UserProfile() {
 ### Bundle Analysis
 ```bash
 # Webpack Bundle Analyzer
-npx webpack-bundle-analyzer build/static/js/*.js --no-open --report bundle-report.html
+npx webpack-bundle-analyzer build/static/js/*.js --no-open --reports bundle-reports.html
 
 # Next.js Bundle Analysis
 ANALYZE=true npm run build

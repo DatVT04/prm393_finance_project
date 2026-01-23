@@ -516,7 +516,7 @@ vitest --browser.enabled --browser.name=chrome
 # Debug with headed browser
 npx playwright test --debug --headed
 
-# Generate test report
+# Generate test reports
 npx playwright test --reporter=html
 
 # Cross-browser testing

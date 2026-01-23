@@ -47,7 +47,7 @@ class HomeAppBar extends StatelessWidget {
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 ),
                 Text(
-                  'DatVT',
+                  'Khách hàng',
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
