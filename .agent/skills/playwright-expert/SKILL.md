@@ -192,8 +192,8 @@ npx playwright test --ui
 # Debug mode
 npx playwright test --debug
 
-# Generate report
-npx playwright show-report
+# Generate reports
+npx playwright show-reports
 ```
 
 ## Code Review Checklist

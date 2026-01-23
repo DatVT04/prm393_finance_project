@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/transactions/transaction_screen.dart';
-import '../features/report/report_screen.dart';
+import '../features/reports/report_screen.dart';
+import '../features/settings/settings_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -20,9 +21,7 @@ class _MainLayoutState extends State<MainLayout> {
     const DashboardScreen(), // Màn hình 1: Dashboard
     const TransactionScreen(), // Màn hình 2: Giao dịch
     const ReportScreen(), // Màn hình 3: Báo cáo
-    const Center(
-      child: Text("Cài đặt (Đang phát triển)"),
-    ), // Placeholder Member 5
+    const SettingsScreen(), // Màn hình 4: Cài đặt
   ];
 
   // Navigation destinations cho cả Mobile và Desktop
@@ -78,15 +77,19 @@ class _MainLayoutState extends State<MainLayout> {
         }
         // Desktop/Web Layout: Side Navigation Rail
         else {
+          final isExtended = constraints.maxWidth >= AppConstants.desktopBreakpoint;
           return Scaffold(
             body: Row(
               children: [
                 NavigationRail(
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: _onDestinationSelected,
-                  labelType: NavigationRailLabelType.all,
-                  extended:
-                      constraints.maxWidth >= AppConstants.desktopBreakpoint,
+                  // Khi extended = true, labelType phải là null hoặc none
+                  // Khi extended = false, có thể dùng all
+                  labelType: isExtended
+                      ? NavigationRailLabelType.none
+                      : NavigationRailLabelType.all,
+                  extended: isExtended,
                   destinations: _desktopDestinations,
                 ),
                 const VerticalDivider(thickness: 1, width: 1),
