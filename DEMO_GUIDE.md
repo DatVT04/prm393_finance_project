@@ -81,7 +81,7 @@ lib/src/
 │   └── theme/      # App theme (light/dark)
 ├── features/       # Feature modules
 │   ├── dashboard/
-│   ├── transactions/  ← Phần em làm
+│   ├── transactions/  ← Phần làm
 │   ├── reports/
 │   └── settings/
 ├── layout/         # Navigation layout
