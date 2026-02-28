@@ -20,7 +20,28 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
   late Color _selectedColor;
   late String _selectedType; // INCOME or EXPENSE
 
-  
+  static const _iconOptions = <(String, IconData)>[
+    ('utensils', FontAwesomeIcons.utensils),
+    ('cartShopping', FontAwesomeIcons.cartShopping),
+    ('moneyBillWave', FontAwesomeIcons.moneyBillWave),
+    ('sackDollar', FontAwesomeIcons.sackDollar),
+    ('piggyBank', FontAwesomeIcons.piggyBank),
+    ('wallet', FontAwesomeIcons.wallet),
+    ('film', FontAwesomeIcons.film),
+    ('gamepad', FontAwesomeIcons.gamepad),
+    ('heartbeat', FontAwesomeIcons.heartPulse),
+    ('hospital', FontAwesomeIcons.hospital),
+    ('stethoscope', FontAwesomeIcons.stethoscope),
+    ('graduationCap', FontAwesomeIcons.graduationCap),
+    ('bus', FontAwesomeIcons.bus),
+    ('car', FontAwesomeIcons.car),
+    ('motorcycle', FontAwesomeIcons.motorcycle),
+    ('house', FontAwesomeIcons.house),
+    ('lightbulb', FontAwesomeIcons.lightbulb),
+    ('gift', FontAwesomeIcons.gift),
+    ('plane', FontAwesomeIcons.plane),
+    ('coffee', FontAwesomeIcons.mugSaucer),
+  ];
 
   static const _colorOptions = <Color>[
     Color(0xFF006D5B),
