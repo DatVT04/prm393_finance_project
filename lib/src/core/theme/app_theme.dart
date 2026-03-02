@@ -107,24 +107,7 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
-    final baseText = ThemeData.dark().textTheme;
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      primaryColor: const Color(0xFF1976D2),
-      scaffoldBackgroundColor: const Color(0xFF0F172A),
-      cardColor: const Color(0xFF1E293B),
-      dividerColor: const Color(0xFF334155),
-
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF1976D2),
-        primary: const Color(0xFF1976D2),
-        background: const Color(0xFF0F172A),
-        surface: const Color(0xFF1E293B),
-        outline: const Color(0xFF334155),
-        brightness: Brightness.dark,
-      ),
+  
 
       textTheme: baseText.copyWith(
         displayLarge: baseText.displayLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
