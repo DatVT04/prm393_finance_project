@@ -126,7 +126,23 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
 
-      
+      textTheme: baseText.copyWith(
+        displayLarge: baseText.displayLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        displayMedium: baseText.displayMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        displaySmall: baseText.displaySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        headlineLarge: baseText.headlineLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        headlineMedium: baseText.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        headlineSmall: baseText.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        titleLarge: baseText.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        titleMedium: baseText.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        titleSmall: baseText.titleSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        bodyLarge: baseText.bodyLarge?.copyWith(color: Colors.white.withOpacity(0.7)),
+        bodyMedium: baseText.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.7)),
+        bodySmall: baseText.bodySmall?.copyWith(color: Colors.white.withOpacity(0.38)),
+        labelLarge: baseText.labelLarge?.copyWith(color: Colors.white.withOpacity(0.38)),
+        labelMedium: baseText.labelMedium?.copyWith(color: Colors.white.withOpacity(0.38)),
+        labelSmall: baseText.labelSmall?.copyWith(color: Colors.white.withOpacity(0.38)),
+      ),
 
       cardTheme: CardThemeData(
         elevation: 0,
