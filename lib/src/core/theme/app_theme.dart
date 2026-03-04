@@ -191,7 +191,17 @@ class AppTheme {
         side: BorderSide.none,
       ),
 
-      
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF0F172A),
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Color(0xFF1E293B),
         surfaceTintColor: Colors.transparent,
