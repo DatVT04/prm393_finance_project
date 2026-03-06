@@ -18,6 +18,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
   // We store the FontAwesome "name" as a string in CategoryModel.iconName.
   late String? _selectedIconName;
   late Color _selectedColor;
+  late String _selectedType; // INCOME or EXPENSE
 
   static const _iconOptions = <(String, IconData)>[
     ('utensils', FontAwesomeIcons.utensils),
@@ -63,6 +64,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     _nameController = TextEditingController(text: widget.existing?.name ?? '');
     _selectedIconName = widget.existing?.iconName;
     _selectedColor = _parseColor(widget.existing?.colorHex) ?? _colorOptions.first;
+    _selectedType = widget.existing?.type ?? 'EXPENSE';
   }
 
   @override
@@ -138,6 +140,34 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
                 labelText: 'Tên danh mục *',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Loại danh mục',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                  value: 'EXPENSE',
+                  label: Text('Chi tiêu'),
+                  icon: Icon(Icons.remove_circle_outline),
+                ),
+                ButtonSegment(
+                  value: 'INCOME',
+                  label: Text('Thu nhập'),
+                  icon: Icon(Icons.add_circle_outline),
+                ),
+              ],
+              selected: {_selectedType},
+              onSelectionChanged: (val) {
+                setState(() {
+                  _selectedType = val.first;
+                });
+              },
             ),
             const SizedBox(height: 16),
             Text(
@@ -292,6 +322,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     final category = CategoryModel(
       id: existing?.id ?? 0,
       name: name,
+      type: _selectedType,
       iconName: _selectedIconName,
       colorHex: _colorToHex(_selectedColor),
       sortOrder: existing?.sortOrder,

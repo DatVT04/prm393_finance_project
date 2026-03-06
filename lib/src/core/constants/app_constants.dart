@@ -12,7 +12,8 @@ class AppConstants {
   // Navigation
   static const int dashboardIndex = 0;
   static const int transactionsIndex = 1;
-  static const int reportsIndex = 2;
-  static const int settingsIndex = 3;
-  static const int aiIndex = 4;
+  static const int budgetsIndex = 2;
+  static const int reportsIndex = 3;
+  static const int settingsIndex = 4;
+  static const int aiIndex = 5;
 }

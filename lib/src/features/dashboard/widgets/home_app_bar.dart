@@ -18,6 +18,7 @@ class HomeAppBar extends ConsumerWidget {
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
 
     void showTodaySummarySheet() {
+      DateTime selectedDate = DateTime.now();
       showModalBottomSheet<void>(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -49,167 +50,193 @@ class HomeAppBar extends ConsumerWidget {
                 ],
               ),
               data: (all) {
-                final todayEntries = _filterToday(all);
-                final income = todayEntries.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
-                final expense = todayEntries.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
-                final net = income - expense;
-                
-                 final count = todayEntries.length;
-                final currency = NumberFormat('#,###', context.locale.toString());
+                return StatefulBuilder(
+                  builder: (context, setModalState) {
+                    final selectedEntries = _filterByDay(all, selectedDate);
+                    final income = selectedEntries
+                        .where((e) => e.type == 'INCOME')
+                        .fold<double>(0, (s, e) => s + e.amount);
+                    final expense = selectedEntries
+                        .where((e) => e.type == 'EXPENSE')
+                        .fold<double>(0, (s, e) => s + e.amount);
+                    final net = income - expense;
+                    final count = selectedEntries.length;
+                    final currency = NumberFormat('#,###', context.locale.toString());
 
-                if (count == 0) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 8),
-                      Icon(
-                        Icons.notifications_none,
-                        size: 40,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'no_entries_today'.tr(),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'add_entry_hint'.tr(),
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  );
-                }
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'today_summary'.tr(),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.today,
-                                size: 16,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                DateFormat('dd/MM/yyyy', context.locale.toString()).format(DateTime.now()),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Theme.of(context).dividerColor),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    if (count == 0) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'today_flow'.tr(),
-                                style: const TextStyle(fontSize: 13, color: Colors.grey),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${net >= 0 ? '+' : '-'}${currency.format(net.abs())} đ',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: net >= 0 ? Colors.green[600] : const Color(0xFFE53935),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 8),
+                          Icon(
+                            Icons.notifications_none,
+                            size: 40,
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'notes_count'.tr(),
-                                style: const TextStyle(fontSize: 13, color: Colors.grey),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '$count',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 16),
+                          Text(
+                            'no_entries_today'.tr(),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'add_entry_hint'.tr(),
+                            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
                         ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'recent_details'.tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...todayEntries.take(3).map(
-                      (e) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
+                      );
+                    }
+
+                    final formattedSelectedDate =
+                        DateFormat('dd/MM/yyyy', context.locale.toString()).format(selectedDate);
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              child: Text(
-                                e.categoryName ?? 'other'.tr(),
-                                style: const TextStyle(fontSize: 14),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
                             Text(
-                              '${e.type == 'INCOME' ? '+' : '-'}${currency.format(e.amount)} đ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: e.type == 'INCOME' ? Colors.green[600] : const Color(0xFFE53935),
+                              'today_summary'.tr(),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(999),
+                              onTap: () async {
+                                final now = DateTime.now();
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: selectedDate,
+                                  firstDate: DateTime(now.year - 5),
+                                  lastDate: DateTime(now.year + 5),
+                                );
+                                if (picked == null) return;
+                                setModalState(() => selectedDate = picked);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.today,
+                                      size: 16,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      formattedSelectedDate,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Theme.of(context).dividerColor),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'today_flow'.tr(),
+                                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '${net >= 0 ? '+' : '-'}${currency.format(net.abs())} đ',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                      color: net >= 0 ? Colors.green[600] : const Color(0xFFE53935),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'notes_count'.tr(),
+                                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '$count',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'recent_details'.tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...selectedEntries.take(3).map(
+                          (e) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    e.categoryName ?? 'other'.tr(),
+                                    style: const TextStyle(fontSize: 14),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${e.type == 'INCOME' ? '+' : '-'}${currency.format(e.amount)} đ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: e.type == 'INCOME'
+                                        ? Colors.green[600]
+                                        : const Color(0xFFE53935),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    );
+                  },
                 );
               },
             ),
@@ -339,15 +366,15 @@ class HomeAppBar extends ConsumerWidget {
     );
   }
 
-  List<FinancialEntryModel> _filterToday(List<FinancialEntryModel> all) {
-    final now = DateTime.now();
-    final start = DateTime(now.year, now.month, now.day);
+  List<FinancialEntryModel> _filterByDay(List<FinancialEntryModel> all, DateTime day) {
+    final start = DateTime(day.year, day.month, day.day);
     final end = start.add(const Duration(days: 1));
-    return all.where((e) {
-      final d = e.transactionDate;
-      return d.isAtSameMomentAs(start) ||
-          d.isAfter(start) && d.isBefore(end);
-    }).toList()
+    return all
+        .where((e) {
+          final d = e.transactionDate;
+          return d.isAtSameMomentAs(start) || (d.isAfter(start) && d.isBefore(end));
+        })
+        .toList()
       ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
   }
 }

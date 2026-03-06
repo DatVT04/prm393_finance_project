@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ReportSummaryCard extends StatelessWidget {
   final double income;
@@ -29,7 +30,7 @@ class ReportSummaryCard extends StatelessWidget {
                 context,
                 icon: FontAwesomeIcons.arrowDown,
                 color: Colors.green,
-                label: 'Tổng thu',
+                label: 'total_income'.tr(),
                 amount: income,
               ),
             ),
@@ -43,7 +44,7 @@ class ReportSummaryCard extends StatelessWidget {
                 context,
                 icon: FontAwesomeIcons.arrowUp,
                 color: Colors.red,
-                label: 'Tổng chi',
+                label: 'total_expense'.tr(),
                 amount: expense,
               ),
             ),

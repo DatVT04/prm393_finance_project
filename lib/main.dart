@@ -8,15 +8,20 @@ import 'src/features/auth/auth_provider.dart';
 import 'src/features/auth/login_screen.dart';
 import 'src/layout/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-
-  // Firebase removed for cross-platform reliability (Web/Windows/Android).
+  
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint("Firebase initialization failed: $e");
+  }
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('vi')],
+      supportedLocales: const [Locale('en'), Locale('vi'), Locale('ja'), Locale('ko'), Locale('zh')],
       path: 'assets/translations',
       fallbackLocale: const Locale('vi'),
       useOnlyLangCode: true,

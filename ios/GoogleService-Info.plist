@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>954893711733-8v5t3r4s7sbuu4evphbro6jfg2h1e9ac.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.954893711733-8v5t3r4s7sbuu4evphbro6jfg2h1e9ac</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>954893711733-0qvfddd4erpv2i7785abjs605eb6gubj.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCNKAmSnCHvxsWkRJAer-rvnuDfX0FFQRE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>954893711733</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.huy.financeapp</string>
+	<key>PROJECT_ID</key>
+	<string>project-prm-8caeb</string>
+	<key>STORAGE_BUCKET</key>
+	<string>project-prm-8caeb.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:954893711733:ios:a281df75c9704939613b3c</string>
+</dict>
+</plist>

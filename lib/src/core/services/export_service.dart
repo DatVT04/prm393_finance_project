@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:excel/excel.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -14,7 +16,7 @@ class ExportService {
   static final _numberFormat = NumberFormat('#,###', 'vi_VN');
 
   /// Export entries to Excel and return file path. Share via share_plus.
-  static Future<String> exportToExcel(List<FinancialEntryModel> entries) async {
+  static Future<String> exportToExcel(List<FinancialEntryModel> entries, {Rect? sharePositionOrigin}) async {
     final excel = Excel.createExcel();
     final sheet = excel['Sheet1'];
 
@@ -37,19 +39,26 @@ class ExportService {
       ]);
     }
 
-    final dir = await getApplicationDocumentsDirectory();
     final name = 'Nhat_ky_tai_chinh_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.xlsx';
-    final path = '${dir.path}/$name';
-    final file = File(path);
     final bytes = excel.encode();
     if (bytes == null) return '';
+
+    if (kIsWeb) {
+      final xFile = XFile.fromData(Uint8List.fromList(bytes), name: name, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      await Share.shareXFiles([xFile], text: 'Xuất nhật ký tài chính (Excel)', sharePositionOrigin: sharePositionOrigin);
+      return '';
+    }
+
+    final dir = await getApplicationDocumentsDirectory();
+    final path = '${dir.path}/$name';
+    final file = File(path);
     await file.writeAsBytes(bytes);
-    await Share.shareXFiles([XFile(path)], text: 'Xuất nhật ký tài chính (Excel)');
+    await Share.shareXFiles([XFile(path)], text: 'Xuất nhật ký tài chính (Excel)', sharePositionOrigin: sharePositionOrigin);
     return path;
   }
 
   /// Export entries to PDF and share.
-  static Future<String> exportToPdf(List<FinancialEntryModel> entries) async {
+  static Future<String> exportToPdf(List<FinancialEntryModel> entries, {Rect? sharePositionOrigin}) async {
     final pdf = pw.Document();
     pdf.addPage(
       pw.MultiPage(
@@ -89,12 +98,20 @@ class ExportService {
       ),
     );
 
-    final dir = await getApplicationDocumentsDirectory();
     final name = 'Nhat_ky_tai_chinh_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.pdf';
+    final bytes = await pdf.save();
+
+    if (kIsWeb) {
+      final xFile = XFile.fromData(bytes, name: name, mimeType: 'application/pdf');
+      await Share.shareXFiles([xFile], text: 'Xuất nhật ký tài chính (PDF)', sharePositionOrigin: sharePositionOrigin);
+      return '';
+    }
+
+    final dir = await getApplicationDocumentsDirectory();
     final path = '${dir.path}/$name';
     final file = File(path);
-    await file.writeAsBytes(await pdf.save());
-    await Share.shareXFiles([XFile(path)], text: 'Xuất nhật ký tài chính (PDF)');
+    await file.writeAsBytes(bytes);
+    await Share.shareXFiles([XFile(path)], text: 'Xuất nhật ký tài chính (PDF)', sharePositionOrigin: sharePositionOrigin);
     return path;
   }
 

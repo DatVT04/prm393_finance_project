@@ -7,6 +7,7 @@ import '../models/account_model.dart';
 import '../models/ai_assistant_response.dart';
 import '../models/category_model.dart';
 import '../models/financial_entry_model.dart';
+import '../models/budget_model.dart';
 
 class FinanceApiClient {
   static final FinanceApiClient _instance = FinanceApiClient._();
@@ -399,16 +400,18 @@ class FinanceApiClient {
     String? conversationId,
     int? accountId,
     String? language,
+    String? base64Image,
   }) async {
     final res = await http.post(
       Uri.parse('$_base/api/ai/assistant'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _userHeaders,
       body: jsonEncode({
         'message': message,
         if (conversationId != null && conversationId.isNotEmpty)
           'conversationId': conversationId,
         if (accountId != null) 'accountId': accountId,
         if (language != null && language.isNotEmpty) 'language': language,
+        if (base64Image != null && base64Image.isNotEmpty) 'base64Image': base64Image,
       }),
     );
     if (res.statusCode != 200)
@@ -416,6 +419,44 @@ class FinanceApiClient {
     return AiAssistantResponse.fromJson(
       jsonDecode(res.body) as Map<String, dynamic>,
     );
+  }
+
+  Future<List<BudgetModel>> getBudgets() async {
+    final res = await http.get(
+      Uri.parse('$_base/api/budgets'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to load budgets');
+    final list = jsonDecode(res.body) as List;
+    return list.map((e) => BudgetModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getAiHistory() async {
+    final res = await http.get(
+      Uri.parse('$_base/api/ai/history'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to load AI history');
+    final list = jsonDecode(res.body) as List;
+    return list.cast<Map<String, dynamic>>();
+  }
+
+  Future<BudgetModel> upsertBudget(BudgetModel budget) async {
+    final res = await http.post(
+      Uri.parse('$_base/api/budgets'),
+      headers: _userHeaders,
+      body: jsonEncode(budget.toJson()),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to save budget');
+    return BudgetModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteBudget(int id) async {
+    final res = await http.delete(
+      Uri.parse('$_base/api/budgets/$id'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to delete budget');
   }
 
   static String _dateStr(DateTime d) =>

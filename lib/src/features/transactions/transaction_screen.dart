@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'providers/finance_providers.dart';
 import 'widgets/add_entry_modal.dart';
@@ -19,6 +20,9 @@ class TransactionScreen extends ConsumerStatefulWidget {
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   String _dateFilter = 'all';
   DateTime? _customDate;
+  int? _selectedCategoryId;
+  String? _selectedCategoryName;
+  String _searchQuery = '';
 
   void _openAddEntry() async {
     final created = await showModalBottomSheet<FinancialEntryModel>(
@@ -100,6 +104,22 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     return list;
   }
 
+  List<FinancialEntryModel> _filterByCategory(List<FinancialEntryModel> list) {
+    if (_selectedCategoryId == null) return list;
+    return list.where((e) => e.categoryId == _selectedCategoryId).toList();
+  }
+
+  List<FinancialEntryModel> _filterBySearch(List<FinancialEntryModel> list) {
+    final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return list;
+
+    return list.where((e) {
+      final note = (e.note ?? '').toLowerCase();
+      final category = (e.categoryName ?? '').toLowerCase();
+      return note.contains(q) || category.contains(q);
+    }).toList();
+  }
+
   Future<void> _pickCustomDate() async {
     final now = DateTime.now();
     final initial = _customDate ?? now;
@@ -119,74 +139,21 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filterTag = ref.watch(filterTagProvider);
-    final entriesAsync = ref.watch(entriesFilteredProvider(filterTag));
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final categories = categoriesAsync.valueOrNull ?? const <CategoryModel>[];
+    final entriesAsync = ref.watch(entriesWithRefreshProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('transactions_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          if (filterTag != null && filterTag.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Chip(
-                label: Text('#$filterTag'),
-                onDeleted: () {
-                  ref.read(filterTagProvider.notifier).state = null;
-                },
-              ),
-            ),
-          IconButton(
-            onPressed: () {
-              final controller = TextEditingController(text: filterTag ?? '');
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: Text('filter_by_tag'.tr()),
-                  content: TextField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      hintText: 'enter_tag_hint'.tr(),
-                      prefixText: '#',
-                    ),
-                    onSubmitted: (v) {
-                      final t = v.trim();
-                      ref.read(filterTagProvider.notifier).state =
-                          t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        ref.read(filterTagProvider.notifier).state = null;
-                        Navigator.pop(ctx);
-                      },
-                      child: Text('remove_filter'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        final t = controller.text.trim();
-                        ref.read(filterTagProvider.notifier).state =
-                            t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
-                        Navigator.pop(ctx);
-                      },
-                      child: Text('apply'.tr()),
-                    ),
-                  ],
-                ),
-              );
-            },
-            icon: const Icon(Icons.filter_list),
-            color: Colors.black87,
-          ),
-        ],
       ),
       body: entriesAsync.when(
         data: (list) {
           var displayList = _filterByDate(list);
+          displayList = _filterByCategory(displayList);
+          displayList = _filterBySearch(displayList);
           final grouped = _groupByDate(displayList);
           final sortedKeys = grouped.keys.toList()
             ..sort((a, b) {
@@ -194,110 +161,186 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               final db = DateFormat('dd/MM/yyyy', context.locale.toString()).parse(b);
               return db.compareTo(da);
             });
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+          return GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildDateFilterChip('all'),
+                        const SizedBox(width: 8),
+                        _buildDateFilterChip('this_month'),
+                        const SizedBox(width: 8),
+                        _buildDateFilterChip('this_year'),
+                        const SizedBox(width: 8),
+                        ChoiceChip(
+                          label: Text(
+                            _customDate != null
+                                ? DateFormat('dd/MM/yyyy', context.locale.toString()).format(_customDate!)
+                                : 'day'.tr(),
+                          ),
+                          avatar: const Icon(Icons.calendar_today, size: 18),
+                          selected: _dateFilter == 'day',
+                          onSelected: (_) => _pickCustomDate(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
-                      _buildDateFilterChip('all'),
-                      const SizedBox(width: 8),
-                      _buildDateFilterChip('this_month'),
-                      const SizedBox(width: 8),
-                      _buildDateFilterChip('this_year'),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: Text(
-                          _customDate != null
-                              ? DateFormat('dd/MM/yyyy', context.locale.toString()).format(_customDate!)
-                              : 'day'.tr(),
+                      Expanded(
+                        child: categoriesAsync.when(
+                          data: (list) {
+                            return DropdownButtonFormField<int?>(
+                              value: _selectedCategoryId,
+                              decoration: InputDecoration(
+                                labelText: 'category_label'.tr(),
+                                prefixIcon: const Icon(Icons.filter_list),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              ),
+                              items: [
+                                DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('all'.tr()),
+                                ),
+                                ...list.map(
+                                  (c) => DropdownMenuItem<int?>(
+                                    value: c.id,
+                                    child: Text(c.name),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (v) {
+                                setState(() {
+                                  _selectedCategoryId = v;
+                                  if (v == null) {
+                                    _selectedCategoryName = null;
+                                  } else {
+                                    _selectedCategoryName = list.firstWhere((c) => c.id == v).name;
+                                  }
+                                });
+                              },
+                            );
+                          },
+                          loading: () => const LinearProgressIndicator(),
+                          error: (_, __) => Text('error_loading_categories'.tr()),
                         ),
-                        avatar: const Icon(Icons.calendar_today, size: 18),
-                        selected: _dateFilter == 'day',
-                        onSelected: (_) => _pickCustomDate(),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: displayList.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.account_balance_wallet_outlined,
-                                size: 64,
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                               filterTag != null ? '${'no_entries_with_tag'.tr()} #$filterTag' : 'no_entries_yet'.tr(),
-                              style: Theme.of(context).textTheme.titleLarge,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                               'add_entry_hint'.tr(),
-                              style: Theme.of(context).textTheme.bodySmall,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 100, top: 8),
-                        itemCount: sortedKeys.length,
-                        itemBuilder: (context, index) {
-                          final dateStr = sortedKeys[index];
-                          final items = grouped[dateStr]!;
-                          final incomeTotal = items.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
-                          final expenseTotal = items.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
-                          final dailyNet = incomeTotal - expenseTotal;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: TextField(
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'search_hint'.tr() == 'search_hint' ? 'Search by note / category...' : 'search_hint'.tr(),
+                      suffixIcon: _searchQuery.trim().isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => setState(() => _searchQuery = ''),
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: displayList.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      _formatDateHeader(dateStr),
-                                      style: TextStyle(
-                                          color: Colors.grey[700],
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14),
-                                    ),
-                                    Text(
-                                      '${dailyNet >= 0 ? '+' : '-'}${NumberFormat("#,###", context.locale.toString()).format(dailyNet.abs())} đ',
-                                      style: TextStyle(
-                                          color: dailyNet >= 0 ? Colors.green[700] : Colors.red[700],
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14),
-                                    ),
-                                  ],
+                              Container(
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.account_balance_wallet_outlined,
+                                  size: 64,
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                                 ),
                               ),
-                              ...items.map((e) => _buildEntryItem(e)),
+                              const SizedBox(height: 24),
+                              Text(
+                                _searchQuery.trim().isNotEmpty
+                                    ? 'Không có ghi chú phù hợp.'
+                                    : (_selectedCategoryName != null
+                                        ? 'Không có ghi chú thuộc danh mục: $_selectedCategoryName'
+                                        : 'no_entries_yet'.tr()),
+                                style: Theme.of(context).textTheme.titleLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                 'add_entry_hint'.tr(),
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
                             ],
-                          );
-                        },
-                      ),
-              ),
-            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 100, top: 8),
+                          itemCount: sortedKeys.length,
+                          itemBuilder: (context, index) {
+                            final dateStr = sortedKeys[index];
+                            final items = grouped[dateStr]!;
+                            final incomeTotal = items.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
+                            final expenseTotal = items.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
+                            final dailyNet = incomeTotal - expenseTotal;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        _formatDateHeader(dateStr),
+                                        style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
+                                      ),
+                                      Text(
+                                        '${dailyNet >= 0 ? '+' : '-'}${NumberFormat("#,###", context.locale.toString()).format(dailyNet.abs())} đ',
+                                        style: TextStyle(
+                                            color: dailyNet >= 0 ? Colors.green[700] : Colors.red[700],
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                ...items.map((e) => _buildEntryItem(e)),
+                              ],
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
           );
+
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
