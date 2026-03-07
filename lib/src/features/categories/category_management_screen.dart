@@ -147,9 +147,19 @@ class _CategoryManagementScreenState
                     c.name,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: c.sortOrder != null
-                      ? Text('Thứ tự: ${c.sortOrder}')
-                      : null,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        c.type == 'INCOME' ? 'Thu nhập' : 'Chi tiêu',
+                        style: TextStyle(
+                          color: c.type == 'INCOME' ? Colors.green : Colors.orange,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (c.sortOrder != null) Text('Thứ tự: ${c.sortOrder}'),
+                    ],
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

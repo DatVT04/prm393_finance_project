@@ -51,14 +51,3 @@ final entriesWithRefreshProvider = FutureProvider<List<FinancialEntryModel>>((re
   final client = ref.watch(apiClientProvider);
   return client.getEntries();
 });
-
-/// Tag filter for transaction list (null = all). Gửi lên API khi có giá trị.
-final filterTagProvider = StateProvider<String?>((ref) => null);
-
-/// Entries có thể lọc theo tag qua API (dùng ở màn Ghi chú chi tiêu).
-final entriesFilteredProvider =
-    FutureProvider.family<List<FinancialEntryModel>, String?>((ref, tag) async {
-  ref.watch(entriesRefreshProvider);
-  final client = ref.watch(apiClientProvider);
-  return client.getEntries(tag: tag);
-});

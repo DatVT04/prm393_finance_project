@@ -21,6 +21,19 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isLoading = false;
 
+  String _avatarInitials(String rawName) {
+    final parts = rawName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'U';
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return '${parts[0].substring(0, 1)}${parts[1].substring(0, 1)}'.toUpperCase();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -142,7 +155,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           // ===== PROFILE =====
-          _buildSectionTitle(context, 'account'.tr()),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -157,9 +169,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           backgroundColor: theme.dividerColor,
                           backgroundImage: (avatar != null && avatar.isNotEmpty)
                               ? NetworkImage('${ApiConstants.baseUrl}$avatar')
-                              : const NetworkImage(
-                                      'https://ui-avatars.com/api/?background=random&name=User')
-                                  as ImageProvider,
+                              : null,
+                          child: (avatar == null || avatar.isEmpty)
+                              ? Text(
+                                  _avatarInitials(name),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )
+                              : null,
                         ),
                         if (_isLoading)
                           const Positioned.fill(
@@ -217,7 +235,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
 
           // ===== THEME =====
-          _buildSectionTitle(context, 'appearance'.tr()),
           Card(
             child: SwitchListTile(
               value: appState.themeMode == ThemeMode.dark,
@@ -230,15 +247,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // ===== LANGUAGE =====
-          _buildSectionTitle(context, 'language'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.language),
               title: Text('change_language'.tr()),
-              subtitle: Text(context.locale.languageCode == 'vi' ? 'vietnamese'.tr() : 'english'.tr()),
+              subtitle: Text(
+                context.locale.languageCode == 'vi'
+                    ? 'vietnamese'.tr()
+                    : context.locale.languageCode == 'en'
+                        ? 'english'.tr()
+                        : context.locale.languageCode == 'ja'
+                            ? 'japanese'.tr()
+                            : context.locale.languageCode == 'ko'
+                                ? 'korean'.tr()
+                                : 'chinese'.tr(),
+              ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 _showLanguageDialog();
@@ -246,10 +272,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // ===== DATA =====
-          _buildSectionTitle(context, 'data'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.category),
@@ -266,10 +291,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // ===== ABOUT =====
-          _buildSectionTitle(context, 'info'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline),
@@ -417,6 +441,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
               title: Text('english'.tr()),
               trailing: context.locale.languageCode == 'en' ? const Icon(Icons.check, color: Colors.green) : null,
               onTap: () {
@@ -425,10 +450,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
             ListTile(
+              leading: const Text('🇻🇳', style: TextStyle(fontSize: 24)),
               title: Text('vietnamese'.tr()),
               trailing: context.locale.languageCode == 'vi' ? const Icon(Icons.check, color: Colors.green) : null,
               onTap: () {
                 context.setLocale(const Locale('vi'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇯🇵', style: TextStyle(fontSize: 24)),
+              title: Text('japanese'.tr()),
+              trailing: context.locale.languageCode == 'ja' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('ja'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇰🇷', style: TextStyle(fontSize: 24)),
+              title: Text('korean'.tr()),
+              trailing: context.locale.languageCode == 'ko' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('ko'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇨🇳', style: TextStyle(fontSize: 24)),
+              title: Text('chinese'.tr()),
+              trailing: context.locale.languageCode == 'zh' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('zh'));
                 Navigator.pop(ctx);
               },
             ),

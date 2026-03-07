@@ -1,6 +1,7 @@
 class CategoryModel {
   final int id;
   final String name;
+  final String? type; // INCOME, EXPENSE, TRANSFER
   final String? iconName;
   final String? colorHex;
   final int? sortOrder;
@@ -8,6 +9,7 @@ class CategoryModel {
   CategoryModel({
     required this.id,
     required this.name,
+    this.type,
     this.iconName,
     this.colorHex,
     this.sortOrder,
@@ -17,6 +19,7 @@ class CategoryModel {
     return CategoryModel(
       id: json['id'] as int,
       name: json['name'] as String? ?? '',
+      type: json['type'] as String?,
       iconName: json['iconName'] as String?,
       colorHex: json['colorHex'] as String?,
       sortOrder: json['sortOrder'] as int?,
@@ -26,6 +29,7 @@ class CategoryModel {
   Map<String, dynamic> toCreateJson() {
     return {
       'name': name,
+      if (type != null) 'type': type,
       if (iconName != null && iconName!.isNotEmpty) 'iconName': iconName,
       if (colorHex != null && colorHex!.isNotEmpty) 'colorHex': colorHex,
       if (sortOrder != null) 'sortOrder': sortOrder,
