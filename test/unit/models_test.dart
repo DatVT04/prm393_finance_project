@@ -94,5 +94,26 @@ void main() {
     });
   });
 
-  
+  group('CategoryModel', () {
+    test('fromJson parses correctly', () {
+      final json = {
+        'id': 1,
+        'name': 'Ăn uống',
+        'iconName': 'restaurant',
+        'colorHex': '#FF0000',
+        'sortOrder': 1,
+      };
+      final m = CategoryModel.fromJson(json);
+      expect(m.id, 1);
+      expect(m.name, 'Ăn uống');
+      expect(m.iconName, 'restaurant');
+      expect(m.colorHex, '#FF0000');
+      expect(m.sortOrder, 1);
+    });
+
+    test('fromJson uses empty string when name is null', () {
+      final m = CategoryModel.fromJson({'id': 1});
+      expect(m.name, '');
+    });
+  });
 }
