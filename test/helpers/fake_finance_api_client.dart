@@ -307,6 +307,9 @@ class FakeFinanceApiClient implements FinanceApiClient {
   }
 
   @override
+  Future<void> clearAiHistory() async {}
+
+  @override
   Future<BudgetModel> upsertBudget(BudgetModel budget) async {
     return budget;
   }
