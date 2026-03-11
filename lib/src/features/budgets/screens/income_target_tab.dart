@@ -71,7 +71,6 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
     }
   }
 
-  /// Calculate the actual income earned for this category in the selected month.
   double _getEarnedAmount(int categoryId, List entries) {
     return entries.where((e) {
       final date = e.transactionDate as DateTime;
@@ -88,7 +87,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final cats = categoriesAsync.valueOrNull ?? [];
-    // Only income categories
+    //  income categories
     final incomeCatIds =
         cats.where((c) => c.type == 'INCOME').map((c) => c.id).toSet();
 

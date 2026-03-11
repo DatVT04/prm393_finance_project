@@ -15,7 +15,7 @@ import '../providers/budget_providers.dart';
 class AddBudgetDialog extends ConsumerStatefulWidget {
   final BudgetModel? budgetToEdit;
 
-  /// Filter categories by type: 'EXPENSE' or 'INCOME'.
+  // phân biệt budget chi hay income target
   final String categoryType;
 
   const AddBudgetDialog({
@@ -41,12 +41,11 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
     super.initState();
     String initialText = '';
     
-    // We can't use context.locale here easily as initState runs before context is fully ready
-    // So we use post frame callback or just delay the formatting
+
     _amountController = TextEditingController();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.budgetToEdit != null && mounted) {
+      if (widget.budgetToEdit != null && mounted) {  //là edit thì đổ dữ liệu cũ lên form
         final locale = context.locale.toString();
         final formatter = NumberFormat('#,###', locale);
         _amountController.text = formatter.format(widget.budgetToEdit!.amount);
@@ -60,7 +59,7 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
   }
 
   @override
-  void dispose() {
+  void dispose() {  //dọn bộ nhớ khi dialog đóng
     _amountController.dispose();
     super.dispose();
   }
@@ -109,7 +108,7 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
     final allCategories = categoriesAsync.valueOrNull ?? [];
     final locale = context.locale.toString();
 
-    // Filter categories by the required type
+    // lọc category theo loại
     final categories = allCategories
         .where((c) => c.type == widget.categoryType)
         .toList();
@@ -158,7 +157,7 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
                   hintText: '0',
                 ),
                 keyboardType: TextInputType.number,
-                onChanged: (value) {
+                onChanged: (value) {   //tự thêm dấu phân cách hàng nghìn khi user nhập
                   if (value.isEmpty) return;
                   final cleanValue =
                       value.replaceAll(RegExp(r'[^0-9]'), '');

@@ -83,11 +83,11 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
 
   @override
   Widget build(BuildContext context) {
-    final budgetsAsync = ref.watch(budgetsWithRefreshProvider);
+    final budgetsAsync = ref.watch(budgetsWithRefreshProvider);  //Lấy dữ liệu từ Riverpod
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final cats = categoriesAsync.valueOrNull ?? [];
-    // Only expense categories
+    //  expense categories
     final expenseCatIds =
         cats.where((c) => c.type == 'EXPENSE').map((c) => c.id).toSet();
 
@@ -146,14 +146,14 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          IconButton(
+          IconButton(  //Nút mũi tên trái
             icon: const Icon(Icons.chevron_left),
             onPressed: () => setState(() => _selectedDate =
                 DateTime(_selectedDate.year, _selectedDate.month - 1)),
           ),
-          TextButton(
+          TextButton(  //Nút mũi tên trái
             onPressed: () async {
-              final picked = await showDatePicker(
+              final picked = await showDatePicker(   //hàm có sẵn của Flutter để mở popup lịch
                 context: context,
                 initialDate: _selectedDate,
                 firstDate: DateTime(2020),
@@ -161,7 +161,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               );
               if (picked != null) {
                 setState(() =>
-                    _selectedDate = DateTime(picked.year, picked.month, 1));
+                    _selectedDate = DateTime(picked.year, picked.month, 1)); //chuẩn hóa _selectedDate
               }
             },
             child: Text(
@@ -202,7 +202,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
       ),
     );
   }
-
+//hiển thị tình trạng ngân sách của 1 category
   Widget _buildBudgetCard(BudgetModel b, double spent, CategoryModel? cat) {
     final double percent = (spent / b.amount).clamp(0.0, 1.0);
     final bool isOver = spent > b.amount;
@@ -260,7 +260,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               ],
             ),
             const SizedBox(height: 12),
-            LinearProgressIndicator(
+            LinearProgressIndicator(   //thể hiện mức độ đã dùng ngân sách.
               value: percent,
               minHeight: 12,
               borderRadius: BorderRadius.circular(6),

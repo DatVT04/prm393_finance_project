@@ -17,7 +17,7 @@ class AddCategoryModal extends StatefulWidget {
 class _AddCategoryModalState extends State<AddCategoryModal> {
   late final TextEditingController _nameController;
 
-  // We store the FontAwesome "name" as a string in CategoryModel.iconName.
+
   late String? _selectedIconName;
   late Color _selectedColor;
   late String _selectedType; // INCOME or EXPENSE
@@ -81,7 +81,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     final existing = widget.existing;
     return Padding(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+        bottom: MediaQuery.of(context).viewInsets.bottom,   //modal tự đẩy lên khi bàn phím xuất hiện.
         left: 16,
         right: 16,
         top: 16,
@@ -95,7 +95,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  existing != null ? 'edit_category'.tr() : 'add_entry_title'.tr(), // Using existing keys
+                  existing != null ? 'edit_category'.tr() : 'add_entry_title'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -298,7 +298,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     }
 
     final existing = widget.existing;
-    final category = CategoryModel(
+    final category = CategoryModel(  //gom toàn bộ dữ liệu trên form thành một object
       id: existing?.id ?? 0,
       name: name,
       type: _selectedType,

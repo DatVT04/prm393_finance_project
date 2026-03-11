@@ -226,7 +226,7 @@ class CategoryListScreen extends ConsumerWidget {
     WidgetRef ref,
     CategoryModel? existing,
   ) async {
-    final result = await showModalBottomSheet<CategoryModel>(
+    final result = await showModalBottomSheet<CategoryModel>(  //mở bottom sheet
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -235,7 +235,7 @@ class CategoryListScreen extends ConsumerWidget {
       builder: (ctx) => AddCategoryModal(existing: existing),
     );
 
-    if (result == null) return;
+    if (result == null) return;   //user mở modal nhưng không lưu
     try {
       final client = ref.read(apiClientProvider);
       if (existing != null) {

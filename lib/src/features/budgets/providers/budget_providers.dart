@@ -10,7 +10,7 @@ final budgetsProvider = FutureProvider<List<BudgetModel>>((ref) async {
 
 final budgetsRefreshProvider = StateProvider<int>((ref) => 0);
 
-final budgetsWithRefreshProvider = FutureProvider<List<BudgetModel>>((ref) async {
+final budgetsWithRefreshProvider = FutureProvider<List<BudgetModel>>((ref) async {  //gọi api lấy hết budgets trong database
   ref.watch(budgetsRefreshProvider);
   final client = ref.watch(apiClientProvider);
   return client.getBudgets();
