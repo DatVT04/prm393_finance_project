@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -143,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showAboutDialog() {
     showAboutDialog(
       context: context,
-      applicationName: 'Personal Finance Manager',
+      applicationName: AppConstants.appName,
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(
         Icons.account_balance_wallet,

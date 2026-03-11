@@ -50,6 +50,23 @@ dependencies:
     sdk: flutter
   google_fonts: ^7.1.0
 
+  # Network
+  http: ^1.2.2
+
+  # AI Quick Entry: OCR, Voice, Clipboard
+  google_mlkit_text_recognition: ^0.13.0
+  image_picker: ^1.0.7
+  speech_to_text: ^7.0.0
+
+  # Flexible Note: Location
+  geolocator: ^11.0.0
+
+  # Export & Share
+  path_provider: ^2.1.2
+  share_plus: ^10.0.2
+  excel: ^4.0.6
+  pdf: ^3.10.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

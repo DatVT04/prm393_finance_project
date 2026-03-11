@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'src/core/theme/app_theme.dart';
 import 'src/core/constants/app_constants.dart';
-import 'src/features/auth/login_screen.dart';
+import 'src/layout/main_layout.dart';
 
 void main() {
   runApp(const ProviderScope(child: FinanceApp()));
@@ -24,7 +24,7 @@ class FinanceApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
 
       themeMode: ThemeMode.light,
-      home: const LoginScreen(),
+      home: const MainLayout(),
 
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

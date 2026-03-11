@@ -1,243 +1,248 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'transaction_model.dart';
-import 'widgets/add_transaction_modal.dart';
 
-class TransactionScreen extends StatefulWidget {
+import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
+import 'providers/finance_providers.dart';
+import 'widgets/add_entry_modal.dart';
+import 'widgets/ai_quick_entry_sheet.dart';
+
+class TransactionScreen extends ConsumerStatefulWidget {
   const TransactionScreen({super.key});
 
   @override
-  State<TransactionScreen> createState() => _TransactionScreenState();
+  ConsumerState<TransactionScreen> createState() => _TransactionScreenState();
 }
 
-class _TransactionScreenState extends State<TransactionScreen> {
-  // Mock data
-  final List<Transaction> _transactions = [
-    Transaction(
-      id: '1',
-      amount: 50000,
-      note: 'Phở bò',
-      category: 'Ăn uống',
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: '2',
-      amount: 1500000,
-      note: 'Đổ xăng tháng này',
-      category: 'Xăng xe',
-      date: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-  ];
+class _TransactionScreenState extends ConsumerState<TransactionScreen> {
+  String? _filterTag;
 
-  void _openAddTransactionModal(BuildContext context) async {
-    final newTransaction = await showModalBottomSheet<Transaction>(
+  void _openAddEntry() async {
+    final created = await showModalBottomSheet<FinancialEntryModel>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (BuildContext ctx) {
-        return const AddTransactionModal();
-      },
+      builder: (ctx) => const AddEntryModal(),
     );
+    if (created != null) {
+      refreshEntries(ref);
+    }
+  }
 
-    if (newTransaction != null) {
-      setState(() {
-        _transactions.add(newTransaction);
-        _transactions.sort((a, b) => b.date.compareTo(a.date));
-      });
+  void _openAiQuickEntry() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => const AiQuickEntrySheet(),
+    );
+  }
+
+  Future<void> _deleteEntry(FinancialEntryModel entry) async {
+    try {
+      await ref.read(apiClientProvider).deleteEntry(entry.id);
+      refreshEntries(ref);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã thêm giao dịch mới'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('Đã xóa ghi chú'), backgroundColor: Colors.orange),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
       );
     }
   }
 
-  void _deleteTransaction(String id) {
-    setState(() {
-      _transactions.removeWhere((tx) => tx.id == id);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Đã xóa giao dịch'),
-        backgroundColor: Colors.orange,
-      ),
-    );
-  }
-
-  Map<String, List<Transaction>> _groupTransactionsByDate() {
-    Map<String, List<Transaction>> grouped = {};
-    for (var tx in _transactions) {
-      String dateKey = DateFormat('dd/MM/yyyy').format(tx.date);
-      if (grouped.containsKey(dateKey)) {
-        grouped[dateKey]!.add(tx);
-      } else {
-        grouped[dateKey] = [tx];
-      }
+  Map<String, List<FinancialEntryModel>> _groupByDate(List<FinancialEntryModel> list) {
+    final map = <String, List<FinancialEntryModel>>{};
+    for (final e in list) {
+      final key = DateFormat('dd/MM/yyyy').format(e.transactionDate);
+      map.putIfAbsent(key, () => []).add(e);
     }
-    return grouped;
+    for (final l in map.values) {
+      l.sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+    }
+    return map;
   }
 
   @override
   Widget build(BuildContext context) {
-    final groupedTransactions = _groupTransactionsByDate();
-    final sortedKeys = groupedTransactions.keys.toList()
-      ..sort((a, b) {
-        // Simple sort assuming date format dd/MM/yyyy
-        // Ideally should convert back to DateTime for sort
-        DateTime dateA = DateFormat('dd/MM/yyyy').parse(a);
-        DateTime dateB = DateFormat('dd/MM/yyyy').parse(b);
-        return dateB.compareTo(dateA);
-      });
+    final entriesAsync = ref.watch(entriesWithRefreshProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Giao dịch',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: false,
+        title: const Text('Ghi chú chi tiêu', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () {}, // Filter feature for later
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Lọc theo tag'),
+                  content: TextField(
+                    decoration: const InputDecoration(hintText: 'Nhập #tag'),
+                    onSubmitted: (v) {
+                      setState(() => _filterTag = v.trim().isEmpty ? null : v.trim());
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _filterTag = null);
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Bỏ lọc'),
+                    ),
+                  ],
+                ),
+              );
+            },
             icon: const Icon(Icons.filter_list),
             color: Colors.black87,
           ),
         ],
       ),
-      body: _transactions.isEmpty
-          ? Center(
+      body: entriesAsync.when(
+        data: (list) {
+          var displayList = list;
+          if (_filterTag != null && _filterTag!.isNotEmpty) {
+            displayList = list.where((e) => e.tags.any((t) => t.toLowerCase().contains(_filterTag!.toLowerCase()))).toList();
+          }
+          if (displayList.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.05),
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.account_balance_wallet_outlined,
                       size: 64,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.4),
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Chưa có giao dịch nào',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w600,
-                    ),
+                    _filterTag != null ? 'Không có ghi chú với tag "$_filterTag"' : 'Chưa có ghi chú nào',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Cham vào nút (+) để thêm giao dịch mới',
+                    'Dùng nút (+) hoặc (★) để thêm nhanh',
                     style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 80, top: 8),
-              itemCount: sortedKeys.length,
-              itemBuilder: (context, index) {
-                final dateStr = sortedKeys[index];
-                final transactions = groupedTransactions[dateStr]!;
+            );
+          }
+          final grouped = _groupByDate(displayList);
+          final sortedKeys = grouped.keys.toList()
+            ..sort((a, b) {
+              final da = DateFormat('dd/MM/yyyy').parse(a);
+              final db = DateFormat('dd/MM/yyyy').parse(b);
+              return db.compareTo(da);
+            });
 
-                // Calculate daily total
-                final dailyTotal = transactions.fold(
-                  0.0,
-                  (sum, item) => sum + item.amount,
-                );
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _formatDateHeader(dateStr),
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 100, top: 8),
+            itemCount: sortedKeys.length,
+            itemBuilder: (context, index) {
+              final dateStr = sortedKeys[index];
+              final items = grouped[dateStr]!;
+              final dailyTotal = items.fold<double>(0, (s, e) => s + e.amount);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDateHeader(dateStr),
+                          style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        Text(
+                          '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
+                          style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
                     ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: transactions.length,
-                      itemBuilder: (context, i) {
-                        final tx = transactions[i];
-                        return _buildTransactionItem(tx);
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openAddTransactionModal(context),
-        // backgroundColor: Colors.teal, // Handled by theme
-        child: const Icon(Icons.add, color: Colors.white),
+                  ),
+                  ...items.map((e) => _buildEntryItem(e)),
+                ],
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+              const SizedBox(height: 16),
+              Text('Không tải được dữ liệu.\nKiểm tra backend đã chạy và kết nối mạng.', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              Text('$err', style: const TextStyle(fontSize: 12), textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'ai',
+            onPressed: _openAiQuickEntry,
+            child: const Icon(Icons.auto_awesome),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            onPressed: _openAddEntry,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ],
       ),
     );
   }
 
   String _formatDateHeader(String dateStr) {
-    if (dateStr == DateFormat('dd/MM/yyyy').format(DateTime.now())) {
-      return 'Hôm nay';
-    } else if (dateStr ==
-        DateFormat(
-          'dd/MM/yyyy',
-        ).format(DateTime.now().subtract(const Duration(days: 1)))) {
-      return 'Hôm qua';
-    }
+    final now = DateTime.now();
+    final today = DateFormat('dd/MM/yyyy').format(now);
+    final yesterday = DateFormat('dd/MM/yyyy').format(now.subtract(const Duration(days: 1)));
+    if (dateStr == today) return 'Hôm nay';
+    if (dateStr == yesterday) return 'Hôm qua';
     return dateStr;
   }
 
-  Widget _buildTransactionItem(Transaction tx) {
+  Widget _buildEntryItem(FinancialEntryModel e) {
     return Dismissible(
-      key: Key(tx.id),
+      key: Key('${e.id}'),
       direction: DismissDirection.endToStart,
       background: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.red.shade50,
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(20)),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.red),
       ),
-      onDismissed: (_) => _deleteTransaction(tx.id),
+      onDismissed: (_) => _deleteEntry(e),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
@@ -246,48 +251,37 @@ class _TransactionScreenState extends State<TransactionScreen> {
           border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF006D5B).withOpacity(0.05), // Tinted shadow
+              color: const Color(0xFF006D5B).withOpacity(0.05),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
           ],
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 4,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _getCategoryColor(tx.category).withOpacity(0.1),
+              color: _getCategoryColor(e.categoryName ?? '').withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              _getCategoryIcon(tx.category),
-              color: _getCategoryColor(tx.category),
-              size: 20,
-            ),
+            child: Icon(_getCategoryIcon(e.categoryName ?? ''), color: _getCategoryColor(e.categoryName ?? ''), size: 20),
           ),
           title: Text(
-            tx.category,
+            e.categoryName ?? 'Khác',
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
-          subtitle: tx.note.isNotEmpty
+          subtitle: (e.note != null && e.note!.isNotEmpty)
               ? Text(
-                  tx.note,
+                  e.note!,
                   style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 )
               : null,
           trailing: Text(
-            '-${NumberFormat("#,###", "vi_VN").format(tx.amount)} đ',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Color(0xFFE53935), // We slightly sharper red
-            ),
+            '-${NumberFormat("#,###", "vi_VN").format(e.amount)} đ',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFE53935)),
           ),
         ),
       ),
@@ -308,6 +302,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
         return Icons.medical_services;
       case 'Giáo dục':
         return Icons.school;
+      case 'Gửi xe':
+        return Icons.local_parking;
       default:
         return Icons.category;
     }
@@ -327,6 +323,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
         return Colors.red;
       case 'Giáo dục':
         return Colors.indigo;
+      case 'Gửi xe':
+        return Colors.brown;
       default:
         return Colors.teal;
     }

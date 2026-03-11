@@ -1,6 +1,6 @@
 // lib/src/layout/main_layout.dart
 import 'package:flutter/material.dart';
-import '../core/constants/app_constants.dart';
+import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/transactions/transaction_screen.dart';
 import '../features/reports/report_screen.dart';
@@ -16,13 +16,14 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = AppConstants.dashboardIndex;
 
-  // Danh sách các màn hình con
-  final List<Widget> _screens = [
-    const DashboardScreen(), // Màn hình 1: Dashboard
-    const TransactionScreen(), // Màn hình 2: Giao dịch
-    const ReportScreen(), // Màn hình 3: Báo cáo
-    const SettingsScreen(), // Màn hình 4: Cài đặt
-  ];
+  void _goToTransactions() => setState(() => _selectedIndex = AppConstants.transactionsIndex);
+
+  List<Widget> get _screens => [
+        DashboardScreen(onViewAllEntries: _goToTransactions),
+        const TransactionScreen(),
+        const ReportScreen(),
+        const SettingsScreen(),
+      ];
 
   // Navigation destinations cho cả Mobile và Desktop
   final List<NavigationDestination> _mobileDestinations = const [

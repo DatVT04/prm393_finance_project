@@ -1,11 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-class RecentTransactionsList extends StatelessWidget {
-  const RecentTransactionsList({super.key});
+import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
+import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import '../../transactions/providers/finance_providers.dart';
+
+class RecentTransactionsList extends ConsumerWidget {
+  const RecentTransactionsList({super.key, this.onViewAll});
+
+  final VoidCallback? onViewAll;
+
+  static IconData _icon(String? name) {
+    switch (name) {
+      case 'Ăn uống':
+        return Icons.restaurant;
+      case 'Xăng xe':
+        return Icons.local_gas_station;
+      case 'Mua sắm':
+        return Icons.shopping_bag;
+      case 'Giải trí':
+        return Icons.confirmation_number;
+      case 'Y tế':
+        return Icons.medical_services;
+      case 'Giáo dục':
+        return Icons.school;
+      case 'Gửi xe':
+        return Icons.local_parking;
+      default:
+        return Icons.category;
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entriesAsync = ref.watch(entriesWithRefreshProvider);
+    final nf = NumberFormat('#,###', 'vi_VN');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -13,133 +44,123 @@ class RecentTransactionsList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Giao dịch gần đây',
+              'Ghi chú gần đây',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            TextButton(onPressed: () {}, child: const Text('Xem tất cả')),
+            if (onViewAll != null)
+              TextButton(
+                onPressed: onViewAll,
+                child: const Text('Xem tất cả'),
+              ),
           ],
         ),
         const SizedBox(height: 12),
-        ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            _TransactionItem(
-              icon: FontAwesomeIcons.spotify,
-              title: 'Spotify Premium',
-              date: 'Hôm nay, 10:00 AM',
-              amount: '- 59,000 đ',
-              color: Colors.green,
-            ),
-            _TransactionItem(
-              icon: FontAwesomeIcons.burger,
-              title: 'Ăn trưa (McDonalds)',
-              date: 'Hôm nay, 12:30 PM',
-              amount: '- 120,000 đ',
-              color: Colors.orange,
-            ),
-            _TransactionItem(
-              icon: FontAwesomeIcons.briefcase,
-              title: 'Lương tháng 1',
-              date: 'Hôm qua, 05:00 PM',
-              amount: '+ 25,000,000 đ',
-              color: Colors.blue,
-              isIncome: true,
-            ),
-            _TransactionItem(
-              icon: FontAwesomeIcons.bagShopping,
-              title: 'Siêu thị Go!',
-              date: '21/01/2026',
-              amount: '- 1,500,000 đ',
-              color: Colors.purple,
-            ),
-            _TransactionItem(
-              icon: FontAwesomeIcons.gasPump,
-              title: 'Đổ xăng',
-              date: '20/01/2026',
-              amount: '- 80,000 đ',
-              color: Colors.redAccent,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _TransactionItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String date;
-  final String amount;
-  final Color color;
-  final bool isIncome;
-
-  const _TransactionItem({
-    required this.icon,
-    required this.title,
-    required this.date,
-    required this.amount,
-    required this.color,
-    this.isIncome = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+        entriesAsync.when(
+          data: (list) {
+            final recent = list.take(5).toList();
+            if (recent.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text(
+                    'Chưa có ghi chú. Thêm từ tab Ghi chú.',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                Text(
-                  date,
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                ),
-              ],
+              );
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: recent.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final e = recent[index];
+                final dateStr = DateFormat('dd/MM').format(e.transactionDate);
+                final color = CategoryColors.get(e.categoryName ?? '');
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(_icon(e.categoryName), color: color, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              e.categoryName ?? 'Khác',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              dateStr,
+                              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        '-${nf.format(e.amount)} đ',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color(0xFFE53935),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
             ),
           ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: isIncome ? Colors.green : Colors.red,
+          error: (_, __) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(
+                'Không tải được dữ liệu',
+                style: TextStyle(color: Colors.red[700], fontSize: 14),
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -6,22 +6,24 @@ import 'widgets/quick_action_buttons.dart';
 import 'widgets/recent_transactions_list.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  const DashboardScreen({super.key, this.onViewAllEntries});
+
+  final VoidCallback? onViewAllEntries;
 
   @override
   Widget build(BuildContext context) {
-    return const SafeArea(
+    return SafeArea(
       child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Column(
           children: [
-            HomeAppBar(),
-            SizedBox(height: 24),
-            TotalBalanceCard(),
-            SizedBox(height: 24),
-            QuickActionButtons(),
-            SizedBox(height: 32),
-            RecentTransactionsList(),
+            const HomeAppBar(),
+            const SizedBox(height: 24),
+            const TotalBalanceCard(),
+            const SizedBox(height: 24),
+            const QuickActionButtons(),
+            const SizedBox(height: 32),
+            RecentTransactionsList(onViewAll: onViewAllEntries),
           ],
         ),
       ),
