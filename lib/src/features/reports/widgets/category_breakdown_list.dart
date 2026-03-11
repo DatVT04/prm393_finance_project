@@ -1,72 +1,64 @@
 import 'package:flutter/material.dart';
 
+import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
+
 class CategoryBreakdownList extends StatelessWidget {
-  const CategoryBreakdownList({super.key});
+  const CategoryBreakdownList({super.key, this.data = const {}});
+
+  final Map<String, double> data;
+
+  static final _icons = <String, IconData>{
+    'Ăn uống': Icons.restaurant,
+    'Xăng xe': Icons.local_gas_station,
+    'Mua sắm': Icons.shopping_bag,
+    'Giải trí': Icons.confirmation_number,
+    'Y tế': Icons.medical_services,
+    'Giáo dục': Icons.school,
+    'Gửi xe': Icons.local_parking,
+    'Khác': Icons.category,
+  };
 
   @override
   Widget build(BuildContext context) {
-    // Dummy data
-    final List<Map<String, dynamic>> categories = [
-      {
-        'name': 'Ăn uống',
-        'amount': '5,000,000 đ',
-        'percent': 0.4,
-        'color': const Color(0xFF0293ee),
-        'icon': Icons.fastfood,
-      },
-      {
-        'name': 'Mua sắm',
-        'amount': '3,750,000 đ',
-        'percent': 0.3,
-        'color': const Color(0xFFf8b250),
-        'icon': Icons.shopping_bag,
-      },
-      {
-        'name': 'Di chuyển',
-        'amount': '1,875,000 đ',
-        'percent': 0.15,
-        'color': const Color(0xFF845bef),
-        'icon': Icons.directions_car,
-      },
-      {
-        'name': 'Khác',
-        'amount': '1,875,000 đ',
-        'percent': 0.15,
-        'color': const Color(0xFF13d38e),
-        'icon': Icons.more_horiz,
-      },
-    ];
+    final entries = data.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final total = entries.fold<double>(0, (s, e) => s + e.value);
+
+    if (entries.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Chi tiết chi tiêu',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: categories.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 16),
+          itemCount: entries.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
-            final category = categories[index];
+            final e = entries[index];
+            final percent = total > 0 ? e.value / total : 0.0;
+            final color = CategoryColors.get(e.key);
+            final icon = _icons[e.key] ?? Icons.category;
+            final amountStr = '${(e.value).toStringAsFixed(0).replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                  (m) => '${m[1]},',
+                )} đ';
             return Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: (category['color'] as Color).withOpacity(0.1),
+                    color: color.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    category['icon'] as IconData,
-                    color: category['color'] as Color,
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: color, size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -76,20 +68,14 @@ class CategoryBreakdownList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            category['name'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            category['amount'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                          Text(e.key, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text(amountStr, style: const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       LinearProgressIndicator(
-                        value: category['percent'] as double,
-                        color: category['color'] as Color,
+                        value: percent,
+                        color: color,
                         backgroundColor: Colors.grey[200],
                         borderRadius: BorderRadius.circular(4),
                       ),

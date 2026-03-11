@@ -1,7 +1,7 @@
 // lib/src/core/constants/app_constants.dart
 class AppConstants {
   // App Info
-  static const String appName = 'Personal Finance Manager';
+  static const String appName = 'Nhật ký Tài chính Thông minh';
   static const String appVersion = '1.0.0';
 
   // Breakpoints for responsive design

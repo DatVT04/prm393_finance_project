@@ -11,18 +11,6 @@ class QuickActionButtons extends StatelessWidget {
       children: [
         _buildActionButton(
           context,
-          icon: FontAwesomeIcons.plus,
-          label: 'Nạp tiền',
-          color: Colors.blue,
-        ),
-        _buildActionButton(
-          context,
-          icon: FontAwesomeIcons.paperPlane,
-          label: 'Chuyển khoản',
-          color: Colors.orange,
-        ),
-        _buildActionButton(
-          context,
           icon: FontAwesomeIcons.fileInvoice,
           label: 'Thanh toán',
           color: Colors.purple,

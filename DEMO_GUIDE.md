@@ -62,7 +62,8 @@ Em sẽ demo trên Windows trước..."
 
 **Hành động:**
 - Mở app trên Windows
-- Giải thích: "App tự động phát hiện kích thước màn hình và chuyển layout"
+- Code liên quan nằm ở: `lib/src/layout/main_layout.dart`
+- Giải thích: "App tự động phát hiện kích thước màn hình và chuyển layout dựa theo kích thước"
 
 ---
 
