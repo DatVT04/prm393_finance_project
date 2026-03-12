@@ -1,7 +1,7 @@
 /// Extract #tags and @mentions from note text.
 class NoteTagParser {
-  static final RegExp _tagRegex = RegExp(r'#(\w+)');
-  static final RegExp _mentionRegex = RegExp(r'@(\w+)');
+  static final RegExp _tagRegex = RegExp(r'#([a-zA-Z0-9_À-ỹ]+)');
+  static final RegExp _mentionRegex = RegExp(r'@([a-zA-Z0-9_À-ỹ]+)');
 
   static List<String> extractTags(String note) {
     if (note.isEmpty) return [];
