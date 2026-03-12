@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import '../../transactions/providers/finance_providers.dart';
+import '../../transactions/widgets/add_entry_modal.dart';
 
 class RecentTransactionsList extends ConsumerWidget {
   const RecentTransactionsList({super.key, this.onViewAll});
@@ -83,58 +84,74 @@ class RecentTransactionsList extends ConsumerWidget {
                 final e = recent[index];
                 final dateStr = DateFormat('dd/MM').format(e.transactionDate);
                 final color = CategoryColors.get(e.categoryName ?? '');
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.08),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                return InkWell(
+                  onTap: () async {
+                    final updated = await showModalBottomSheet<FinancialEntryModel>(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.white,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(14),
+                      builder: (_) => AddEntryModal(entryToEdit: e),
+                    );
+                    if (updated != null) {
+                      refreshEntries(ref);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.08),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        child: Icon(_icon(e.categoryName), color: color, size: 22),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              e.categoryName ?? 'Khác',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(_icon(e.categoryName), color: color, size: 22),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                e.categoryName ?? 'Khác',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
-                            ),
-                            Text(
-                              dateStr,
-                              style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                            ),
-                          ],
+                              Text(
+                                dateStr,
+                                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        '-${nf.format(e.amount)} đ',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Color(0xFFE53935),
+                        Text(
+                          '-${nf.format(e.amount)} đ',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Color(0xFFE53935),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },

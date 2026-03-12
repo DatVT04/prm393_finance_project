@@ -46,8 +46,27 @@ class FinanceApiClient {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
     );
-    if (res.statusCode != 201) throw Exception('Failed to create entry: ${res.statusCode}');
+    if (res.statusCode != 201 && res.statusCode != 200) throw Exception('Failed to create entry: ${res.statusCode}');
     return FinancialEntryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<FinancialEntryModel> updateEntry(int id, FinancialEntryModel entry) async {
+    final body = entry.toCreateJson();
+    final res = await http.put(
+      Uri.parse('$_base${ApiConstants.entriesPath}/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to update entry: ${res.statusCode}');
+    return FinancialEntryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<void> uploadImage(int id, String filePath) async {
+    final uri = Uri.parse('$_base${ApiConstants.entriesPath}/$id/image');
+    final req = http.MultipartRequest('POST', uri);
+    req.files.add(await http.MultipartFile.fromPath('file', filePath));
+    final res = await req.send();
+    if (res.statusCode != 200) throw Exception('Failed to upload image: ${res.statusCode}');
   }
 
   Future<void> deleteEntry(int id) async {
