@@ -200,3 +200,18 @@ flutter build ios --release
 ## 📄 License
 
 [Thêm license nếu cần]
+
+### Cách đổi IP kết nối Server trên máy tính mới
+Nếu bạn mang Project này sang một máy tính khác (hoặc IP mạng WiFi của bạn thay đổi), ứng dụng Flutter sẽ không thể gọi được đến Backend. Để khắc phục, bạn cần làm duy nhất 1 bước:
+
+1. Mở Terminal / CMD trên máy tính đang chạy Backend (Spring Boot) và gõ lệnh xem IP mạng LAN:
+   - **Mac/Linux:** `ifconfig | grep "inet " | grep -v 127.0.0.1` (thường là card `en0`)
+   - **Windows:** `ipconfig` (Dòng IPv4 Address)
+   => Giả sử bạn lấy được IP là `192.168.1.100`
+
+2. Mở file mã nguồn Flutter: `lib/src/core/constants/api_constants.dart`
+3. Tìm và sửa biến `baseUrl` thành IP mới tìm thấy:
+   ```dart
+   static const String baseUrl = 'http://192.168.1.100:8080';
+   ```
+4. Lưu file và Load lại ứng dụng Flutter (Hot Restart).
