@@ -1,46 +1,31 @@
 // lib/src/features/dashboard/dashboard_screen.dart
 import 'package:flutter/material.dart';
-
-// Định nghĩa hàm định dạng số tiền thay thế cho NumberFormat từ package:intl
-String formatCurrency(num amount) {
-  return "${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.')} đ";
-}
+import 'widgets/home_app_bar.dart';
+import 'widgets/total_balance_card.dart';
+import 'widgets/quick_action_buttons.dart';
+import 'widgets/recent_transactions_list.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  const DashboardScreen({super.key, this.onViewAllEntries});
+
+  final VoidCallback? onViewAllEntries;
 
   @override
   Widget build(BuildContext context) {
-    // Sử dụng hàm formatCurrency thay cho NumberFormat
-    final formattedAmount = formatCurrency(25000000);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Xin chào, User!",
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 20),
-
-          // Card Tổng tiền
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.teal,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              formattedAmount,
-              style: const TextStyle(color: Colors.white, fontSize: 32),
-            ),
-          ),
-
-          // ... Phần Chart và List code tiếp ở dưới ...
-        ],
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Column(
+          children: [
+            const HomeAppBar(),
+            const SizedBox(height: 24),
+            const TotalBalanceCard(),
+            const SizedBox(height: 24),
+            const QuickActionButtons(),
+            const SizedBox(height: 32),
+            RecentTransactionsList(onViewAll: onViewAllEntries),
+          ],
+        ),
       ),
     );
   }

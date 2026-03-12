@@ -1,9 +1,14 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'src/layout/main_layout.dart'; // Import file layout đã tách
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'src/core/theme/app_theme.dart';
+import 'src/core/constants/app_constants.dart';
+import 'src/layout/main_layout.dart';
 
 void main() {
-  runApp(const FinanceApp());
+  runApp(const ProviderScope(child: FinanceApp()));
 }
 
 class FinanceApp extends StatelessWidget {
@@ -12,14 +17,21 @@ class FinanceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Personal Finance Manager',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        scaffoldBackgroundColor: Colors.grey[50],
-      ),
-      home: const MainLayout(), // Gọi Widget MainLayout từ file khác
+
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+
+      themeMode: ThemeMode.light,
+      home: const MainLayout(),
+
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('vi', 'VN'), Locale('en', 'US')],
     );
   }
 }
