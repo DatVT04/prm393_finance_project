@@ -243,45 +243,59 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         child: const Icon(Icons.delete, color: Colors.red),
       ),
       onDismissed: (_) => _deleteEntry(e),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade100),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF006D5B).withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+      child: InkWell(
+        onTap: () async {
+          final updated = await showModalBottomSheet<FinancialEntryModel>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
-          ],
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _getCategoryColor(e.categoryName ?? '').withOpacity(0.1),
-              shape: BoxShape.circle,
+            builder: (ctx) => AddEntryModal(entryToEdit: e),
+          );
+          if (updated != null) refreshEntries(ref);
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade100),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF006D5B).withOpacity(0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _getCategoryColor(e.categoryName ?? '').withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(_getCategoryIcon(e.categoryName ?? ''), color: _getCategoryColor(e.categoryName ?? ''), size: 20),
             ),
-            child: Icon(_getCategoryIcon(e.categoryName ?? ''), color: _getCategoryColor(e.categoryName ?? ''), size: 20),
-          ),
-          title: Text(
-            e.categoryName ?? 'Khác',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-          ),
-          subtitle: (e.note != null && e.note!.isNotEmpty)
-              ? Text(
-                  e.note!,
-                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
-          trailing: Text(
-            '-${NumberFormat("#,###", "vi_VN").format(e.amount)} đ',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFE53935)),
+            title: Text(
+              e.categoryName ?? 'Khác',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            subtitle: (e.note != null && e.note!.isNotEmpty)
+                ? Text(
+                    e.note!,
+                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : null,
+            trailing: Text(
+              '-${NumberFormat("#,###", "vi_VN").format(e.amount)} đ',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFE53935)),
+            ),
           ),
         ),
       ),

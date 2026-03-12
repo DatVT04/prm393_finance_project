@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
@@ -23,9 +25,11 @@ class AddEntryModal extends ConsumerStatefulWidget {
   const AddEntryModal({
     super.key,
     this.prefill,
+    this.entryToEdit,
   });
 
   final AddEntryInput? prefill;
+  final FinancialEntryModel? entryToEdit;
 
   @override
   ConsumerState<AddEntryModal> createState() => _AddEntryModalState();
@@ -39,6 +43,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   int? _selectedCategoryId;
   DateTime _selectedDate = DateTime.now();
   String? _imagePath;
+  String? _existingImageUrl;
   double? _latitude;
   double? _longitude;
   bool _saving = false;
@@ -47,7 +52,21 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   void initState() {
     super.initState();
     final p = widget.prefill;
-    if (p != null) {
+    final e = widget.entryToEdit;
+    if (e != null) {
+      _amountController.text = _formatAmount(e.amount);
+      _selectedCategoryId = e.categoryId;
+      if (e.note != null && e.note!.isNotEmpty) {
+        String noteRaw = e.note!;
+        noteRaw = noteRaw.replaceAll(RegExp(r'\r?\n📷 Ảnh đính kèm$'), '');
+        noteRaw = noteRaw.replaceAll(RegExp(r'\r?\n📍 .*$'), '');
+        _noteController.text = noteRaw;
+      }
+      _selectedDate = e.transactionDate;
+      _existingImageUrl = e.imageUrl;
+      _latitude = e.latitude;
+      _longitude = e.longitude;
+    } else if (p != null) {
       if (p.amount != null) _amountController.text = _formatAmount(p.amount!);
       _selectedCategoryId = p.categoryId;
       if (p.note != null && p.note!.isNotEmpty) _noteController.text = p.note!;
@@ -55,8 +74,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   }
 
   String _formatAmount(double v) {
-    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}tr';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}k';
+    if (v >= 1000000 && v % 1000000 == 0) return '${(v / 1000000).toInt()}tr';
+    if (v >= 1000 && v % 1000 == 0) return '${(v / 1000).toInt()}k';
     return v.toInt().toString();
   }
 
@@ -155,12 +174,22 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
 
     try {
       final client = ref.read(apiClientProvider);
-      final created = await client.createEntry(entry);
+      FinancialEntryModel result;
+      if (widget.entryToEdit != null) {
+        result = await client.updateEntry(widget.entryToEdit!.id, entry);
+      } else {
+        result = await client.createEntry(entry);
+      }
+      
+      if (_imagePath != null && !_imagePath!.startsWith('http')) {
+        await client.uploadImage(result.id, _imagePath!);
+      }
+
       if (!mounted) return;
       refreshEntries(ref);
-      Navigator.of(context).pop(created);
+      Navigator.of(context).pop(result);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã lưu ghi chú chi tiêu'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Đã lưu ghi chú'), backgroundColor: Colors.green),
       );
     } catch (e) {
       if (!mounted) return;
@@ -190,7 +219,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Thêm ghi chú chi tiêu',
+                widget.entryToEdit != null ? 'Sửa ghi chú' : 'Thêm ghi chú chi tiêu',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
@@ -244,12 +273,18 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 maxLength: 500,
               ),
               const SizedBox(height: 12),
-              Row(
+              Wrap(
+                spacing: 8,
                 children: [
                   TextButton.icon(
-                    onPressed: _imagePath == null ? _pickImage : null,
-                    icon: Icon(_imagePath != null ? Icons.check_circle : Icons.add_photo_alternate),
-                    label: Text(_imagePath != null ? 'Đã đính kèm ảnh' : 'Đính kèm ảnh'),
+                    onPressed: (_imagePath == null && _existingImageUrl == null) ? _pickImage : () {
+                      setState(() {
+                        _imagePath = null;
+                        _existingImageUrl = null;
+                      });
+                    },
+                    icon: Icon((_imagePath != null || _existingImageUrl != null) ? Icons.cancel : Icons.add_photo_alternate),
+                    label: Text((_imagePath != null || _existingImageUrl != null) ? 'Xóa ảnh' : 'Đính kèm ảnh'),
                   ),
                   TextButton.icon(
                     onPressed: _latitude == null ? _pickLocation : null,
@@ -258,6 +293,66 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   ),
                 ],
               ),
+              if (_imagePath != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          insetPadding: const EdgeInsets.all(8),
+                          child: InteractiveViewer(
+                            panEnabled: true,
+                            minScale: 0.5,
+                            maxScale: 4.0,
+                            child: Image.file(File(_imagePath!)),
+                          ),
+                        ),
+                      );
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(_imagePath!),
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                )
+              else if (_existingImageUrl != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          insetPadding: const EdgeInsets.all(8),
+                          child: InteractiveViewer(
+                            panEnabled: true,
+                            minScale: 0.5,
+                            maxScale: 4.0,
+                            child: Image.network('${ApiConstants.baseUrl}$_existingImageUrl'),
+                          ),
+                        ),
+                      );
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        '${ApiConstants.baseUrl}$_existingImageUrl',
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 16),
               InkWell(
                 onTap: () async {
