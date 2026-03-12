@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
+import 'package:prm393_finance_project/src/core/theme/theme_provider.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isDarkMode = false;
-  String _language = 'Tiếng Việt';
+
+  @override
+  void initState() {
+    super.initState();
+    final mode = ref.read(themeModeProvider);
+    _isDarkMode = mode == ThemeMode.dark;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,29 +46,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   _isDarkMode = value;
                 });
+                ref.read(themeModeProvider.notifier).state =
+                    value ? ThemeMode.dark : ThemeMode.light;
               },
               title: const Text('Chế độ tối'),
               subtitle: const Text('Dark / Light mode'),
               secondary: const Icon(Icons.dark_mode),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // ===== LANGUAGE =====
-          _buildSectionTitle('Ngôn ngữ'),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              leading: const Icon(Icons.language),
-              title: const Text('Ngôn ngữ'),
-              subtitle: Text(_language),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                _showLanguageDialog();
-              },
             ),
           ),
 
@@ -99,45 +90,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: Colors.grey.shade700,
         ),
       ),
-    );
-  }
-
-  // ===== LANGUAGE DIALOG =====
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Chọn ngôn ngữ'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<String>(
-                title: const Text('Tiếng Việt'),
-                value: 'Tiếng Việt',
-                groupValue: _language,
-                onChanged: (value) {
-                  setState(() {
-                    _language = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title: const Text('English'),
-                value: 'English',
-                groupValue: _language,
-                onChanged: (value) {
-                  setState(() {
-                    _language = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
