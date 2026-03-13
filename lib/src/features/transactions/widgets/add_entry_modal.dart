@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,6 +21,32 @@ class AddEntryInput {
   final String? type;
   final String? source;
   AddEntryInput({this.amount, this.categoryId, this.note, this.type, this.source});
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Only allow digits and handle specific suffixes 'k', 'tr' if needed, 
+    // but typically thousand separators are for pure numbers.
+    // Here we'll handle pure numbers. If they type k/tr, we might want to let it pass or format after.
+    // Let's stick to standard numeric formatting first.
+    String text = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (text.isEmpty) return newValue.copyWith(text: '');
+    
+    double value = double.parse(text);
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    String newText = formatter.format(value);
+
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
 }
 
 class AddEntryModal extends ConsumerStatefulWidget {
@@ -80,9 +107,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   }
 
   String _formatAmount(double v) {
-    if (v >= 1000000 && v % 1000000 == 0) return '${(v / 1000000).toInt()}tr';
-    if (v >= 1000 && v % 1000 == 0) return '${(v / 1000).toInt()}k';
-    return v.toInt().toString();
+    // If it's a "clean" number, we can still use k/tr for initial display if we want,
+    // but for the controller with formatter, we should probably use the dotted format.
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    return formatter.format(v);
   }
 
   @override
@@ -124,7 +152,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   }
 
   double? _parseAmount(String s) {
-    s = s.trim().replaceAll(',', '.').replaceAll(' ', '');
+    s = s.trim().replaceAll('.', '').replaceAll(',', '.').replaceAll(' ', '');
+    // If it ends with k or tr after removing dots
     if (s.endsWith('k')) {
       final n = double.tryParse(s.substring(0, s.length - 1));
       return n != null ? n * 1000 : null;
@@ -255,6 +284,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   border: OutlineInputBorder(),
                   helperText: 'Ví dụ: 50k, 1.5tr, 50000',
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.ktr]')),
+                  CurrencyInputFormatter(),
+                ],
                 keyboardType: TextInputType.text,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số tiền';

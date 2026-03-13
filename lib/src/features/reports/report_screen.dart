@@ -20,6 +20,7 @@ class ReportScreen extends ConsumerStatefulWidget {
 
 class _ReportScreenState extends ConsumerState<ReportScreen> {
   String _selectedPeriod = 'Tháng';
+  String _selectedType = 'EXPENSE';
 
   DateTime _rangeStart() {
     final now = DateTime.now();
@@ -46,10 +47,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     }).toList();
   }
 
-  Map<String, double> _categoryTotals(List<FinancialEntryModel> list) {
+  Map<String, double> _categoryTotals(List<FinancialEntryModel> list, String type) {
     final map = <String, double>{};
     for (final e in list) {
-      if (e.type != 'EXPENSE') continue;
+      if (e.type != type) continue;
       final name = e.categoryName ?? 'Khác';
       map[name] = (map[name] ?? 0) + e.amount;
     }
@@ -96,9 +97,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       body: entriesAsync.when(
         data: (all) {
           final list = _filterByPeriod(all);
-          final expense = list.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
-          final income = list.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
-          final categoryTotals = _categoryTotals(list);
+          final totalExpense = list.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
+          final totalIncome = list.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
+          
+          final categoryTotals = _categoryTotals(list, _selectedType);
           final sortedCategories = categoryTotals.entries.toList()
             ..sort((a, b) => b.value.compareTo(a.value));
           final topCategory = sortedCategories.isNotEmpty ? sortedCategories.first.key : 'Khác';
@@ -128,8 +130,17 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   selectedPeriod: _selectedPeriod,
                   onPeriodChanged: (period) => setState(() => _selectedPeriod = period),
                 ),
+                const SizedBox(height: 16),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'EXPENSE', label: Text('Chi tiêu'), icon: Icon(Icons.remove_circle_outline)),
+                    ButtonSegment(value: 'INCOME', label: Text('Thu nhập'), icon: Icon(Icons.add_circle_outline)),
+                  ],
+                  selected: {_selectedType},
+                  onSelectionChanged: (val) => setState(() => _selectedType = val.first),
+                ),
                 const SizedBox(height: 24),
-                ReportSummaryCard(income: income, expense: expense),
+                ReportSummaryCard(income: totalIncome, expense: totalExpense),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () {
@@ -138,7 +149,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         builder: (ctx) => MonthWrappedScreen(
                           entries: list,
                           monthName: wrappedTitle,
-                          totalExpense: expense,
+                          totalExpense: totalExpense,
                           topCategory: topCategory,
                           entryCount: list.length,
                         ),
@@ -154,7 +165,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Phân tích chi tiêu',
+                  _selectedType == 'EXPENSE' ? 'Phân tích chi tiêu' : 'Phân tích thu nhập',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
