@@ -159,39 +159,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                 .where((e) => e.tags.any((t) => t.toLowerCase().contains(_filterTag!.toLowerCase())))
                 .toList();
           }
-          if (displayList.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.account_balance_wallet_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    _filterTag != null ? 'Không có ghi chú với tag "$_filterTag"' : 'Chưa có ghi chú nào',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w600),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Dùng nút (+) hoặc (★) để thêm nhanh',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
           final grouped = _groupByDate(displayList);
           final sortedKeys = grouped.keys.toList()
             ..sort((a, b) {
@@ -213,14 +180,15 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                       const SizedBox(width: 8),
                       _buildDateFilterChip('Năm nay'),
                       const SizedBox(width: 8),
-                      ActionChip(
+                      ChoiceChip(
                         label: Text(
-                          _dateFilter == 'Ngày' && _customDate != null
+                          _customDate != null
                               ? DateFormat('dd/MM/yyyy').format(_customDate!)
-                              : 'Chọn ngày',
+                              : 'Ngày',
                         ),
                         avatar: const Icon(Icons.calendar_today, size: 18),
-                        onPressed: _pickCustomDate,
+                        selected: _dateFilter == 'Ngày',
+                        onSelected: (_) => _pickCustomDate(),
                       ),
                     ],
                   ),
@@ -228,43 +196,75 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               ),
               const Divider(height: 1),
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 100, top: 8),
-                  itemCount: sortedKeys.length,
-                  itemBuilder: (context, index) {
-                    final dateStr = sortedKeys[index];
-                    final items = grouped[dateStr]!;
-                    final dailyTotal = items.fold<double>(0, (s, e) => s + e.amount);
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _formatDateHeader(dateStr),
-                                style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14),
+                child: displayList.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                shape: BoxShape.circle,
                               ),
-                              Text(
-                                '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
-                                style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14),
+                              child: Icon(
+                                Icons.account_balance_wallet_outlined,
+                                size: 64,
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              _filterTag != null ? 'Không có ghi chú với tag "$_filterTag"' : 'Chưa có ghi chú nào',
+                              style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Dùng nút (+) hoặc (★) để thêm nhanh',
+                              style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        ...items.map((e) => _buildEntryItem(e)),
-                      ],
-                    );
-                  },
-                ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 100, top: 8),
+                        itemCount: sortedKeys.length,
+                        itemBuilder: (context, index) {
+                          final dateStr = sortedKeys[index];
+                          final items = grouped[dateStr]!;
+                          final dailyTotal = items.fold<double>(0, (s, e) => s + e.amount);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatDateHeader(dateStr),
+                                      style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
+                                    Text(
+                                      '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
+                                      style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ...items.map((e) => _buildEntryItem(e)),
+                            ],
+                          );
+                        },
+                      ),
               ),
             ],
           );
