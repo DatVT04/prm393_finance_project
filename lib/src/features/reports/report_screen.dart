@@ -101,6 +101,23 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
             ..sort((a, b) => b.value.compareTo(a.value));
           final topCategory = sortedCategories.isNotEmpty ? sortedCategories.first.key : 'Khác';
 
+          String wrappedButtonLabel;
+          String wrappedTitle;
+          final now = DateTime.now();
+          if (_selectedPeriod == 'Tuần') {
+            final start = _rangeStart();
+            final end = _rangeEnd();
+            final df = DateFormat('dd/MM', 'vi');
+            wrappedButtonLabel = 'Nhìn lại tuần này';
+            wrappedTitle = '${df.format(start)} - ${df.format(end)}';
+          } else if (_selectedPeriod == 'Năm') {
+            wrappedButtonLabel = 'Nhìn lại năm nay';
+            wrappedTitle = 'Năm ${now.year}';
+          } else {
+            wrappedButtonLabel = 'Nhìn lại tháng này';
+            wrappedTitle = DateFormat('MMMM yyyy', 'vi').format(now);
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -114,12 +131,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () {
-                    final monthName = DateFormat('MMMM yyyy', 'vi').format(DateTime.now());
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (ctx) => MonthWrappedScreen(
                           entries: list,
-                          monthName: monthName,
+                          monthName: wrappedTitle,
                           totalExpense: expense,
                           topCategory: topCategory,
                           entryCount: list.length,
@@ -128,7 +144,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     );
                   },
                   icon: const Icon(Icons.auto_awesome),
-                  label: const Text('Nhìn lại tháng này'),
+                  label: Text(wrappedButtonLabel),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -139,11 +155,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   'Phân tích chi tiêu',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 ExpensesPieChart(data: categoryTotals),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
                 CategoryBreakdownList(data: categoryTotals),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
               ],
             ),
           );

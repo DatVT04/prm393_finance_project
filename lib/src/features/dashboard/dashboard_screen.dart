@@ -20,8 +20,6 @@ class DashboardScreen extends StatelessWidget {
             const HomeAppBar(),
             const SizedBox(height: 24),
             const TotalBalanceCard(),
-            const SizedBox(height: 24),
-            const QuickActionButtons(),
             const SizedBox(height: 32),
             RecentTransactionsList(onViewAll: onViewAllEntries),
           ],

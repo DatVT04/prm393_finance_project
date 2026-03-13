@@ -1,11 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 
-class TotalBalanceCard extends StatelessWidget {
+import 'package:prm393_finance_project/src/features/dashboard/providers/dashboard_providers.dart';
+import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+
+class TotalBalanceCard extends ConsumerWidget {
   const TotalBalanceCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currency = NumberFormat('#,###', 'vi_VN');
+
+    final income = ref.watch(monthlyIncomeProvider);
+    final entriesAsync = ref.watch(entriesWithRefreshProvider);
+
+    final double expense = entriesAsync.maybeWhen(
+      data: (all) {
+        final now = DateTime.now();
+        final monthStart = DateTime(now.year, now.month, 1);
+        final monthEnd = (now.month == 12)
+            ? DateTime(now.year + 1, 1, 1)
+            : DateTime(now.year, now.month + 1, 1);
+        final monthEntries = all.where((e) {
+          final d = e.transactionDate;
+          final onOrAfterStart = !d.isBefore(monthStart);
+          final beforeNextMonth = d.isBefore(monthEnd);
+          return onOrAfterStart && beforeNextMonth;
+        });
+        return monthEntries.fold<double>(0, (s, e) => s + e.amount);
+      },
+      orElse: () => 0.0,
+    );
+
+    final balance = income - expense;
+
+    String formatMoney(double value) {
+      final rounded = value.round();
+      return '${currency.format(rounded)} đ';
+    }
+
+    Future<void> editIncome() async {
+      final controller = TextEditingController(
+        text: income > 0 ? income.toStringAsFixed(0) : '',
+      );
+      final result = await showDialog<double>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Nhập thu nhập tháng này'),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Thu nhập (VND)',
+                hintText: 'Ví dụ: 15000000',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final raw = controller.text.trim().replaceAll('.', '').replaceAll(',', '');
+                  final value = double.tryParse(raw);
+                  Navigator.of(ctx).pop(value);
+                },
+                child: const Text('Lưu'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (result != null && result > 0) {
+        ref.read(monthlyIncomeProvider.notifier).state = result;
+      }
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -68,9 +143,9 @@ class TotalBalanceCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            '254,000,000 đ',
-            style: TextStyle(
+          Text(
+            formatMoney(balance),
+            style: const TextStyle(
               fontSize: 36,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -85,8 +160,9 @@ class TotalBalanceCard extends StatelessWidget {
                 context,
                 icon: FontAwesomeIcons.arrowUp,
                 label: 'Thu nhập',
-                amount: '52,000,000 đ',
+                amount: formatMoney(income),
                 isIncome: true,
+                onTap: editIncome,
               ),
               Container(
                 width: 1,
@@ -97,7 +173,7 @@ class TotalBalanceCard extends StatelessWidget {
                 context,
                 icon: FontAwesomeIcons.arrowDown,
                 label: 'Chi tiêu',
-                amount: '12,500,000 đ',
+                amount: formatMoney(expense),
                 isIncome: false,
               ),
             ],
@@ -113,8 +189,9 @@ class TotalBalanceCard extends StatelessWidget {
     required String label,
     required String amount,
     required bool isIncome,
+    VoidCallback? onTap,
   }) {
-    return Row(
+    final row = Row(
       children: [
         Container(
           padding: const EdgeInsets.all(8),
@@ -147,6 +224,12 @@ class TotalBalanceCard extends StatelessWidget {
           ],
         ),
       ],
+    );
+
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      child: row,
     );
   }
 }

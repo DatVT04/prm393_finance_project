@@ -1,10 +1,221 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-class HomeAppBar extends StatelessWidget {
+import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+
+class HomeAppBar extends ConsumerWidget {
   const HomeAppBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entriesAsync = ref.watch(entriesWithRefreshProvider);
+
+    void showTodaySummarySheet() {
+      showModalBottomSheet<void>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (ctx) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: entriesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 12),
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 32),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Không tải được dữ liệu hôm nay',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$err',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+              data: (all) {
+                final todayEntries = _filterToday(all);
+                final total = todayEntries.fold<double>(0, (s, e) => s + e.amount);
+                final count = todayEntries.length;
+                final currency = NumberFormat('#,###', 'vi_VN');
+
+                if (count == 0) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 8),
+                      Icon(
+                        Icons.notifications_none,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Hôm nay bạn chưa ghi chi tiêu nào',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Nhấn nút (+) hoặc (★) ở màn hình ghi chú để thêm nhanh.',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  );
+                }
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Tổng quan chi tiêu hôm nay',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.today,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Tổng chi hôm nay',
+                                style: TextStyle(fontSize: 13, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '-${currency.format(total)} đ',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFE53935),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Text(
+                                'Số ghi chú',
+                                style: TextStyle(fontSize: 13, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '$count',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Chi tiết gần nhất',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...todayEntries.take(3).map(
+                      (e) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                e.categoryName ?? 'Khác',
+                                style: const TextStyle(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '-${currency.format(e.amount)} đ',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFFE53935),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -67,7 +278,7 @@ class HomeAppBar extends StatelessWidget {
                 border: Border.all(color: Colors.grey[200]!),
               ),
               child: IconButton(
-                onPressed: () {},
+                onPressed: showTodaySummarySheet,
                 icon: const Icon(Icons.notifications_outlined),
                 color: Colors.black87,
               ),
@@ -76,5 +287,17 @@ class HomeAppBar extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<FinancialEntryModel> _filterToday(List<FinancialEntryModel> all) {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    final end = start.add(const Duration(days: 1));
+    return all.where((e) {
+      final d = e.transactionDate;
+      return d.isAtSameMomentAs(start) ||
+          d.isAfter(start) && d.isBefore(end);
+    }).toList()
+      ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
   }
 }

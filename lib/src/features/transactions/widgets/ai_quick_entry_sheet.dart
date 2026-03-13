@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,6 +74,19 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
   }
 
   Future<void> _pickReceiptAndOcr() async {
+    // ML Kit OCR hiện chỉ hỗ trợ Android / iOS trong app này.
+    final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+    if (!isMobile) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('OCR hiện chỉ hỗ trợ trên Android / iOS. Vui lòng thử trên điện thoại.'),
+          ),
+        );
+      }
+      return;
+    }
+
     final picker = ImagePicker();
     final x = await picker.pickImage(source: ImageSource.camera);
     if (x == null || !mounted) return;
