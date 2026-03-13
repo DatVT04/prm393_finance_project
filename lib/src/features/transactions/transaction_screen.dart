@@ -17,6 +17,8 @@ class TransactionScreen extends ConsumerStatefulWidget {
 
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   String? _filterTag;
+  String _dateFilter = 'Tất cả';
+  DateTime? _customDate;
 
   void _openAddEntry() async {
     final created = await showModalBottomSheet<FinancialEntryModel>(
@@ -71,6 +73,44 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     return map;
   }
 
+  List<FinancialEntryModel> _filterByDate(List<FinancialEntryModel> list) {
+    if (_dateFilter == 'Tất cả') return list;
+
+    final now = DateTime.now();
+    if (_dateFilter == 'Tháng này') {
+      return list.where((e) =>
+          e.transactionDate.year == now.year &&
+          e.transactionDate.month == now.month).toList();
+    }
+    if (_dateFilter == 'Năm nay') {
+      return list.where((e) => e.transactionDate.year == now.year).toList();
+    }
+    if (_dateFilter == 'Ngày' && _customDate != null) {
+      return list.where((e) =>
+          e.transactionDate.year == _customDate!.year &&
+          e.transactionDate.month == _customDate!.month &&
+          e.transactionDate.day == _customDate!.day).toList();
+    }
+    return list;
+  }
+
+  Future<void> _pickCustomDate() async {
+    final now = DateTime.now();
+    final initial = _customDate ?? now;
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+    );
+    if (selected != null) {
+      setState(() {
+        _customDate = selected;
+        _dateFilter = 'Ngày';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
@@ -113,9 +153,11 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       ),
       body: entriesAsync.when(
         data: (list) {
-          var displayList = list;
+          var displayList = _filterByDate(list);
           if (_filterTag != null && _filterTag!.isNotEmpty) {
-            displayList = list.where((e) => e.tags.any((t) => t.toLowerCase().contains(_filterTag!.toLowerCase()))).toList();
+            displayList = displayList
+                .where((e) => e.tags.any((t) => t.toLowerCase().contains(_filterTag!.toLowerCase())))
+                .toList();
           }
           if (displayList.isEmpty) {
             return Center(
@@ -157,37 +199,74 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               final db = DateFormat('dd/MM/yyyy').parse(b);
               return db.compareTo(da);
             });
-
-          return ListView.builder(
-            padding: const EdgeInsets.only(bottom: 100, top: 8),
-            itemCount: sortedKeys.length,
-            itemBuilder: (context, index) {
-              final dateStr = sortedKeys[index];
-              final items = grouped[dateStr]!;
-              final dailyTotal = items.fold<double>(0, (s, e) => s + e.amount);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _formatDateHeader(dateStr),
-                          style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold, fontSize: 14),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildDateFilterChip('Tất cả'),
+                      const SizedBox(width: 8),
+                      _buildDateFilterChip('Tháng này'),
+                      const SizedBox(width: 8),
+                      _buildDateFilterChip('Năm nay'),
+                      const SizedBox(width: 8),
+                      ActionChip(
+                        label: Text(
+                          _dateFilter == 'Ngày' && _customDate != null
+                              ? DateFormat('dd/MM/yyyy').format(_customDate!)
+                              : 'Chọn ngày',
                         ),
-                        Text(
-                          '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
-                          style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                        avatar: const Icon(Icons.calendar_today, size: 18),
+                        onPressed: _pickCustomDate,
+                      ),
+                    ],
                   ),
-                  ...items.map((e) => _buildEntryItem(e)),
-                ],
-              );
-            },
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 100, top: 8),
+                  itemCount: sortedKeys.length,
+                  itemBuilder: (context, index) {
+                    final dateStr = sortedKeys[index];
+                    final items = grouped[dateStr]!;
+                    final dailyTotal = items.fold<double>(0, (s, e) => s + e.amount);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDateHeader(dateStr),
+                                style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
+                              ),
+                              Text(
+                                '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
+                                style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...items.map((e) => _buildEntryItem(e)),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -219,6 +298,22 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDateFilterChip(String label) {
+    final isSelected = _dateFilter == label;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() {
+          _dateFilter = label;
+          if (label != 'Ngày') {
+            _customDate = null;
+          }
+        });
+      },
     );
   }
 
