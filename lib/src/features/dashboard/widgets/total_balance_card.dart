@@ -13,72 +13,44 @@ class TotalBalanceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = NumberFormat('#,###', 'vi_VN');
 
-    final income = ref.watch(monthlyIncomeProvider);
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
+    final accountsAsync = ref.watch(accountsProvider);
 
-    final double expense = entriesAsync.maybeWhen(
+    final (income, expense, totalBalance) = entriesAsync.maybeWhen(
       data: (all) {
         final now = DateTime.now();
         final monthStart = DateTime(now.year, now.month, 1);
         final monthEnd = (now.month == 12)
             ? DateTime(now.year + 1, 1, 1)
             : DateTime(now.year, now.month + 1, 1);
+
         final monthEntries = all.where((e) {
           final d = e.transactionDate;
-          final onOrAfterStart = !d.isBefore(monthStart);
-          final beforeNextMonth = d.isBefore(monthEnd);
-          return onOrAfterStart && beforeNextMonth;
-        });
-        return monthEntries.fold<double>(0, (s, e) => s + e.amount);
+          return !d.isBefore(monthStart) && d.isBefore(monthEnd);
+        }).toList();
+
+        final inc = monthEntries
+            .where((e) => e.type == 'INCOME')
+            .fold<double>(0, (s, e) => s + e.amount);
+        final exp = monthEntries
+            .where((e) => e.type == 'EXPENSE')
+            .fold<double>(0, (s, e) => s + e.amount);
+        
+        final bal = accountsAsync.maybeWhen(
+          data: (list) => list.fold<double>(0, (s, a) => s + a.balance),
+          orElse: () => inc - exp,
+        );
+
+        return (inc, exp, bal);
       },
-      orElse: () => 0.0,
+      orElse: () => (0.0, 0.0, 0.0),
     );
 
-    final balance = income - expense;
+    final balance = totalBalance;
 
     String formatMoney(double value) {
       final rounded = value.round();
       return '${currency.format(rounded)} đ';
-    }
-
-    Future<void> editIncome() async {
-      final controller = TextEditingController(
-        text: income > 0 ? income.toStringAsFixed(0) : '',
-      );
-      final result = await showDialog<double>(
-        context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const Text('Nhập thu nhập tháng này'),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Thu nhập (VND)',
-                hintText: 'Ví dụ: 15000000',
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Hủy'),
-              ),
-              TextButton(
-                onPressed: () {
-                  final raw = controller.text.trim().replaceAll('.', '').replaceAll(',', '');
-                  final value = double.tryParse(raw);
-                  Navigator.of(ctx).pop(value);
-                },
-                child: const Text('Lưu'),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (result != null && result > 0) {
-        ref.read(monthlyIncomeProvider.notifier).state = result;
-      }
     }
 
     return Container(
@@ -162,7 +134,7 @@ class TotalBalanceCard extends ConsumerWidget {
                 label: 'Thu nhập',
                 amount: formatMoney(income),
                 isIncome: true,
-                onTap: editIncome,
+                onTap: null,
               ),
               Container(
                 width: 1,

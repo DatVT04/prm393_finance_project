@@ -49,6 +49,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   Map<String, double> _categoryTotals(List<FinancialEntryModel> list) {
     final map = <String, double>{};
     for (final e in list) {
+      if (e.type != 'EXPENSE') continue;
       final name = e.categoryName ?? 'Khác';
       map[name] = (map[name] ?? 0) + e.amount;
     }
@@ -95,7 +96,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       body: entriesAsync.when(
         data: (all) {
           final list = _filterByPeriod(all);
-          final expense = list.fold<double>(0, (s, e) => s + e.amount);
+          final expense = list.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
+          final income = list.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
           final categoryTotals = _categoryTotals(list);
           final sortedCategories = categoryTotals.entries.toList()
             ..sort((a, b) => b.value.compareTo(a.value));
@@ -127,7 +129,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   onPeriodChanged: (period) => setState(() => _selectedPeriod = period),
                 ),
                 const SizedBox(height: 24),
-                ReportSummaryCard(income: 0, expense: expense),
+                ReportSummaryCard(income: income, expense: expense),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () {
