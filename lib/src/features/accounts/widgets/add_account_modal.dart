@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 
 class AddAccountModal extends ConsumerStatefulWidget {
@@ -7,6 +9,27 @@ class AddAccountModal extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<AddAccountModal> createState() => _AddAccountModalState();
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+    String text = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (text.isEmpty) return newValue.copyWith(text: '');
+    
+    double value = double.parse(text);
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    String newText = formatter.format(value);
+
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
 }
 
 class _AddAccountModalState extends ConsumerState<AddAccountModal> {
@@ -28,7 +51,8 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
     setState(() => _saving = true);
     try {
       final name = _nameController.text.trim();
-      final balance = double.tryParse(_balanceController.text.trim()) ?? 0.0;
+      final balanceStr = _balanceController.text.trim().replaceAll('.', '').replaceAll(',', '.');
+      final balance = double.tryParse(balanceStr) ?? 0.0;
       
       await ref.read(apiClientProvider).createAccount(name, balance);
       
@@ -85,9 +109,13 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.account_balance_wallet_outlined),
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                CurrencyInputFormatter(),
+              ],
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return null;
-                if (double.tryParse(v) == null) return 'Số không hợp lệ';
+                // No need to check double.tryParse here because digitsOnly + formatter ensures format
                 return null;
               },
             ),
