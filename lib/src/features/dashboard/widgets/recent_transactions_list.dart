@@ -143,11 +143,11 @@ class RecentTransactionsList extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          '-${nf.format(e.amount)} đ',
-                          style: const TextStyle(
+                          '${e.type == 'INCOME' ? '+' : '-'}${nf.format(e.amount)} đ',
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
-                            color: Color(0xFFE53935),
+                            color: e.type == 'INCOME' ? Colors.green[600] : const Color(0xFFE53935),
                           ),
                         ),
                       ],

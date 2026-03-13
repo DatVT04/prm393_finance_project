@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../constants/api_constants.dart';
+import '../models/account_model.dart';
 import '../models/category_model.dart';
 import '../models/financial_entry_model.dart';
 
@@ -19,6 +20,26 @@ class FinanceApiClient {
     if (res.statusCode != 200) throw Exception('Failed to load categories: ${res.statusCode}');
     final list = jsonDecode(res.body) as List;
     return list.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<AccountModel>> getAccounts() async {
+    final res = await http.get(Uri.parse('$_base/api/accounts'));
+    if (res.statusCode != 200) throw Exception('Failed to load accounts: ${res.statusCode}');
+    final list = jsonDecode(res.body) as List;
+    return list.map((e) => AccountModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<AccountModel> createAccount(String name, double balance) async {
+    final res = await http.post(
+      Uri.parse('$_base/api/accounts'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'balance': balance,
+      }),
+    );
+    if (res.statusCode != 201 && res.statusCode != 200) throw Exception('Failed to create account: ${res.statusCode}');
+    return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   Future<List<FinancialEntryModel>> getEntries({

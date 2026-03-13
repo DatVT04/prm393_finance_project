@@ -10,6 +10,9 @@ class FinancialEntryModel {
   final String? imageUrl;
   final double? latitude;
   final double? longitude;
+  final String type; // INCOME, EXPENSE, TRANSFER
+  final int accountId;
+  final int? toAccountId;
   final String? source;
   final DateTime? createdAt;
 
@@ -25,6 +28,9 @@ class FinancialEntryModel {
     this.imageUrl,
     this.latitude,
     this.longitude,
+    required this.type,
+    required this.accountId,
+    this.toAccountId,
     this.source,
     this.createdAt,
   });
@@ -44,6 +50,9 @@ class FinancialEntryModel {
       imageUrl: json['imageUrl'] as String?,
       latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
       longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      type: json['type'] as String? ?? 'EXPENSE',
+      accountId: json['accountId'] as int? ?? 1,
+      toAccountId: json['toAccountId'] as int?,
       source: json['source'] as String?,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'] as String) : null,
     );
@@ -54,7 +63,10 @@ class FinancialEntryModel {
       'amount': amount,
       'note': note,
       'categoryId': categoryId,
+      'accountId': accountId,
+      'type': type,
       'transactionDate': transactionDate.toIso8601String().split('T').first,
+      if (toAccountId != null) 'toAccountId': toAccountId,
       if (tags.isNotEmpty) 'tags': tags,
       if (mentions.isNotEmpty) 'mentions': mentions,
       if (imageUrl != null && imageUrl!.isNotEmpty) 'imageUrl': imageUrl,

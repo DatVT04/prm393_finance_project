@@ -138,6 +138,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
       amount: amount > 0 ? amount : null,
       categoryId: categoryId,
       note: note.isNotEmpty ? note : null,
+      type: 'EXPENSE',
       source: 'OCR',
     );
     if (!mounted) return;
@@ -205,6 +206,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
       amount: parsed.amount,
       categoryId: categoryId,
       note: parsed.note,
+      type: 'EXPENSE', // Could detect from text, but keeping it simple for now
       source: 'VOICE',
     ));
   }
@@ -231,6 +233,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
       amount: _clipboardAmount!,
       categoryId: categoryId,
       note: 'Từ clipboard',
+      type: 'EXPENSE',
       source: 'CLIPBOARD',
     ));
   }
