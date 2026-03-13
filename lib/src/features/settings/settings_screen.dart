@@ -107,12 +107,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       children: const [
         SizedBox(height: 16),
         Text('Môn học: PRM393'),
-        Text('Nhóm: Nhóm X'),
+        Text('Nhóm: 한국어'),
         SizedBox(height: 8),
         Text('Thành viên:'),
-        Text('- Nguyễn Văn A'),
-        Text('- Nguyễn Văn B'),
+        Text('- Bùi Đức Chương (Leader)'),
+        Text('- Nguyễn Hữu Long'),
+        Text('- Nguyễn Danh Huy'),
         Text('- Nguyễn Văn Sỹ'),
+        Text('- Vũ Tiến Đạt'),
       ],
     );
   }
