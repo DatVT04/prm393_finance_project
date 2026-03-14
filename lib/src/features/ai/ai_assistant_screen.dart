@@ -79,7 +79,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       _messages.removeWhere((m) => m.pending && m.role == _ChatRole.assistant);
       _messages.add(_ChatMessage.assistant(res.reply));
     });
-    if (res.intent.toUpperCase() == 'INSERT' && (res.createdCount ?? 0) > 0) {
+    if (res.refreshRequired || (res.intent.toUpperCase() == 'INSERT' && (res.createdCount ?? 0) > 0)) {
       refreshEntries(ref);
     }
   }
