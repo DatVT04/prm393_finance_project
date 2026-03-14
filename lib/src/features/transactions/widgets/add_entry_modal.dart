@@ -167,6 +167,20 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedType == 'INCOME' && _selectedCategoryId == null) {
+      final categories = ref.read(categoriesProvider).value;
+      if (categories != null && categories.isNotEmpty) {
+        final napVi = categories.firstWhere(
+          (c) => c.name.toLowerCase().contains('nạp ví') || c.name.toLowerCase().contains('thu nhập'),
+          orElse: () => categories.firstWhere(
+            (c) => c.name.toLowerCase() == 'khác',
+            orElse: () => categories.first,
+          ),
+        );
+        _selectedCategoryId = napVi.id;
+      }
+    }
+
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn danh mục')),
@@ -273,7 +287,25 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   ButtonSegment(value: 'INCOME', label: Text('Thu'), icon: Icon(Icons.add_circle_outline)),
                 ],
                 selected: {_selectedType},
-                onSelectionChanged: (val) => setState(() => _selectedType = val.first),
+                onSelectionChanged: (val) {
+                  final newType = val.first;
+                  setState(() {
+                    _selectedType = newType;
+                    if (_selectedType == 'INCOME') {
+                      final categories = ref.read(categoriesProvider).value;
+                      if (categories != null && categories.isNotEmpty) {
+                        final napVi = categories.firstWhere(
+                          (c) => c.name.toLowerCase().contains('nạp ví') || c.name.toLowerCase().contains('thu nhập'),
+                          orElse: () => categories.firstWhere(
+                            (c) => c.name.toLowerCase() == 'khác',
+                            orElse: () => categories.first,
+                          ),
+                        );
+                        _selectedCategoryId = napVi.id;
+                      }
+                    }
+                  });
+                },
               ),
               const SizedBox(height: 24),
               TextFormField(
@@ -297,26 +329,28 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 },
               ),
               const SizedBox(height: 16),
-              categoriesAsync.when(
-                data: (list) {
-                  return DropdownButtonFormField<int>(
-                    value: _selectedCategoryId,
-                    decoration: const InputDecoration(
-                      labelText: 'Danh mục',
-                      prefixIcon: Icon(Icons.category),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: list
-                        .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.name)))
-                        .toList(),
-                    onChanged: (v) => setState(() => _selectedCategoryId = v),
-                    validator: (v) => v == null ? 'Vui lòng chọn danh mục' : null,
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Không tải được danh mục'),
-              ),
-              const SizedBox(height: 16),
+              if (_selectedType != 'INCOME') ...[
+                categoriesAsync.when(
+                  data: (list) {
+                    return DropdownButtonFormField<int>(
+                      value: _selectedCategoryId,
+                      decoration: const InputDecoration(
+                        labelText: 'Danh mục',
+                        prefixIcon: Icon(Icons.category),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: list
+                          .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.name)))
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedCategoryId = v),
+                      validator: (v) => v == null ? 'Vui lòng chọn danh mục' : null,
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => const Text('Không tải được danh mục'),
+                ),
+                const SizedBox(height: 16),
+              ],
               ref.watch(accountsProvider).when(
                 data: (list) {
                   if (_selectedAccountId == null && list.isNotEmpty) {
