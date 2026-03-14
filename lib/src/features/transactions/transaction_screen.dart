@@ -419,6 +419,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         return Icons.school;
       case 'Gửi xe':
         return Icons.local_parking;
+      case 'Nạp tiền':
+        return Icons.account_balance_wallet;
       default:
         return Icons.category;
     }
@@ -440,6 +442,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         return Colors.indigo;
       case 'Gửi xe':
         return Colors.brown;
+      case 'Nạp tiền':
+        return Colors.green;
       default:
         return Colors.teal;
     }

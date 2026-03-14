@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../constants/api_constants.dart';
 import '../models/account_model.dart';
+import '../models/ai_assistant_response.dart';
 import '../models/category_model.dart';
 import '../models/financial_entry_model.dart';
 
@@ -93,6 +94,24 @@ class FinanceApiClient {
   Future<void> deleteEntry(int id) async {
     final res = await http.delete(Uri.parse('$_base${ApiConstants.entriesPath}/$id'));
     if (res.statusCode != 204) throw Exception('Failed to delete entry: ${res.statusCode}');
+  }
+
+  Future<AiAssistantResponse> askAssistant(
+    String message, {
+    String? conversationId,
+    int? accountId,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$_base/api/ai/assistant'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'message': message,
+        if (conversationId != null && conversationId.isNotEmpty) 'conversationId': conversationId,
+        if (accountId != null) 'accountId': accountId,
+      }),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to ask AI: ${res.statusCode}');
+    return AiAssistantResponse.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   static String _dateStr(DateTime d) =>

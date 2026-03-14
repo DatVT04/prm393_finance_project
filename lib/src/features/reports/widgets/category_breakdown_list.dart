@@ -15,6 +15,7 @@ class CategoryBreakdownList extends StatelessWidget {
     'Y tế': Icons.medical_services,
     'Giáo dục': Icons.school,
     'Gửi xe': Icons.local_parking,
+    'Nạp tiền': Icons.account_balance_wallet,
     'Khác': Icons.category,
   };
 

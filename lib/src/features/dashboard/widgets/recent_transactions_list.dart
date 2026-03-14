@@ -28,6 +28,8 @@ class RecentTransactionsList extends ConsumerWidget {
         return Icons.school;
       case 'Gửi xe':
         return Icons.local_parking;
+      case 'Nạp tiền':
+        return Icons.account_balance_wallet;
       default:
         return Icons.category;
     }
