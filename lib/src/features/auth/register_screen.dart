@@ -1,42 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
-import 'package:prm393_finance_project/src/features/auth/register_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/layout/main_layout.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _displayNameController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirm = true;
   bool _loading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _displayNameController.dispose();
     super.dispose();
   }
 
-  Future<void> _onLogin() async {
+  Future<void> _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      final res = await ref.read(apiClientProvider).login(
+      final res = await ref.read(apiClientProvider).register(
             _emailController.text.trim(),
             _passwordController.text,
+            displayName: _displayNameController.text.trim().isEmpty
+                ? null
+                : _displayNameController.text.trim(),
           );
       if (!mounted) return;
       final userId = res['userId'];
@@ -44,55 +49,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         await ref.read(currentUserIdProvider.notifier).setUserId((userId as num).toInt());
       }
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainLayout()),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onLoginWithGoogle() async {
-    setState(() => _loading = true);
-    try {
-      final googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-        serverClientId: ApiConstants.googleWebClientId.isEmpty ? null : ApiConstants.googleWebClientId,
-      );
-      final account = await googleSignIn.signIn();
-      if (account == null || !mounted) {
-        setState(() => _loading = false);
-        return;
-      }
-      final auth = await account.authentication;
-      final idToken = auth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        if (!mounted) return;
-        setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không lấy được token từ Google. Vui lòng cấu hình OAuth (Web Client ID).'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-      final res = await ref.read(apiClientProvider).loginWithGoogle(idToken);
-      if (!mounted) return;
-      final userId = res['userId'];
-      if (userId != null) {
-        await ref.read(currentUserIdProvider.notifier).setUserId((userId as num).toInt());
-      }
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainLayout()),
+        (route) => false,
       );
     } catch (e) {
       if (!mounted) return;
@@ -133,37 +92,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const SizedBox(height: 48),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.account_balance_wallet_rounded,
-                      size: 64,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppConstants.appName,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                    textAlign: TextAlign.center,
+                  const SizedBox(height: 24),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    alignment: Alignment.centerLeft,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Quản lý tài chính cá nhân',
+                    AppConstants.appName,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tạo tài khoản mới',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withOpacity(0.9),
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
@@ -182,7 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Đăng nhập',
+                          'Đăng ký',
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF2D3250),
@@ -190,14 +140,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
                         TextFormField(
+                          controller: _displayNameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Họ tên (tùy chọn)',
+                            hintText: 'Nguyễn Văn A',
+                            prefixIcon: Icon(Icons.person_outline),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
+                            ),
+                            filled: true,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
+                          decoration: const InputDecoration(
+                            labelText: 'Email *',
                             hintText: 'email@example.com',
-                            prefixIcon: const Icon(Icons.email_outlined),
+                            prefixIcon: Icon(Icons.email_outlined),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
                             ),
                             filled: true,
                           ),
@@ -216,8 +179,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'Mật khẩu',
-                            hintText: '••••••••',
+                            labelText: 'Mật khẩu *',
+                            hintText: 'Tối thiểu 6 ký tự',
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -230,8 +193,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     _obscurePassword = !_obscurePassword);
                               },
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
                             ),
                             filled: true,
                           ),
@@ -245,9 +208,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             return null;
                           },
                         ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirm,
+                          decoration: InputDecoration(
+                            labelText: 'Xác nhận mật khẩu *',
+                            hintText: 'Nhập lại mật khẩu',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirm
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              onPressed: () {
+                                setState(() =>
+                                    _obscureConfirm = !_obscureConfirm);
+                              },
+                            ),
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
+                            ),
+                            filled: true,
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Vui lòng xác nhận mật khẩu';
+                            }
+                            if (v != _passwordController.text) {
+                              return 'Mật khẩu không trùng khớp';
+                            }
+                            return null;
+                          },
+                        ),
                         const SizedBox(height: 28),
                         FilledButton(
-                          onPressed: _loading ? null : _onLogin,
+                          onPressed: _loading ? null : _onRegister,
                           style: FilledButton.styleFrom(
                             backgroundColor: colorScheme.primary,
                             foregroundColor: Colors.white,
@@ -267,39 +264,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 )
                               : const Text(
-                                  'Đăng nhập',
+                                  'Đăng ký',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                         ),
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: _loading ? null : _onLoginWithGoogle,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF2D3250),
-                            side: const BorderSide(color: Color(0xFF2D3250)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          icon: const Icon(Icons.g_mobiledata, size: 22),
-                          label: const Text('Đăng nhập bằng Google'),
-                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      );
-                    },
+                    onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      'Chưa có tài khoản? Đăng ký',
+                      'Đã có tài khoản? Đăng nhập',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.95),
                         fontWeight: FontWeight.w600,

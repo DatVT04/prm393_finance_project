@@ -244,6 +244,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
 
       if (!mounted) return;
       refreshEntries(ref);
+      refreshAccounts(ref);
       Navigator.of(context).pop(result);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã lưu ghi chú'), backgroundColor: Colors.green),

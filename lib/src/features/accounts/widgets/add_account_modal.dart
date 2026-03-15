@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 
 class AddAccountModal extends ConsumerStatefulWidget {
-  const AddAccountModal({super.key});
+  /// Nếu có thì đang sửa; null thì thêm mới.
+  final AccountModel? accountToEdit;
+
+  const AddAccountModal({super.key, this.accountToEdit});
 
   @override
   ConsumerState<AddAccountModal> createState() => _AddAccountModalState();
@@ -39,6 +43,16 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    final a = widget.accountToEdit;
+    if (a != null) {
+      _nameController.text = a.name;
+      _balanceController.text = NumberFormat('#,###', 'vi_VN').format(a.balance);
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _balanceController.dispose();
@@ -51,11 +65,16 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
     setState(() => _saving = true);
     try {
       final name = _nameController.text.trim();
-      final balanceStr = _balanceController.text.trim().replaceAll('.', '').replaceAll(',', '.');
+      final balanceStr = _balanceController.text.trim().replaceAll(' ', '').replaceAll('.', '').replaceAll(',', '.');
       final balance = double.tryParse(balanceStr) ?? 0.0;
-      
-      await ref.read(apiClientProvider).createAccount(name, balance);
-      
+      final editing = widget.accountToEdit;
+
+      if (editing != null) {
+        await ref.read(apiClientProvider).updateAccount(editing.id, name, balance);
+      } else {
+        await ref.read(apiClientProvider).createAccount(name, balance);
+      }
+
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -83,9 +102,9 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Thêm tài khoản mới',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              widget.accountToEdit != null ? 'Sửa tài khoản' : 'Thêm tài khoản mới',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -128,7 +147,7 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
               ),
               child: _saving
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Lưu tài khoản'),
+                  : Text(widget.accountToEdit != null ? 'Cập nhật' : 'Lưu tài khoản'),
             ),
             const SizedBox(height: 24),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import '../widgets/add_account_modal.dart';
 
@@ -107,17 +108,29 @@ class AccountListScreen extends ConsumerWidget {
                           account.name,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        trailing: Text(
+                        subtitle: Text(
                           '${currency.format(account.balance)} đ',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 15,
                             color: account.balance >= 0 ? Colors.green[700] : Colors.red[700],
                           ),
                         ),
-                        onTap: () {
-                          // TODO: Edit account
-                        },
+                        trailing: PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert),
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              _openEditAccount(context, ref, account);
+                            } else if (value == 'delete') {
+                              _confirmDeleteAccount(context, ref, account);
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 20), SizedBox(width: 8), Text('Sửa')])),
+                            const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline, size: 20, color: Colors.red), SizedBox(width: 8), Text('Xóa', style: TextStyle(color: Colors.red))])),
+                          ],
+                        ),
+                        onTap: () => _openEditAccount(context, ref, account),
                       ),
                     );
                   },
@@ -143,6 +156,54 @@ class AccountListScreen extends ConsumerWidget {
     );
     if (result == true) {
       ref.invalidate(accountsProvider);
+    }
+  }
+
+  void _openEditAccount(BuildContext context, WidgetRef ref, AccountModel account) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => AddAccountModal(accountToEdit: account),
+    );
+    if (result == true) {
+      ref.invalidate(accountsProvider);
+    }
+  }
+
+  void _confirmDeleteAccount(BuildContext context, WidgetRef ref, AccountModel account) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Xóa ví / tài khoản?'),
+        content: Text(
+          'Bạn có chắc muốn xóa "${account.name}"? Chỉ xóa được khi ví không còn giao dịch nào.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Hủy')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(apiClientProvider).deleteAccount(account.id);
+      if (!context.mounted) return;
+      ref.invalidate(accountsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã xóa tài khoản'), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red),
+      );
     }
   }
 }

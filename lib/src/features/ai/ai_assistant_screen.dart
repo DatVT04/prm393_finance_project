@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
+import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final _scrollController = ScrollController();
   final List<_ChatMessage> _messages = [];
   bool _sending = false;
+  bool _chatLoaded = false;
   String? _conversationId;
   String? _pendingMessageForAccount;
 
@@ -28,6 +30,41 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     'Hôm nay tôi ăn phở 45k',
     'Hôm nay tôi nạp 2 triệu vào ví',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedChat();
+  }
+
+  Future<void> _loadSavedChat() async {
+    final (convId, list) = await loadAiChat();
+    if (!mounted) return;
+    setState(() {
+      _conversationId = convId;
+      _messages.clear();
+      for (final m in list) {
+        final r = m['r'] as int?;
+        final t = m['t'] as String? ?? '';
+        if (r == 0) {
+          _messages.add(_ChatMessage.user(t));
+        } else {
+          _messages.add(_ChatMessage.assistant(t));
+        }
+      }
+      _chatLoaded = true;
+    });
+  }
+
+  Future<void> _persistChat() async {
+    final list = _messages
+        .map((m) => {
+              'r': m.role == _ChatRole.user ? 0 : 1,
+              't': m.text,
+            })
+        .toList();
+    await saveAiChat(_conversationId, list);
+  }
 
   @override
   void dispose() {
@@ -55,6 +92,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         _conversationId = res.conversationId;
       }
       _replacePending(res);
+      _persistChat();
       if (res.needsAccountSelection) {
         _pendingMessageForAccount = text;
         if (mounted) {
@@ -65,6 +103,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       }
     } catch (e) {
       _replacePending(AiAssistantResponse(reply: 'Có lỗi khi gọi AI: $e', intent: 'UNKNOWN'));
+      _persistChat();
     }
 
     if (mounted) {
@@ -77,10 +116,13 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     if (!mounted) return;
     setState(() {
       _messages.removeWhere((m) => m.pending && m.role == _ChatRole.assistant);
-      _messages.add(_ChatMessage.assistant(res.reply));
+      _messages.add(_ChatMessage.assistant(res.reply ?? ''));
     });
     if (res.refreshRequired || (res.intent.toUpperCase() == 'INSERT' && (res.createdCount ?? 0) > 0)) {
       refreshEntries(ref);
+      refreshAccounts(ref);
+      ref.invalidate(entriesWithRefreshProvider);
+      ref.invalidate(entriesFilteredProvider);
     }
   }
 
@@ -158,8 +200,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         _conversationId = res.conversationId;
       }
       _replacePending(res);
+      _persistChat();
     } catch (e) {
       _replacePending(AiAssistantResponse(reply: 'Có lỗi khi gọi AI: $e', intent: 'UNKNOWN'));
+      _persistChat();
     }
 
     if (mounted) {
@@ -183,7 +227,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: !_chatLoaded
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           Expanded(
             child: ListView.builder(
@@ -310,14 +356,17 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     );
 
     if (confirmed != true) return;
+    await clearAiChat();
     setState(() {
       _conversationId = null;
       _messages.clear();
       _pendingMessageForAccount = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã bắt đầu cuộc trò chuyện mới')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã bắt đầu cuộc trò chuyện mới')),
+      );
+    }
   }
 }
 

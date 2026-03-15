@@ -99,6 +99,7 @@ class RecentTransactionsList extends ConsumerWidget {
                     );
                     if (updated != null) {
                       refreshEntries(ref);
+                      refreshAccounts(ref);
                     }
                   },
                   child: Container(

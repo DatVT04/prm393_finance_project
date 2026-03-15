@@ -29,6 +29,11 @@ final accountsProvider = FutureProvider<List<AccountModel>>((ref) async {
   return client.getAccounts();
 });
 
+/// Invalidate accounts để refetch số dư (sau khi nạp tiền / chi tiêu).
+void refreshAccounts(WidgetRef ref) {
+  ref.invalidate(accountsProvider);
+}
+
 final entriesProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {
   final client = ref.watch(apiClientProvider);
   return client.getEntries();

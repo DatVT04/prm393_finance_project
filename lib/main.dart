@@ -7,6 +7,7 @@ import 'src/core/theme/app_theme.dart';
 import 'src/core/theme/theme_provider.dart';
 import 'src/core/theme/locale_provider.dart';
 import 'src/core/constants/app_constants.dart';
+import 'src/features/auth/auth_provider.dart';
 import 'src/features/auth/login_screen.dart';
 import 'src/layout/main_layout.dart';
 
@@ -21,6 +22,7 @@ class FinanceApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+    final userIdAsync = ref.watch(currentUserIdProvider);
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
@@ -30,7 +32,13 @@ class FinanceApp extends ConsumerWidget {
 
       themeMode: themeMode,
       locale: locale,
-      home: const LoginScreen(),
+      home: userIdAsync.when(
+        loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, __) => const LoginScreen(),
+        data: (userId) => userId != null ? const MainLayout() : const LoginScreen(),
+      ),
 
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

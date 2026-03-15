@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/login_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import '../../accounts/screens/account_list_screen.dart';
@@ -315,7 +316,9 @@ class HomeAppBar extends ConsumerWidget {
                 border: Border.all(color: Colors.grey[200]!),
               ),
               child: IconButton(
-                onPressed: () {
+                onPressed: () async {
+                  await ref.read(currentUserIdProvider.notifier).clearUserId();
+                  if (!context.mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
                         builder: (_) => const LoginScreen()),

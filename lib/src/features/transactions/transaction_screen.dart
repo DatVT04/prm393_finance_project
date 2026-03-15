@@ -30,6 +30,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     );
     if (created != null) {
       refreshEntries(ref);
+      refreshAccounts(ref);
     }
   }
 
@@ -48,6 +49,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     try {
       await ref.read(apiClientProvider).deleteEntry(entry.id);
       refreshEntries(ref);
+      refreshAccounts(ref);
       if (!mounted) return true;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã xóa ghi chú'), backgroundColor: Colors.orange),
@@ -397,7 +399,10 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             ),
             builder: (ctx) => AddEntryModal(entryToEdit: e),
           );
-          if (updated != null) refreshEntries(ref);
+          if (updated != null) {
+            refreshEntries(ref);
+            refreshAccounts(ref);
+          }
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

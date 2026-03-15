@@ -14,7 +14,18 @@ class FinanceApiClient {
 
   FinanceApiClient._();
 
+  static int? _userId;
+  static void setUserId(int? id) {
+    _userId = id;
+  }
+
   String get _base => ApiConstants.baseUrl;
+
+  /// Headers for requests that are scoped by user (accounts, entries).
+  Map<String, String> get _userHeaders => {
+        'Content-Type': 'application/json',
+        if (_userId != null) 'X-User-Id': _userId.toString(),
+      };
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final res = await http.post(
@@ -27,6 +38,45 @@ class FinanceApiClient {
     }
     if (res.statusCode != 200) {
       throw Exception('Đăng nhập thất bại: ${res.statusCode}');
+    }
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> register(
+    String email,
+    String password, {
+    String? displayName,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email.trim(),
+        'password': password,
+        if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
+      }),
+    );
+    if (res.statusCode == 409) {
+      throw Exception('Email này đã được đăng ký');
+    }
+    if (res.statusCode != 201 && res.statusCode != 200) {
+      final body = res.body;
+      throw Exception(body.isNotEmpty ? body : 'Đăng ký thất bại: ${res.statusCode}');
+    }
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'idToken': idToken}),
+    );
+    if (res.statusCode == 401) {
+      throw Exception('Đăng nhập Google thất bại. Vui lòng thử lại.');
+    }
+    if (res.statusCode != 200) {
+      throw Exception('Đăng nhập Google thất bại: ${res.statusCode}');
     }
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
@@ -66,7 +116,10 @@ class FinanceApiClient {
   }
 
   Future<List<AccountModel>> getAccounts() async {
-    final res = await http.get(Uri.parse('$_base${ApiConstants.accountsPath}'));
+    final res = await http.get(
+      Uri.parse('$_base${ApiConstants.accountsPath}'),
+      headers: _userHeaders,
+    );
     if (res.statusCode != 200) throw Exception('Failed to load accounts: ${res.statusCode}');
     final list = jsonDecode(res.body) as List;
     return list.map((e) => AccountModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -75,13 +128,34 @@ class FinanceApiClient {
   Future<AccountModel> createAccount(String name, double balance) async {
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.accountsPath}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _userHeaders,
       body: jsonEncode({'name': name, 'balance': balance}),
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
       throw Exception('Failed to create account: ${res.statusCode}');
     }
     return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<AccountModel> updateAccount(int id, String name, double balance) async {
+    final res = await http.put(
+      Uri.parse('$_base${ApiConstants.accountsPath}/$id'),
+      headers: _userHeaders,
+      body: jsonEncode({'name': name, 'balance': balance}),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to update account: ${res.statusCode}');
+    return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteAccount(int id) async {
+    final res = await http.delete(
+      Uri.parse('$_base${ApiConstants.accountsPath}/$id'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode == 409 && res.body.isNotEmpty) {
+      throw Exception(res.body);
+    }
+    if (res.statusCode != 204) throw Exception('Không thể xóa ví: ${res.statusCode}');
   }
 
   Future<List<FinancialEntryModel>> getEntries({
@@ -96,7 +170,7 @@ class FinanceApiClient {
     if (tag != null && tag.isNotEmpty) q['tag'] = tag;
     if (q.isNotEmpty) uri = uri.replace(queryParameters: q);
 
-    final res = await http.get(uri);
+    final res = await http.get(uri, headers: _userHeaders);
     if (res.statusCode != 200) throw Exception('Failed to load entries: ${res.statusCode}');
     final list = jsonDecode(res.body) as List;
     return list.map((e) => FinancialEntryModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -106,7 +180,7 @@ class FinanceApiClient {
     final body = entry.toCreateJson();
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.entriesPath}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _userHeaders,
       body: jsonEncode(body),
     );
     if (res.statusCode != 201 && res.statusCode != 200) throw Exception('Failed to create entry: ${res.statusCode}');
@@ -117,7 +191,7 @@ class FinanceApiClient {
     final body = entry.toCreateJson();
     final res = await http.put(
       Uri.parse('$_base${ApiConstants.entriesPath}/$id'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _userHeaders,
       body: jsonEncode(body),
     );
     if (res.statusCode != 200) throw Exception('Failed to update entry: ${res.statusCode}');
@@ -127,13 +201,17 @@ class FinanceApiClient {
   Future<void> uploadImage(int id, String filePath) async {
     final uri = Uri.parse('$_base${ApiConstants.entriesPath}/$id/image');
     final req = http.MultipartRequest('POST', uri);
+    if (_userId != null) req.headers['X-User-Id'] = _userId.toString();
     req.files.add(await http.MultipartFile.fromPath('file', filePath));
     final res = await req.send();
     if (res.statusCode != 200) throw Exception('Failed to upload image: ${res.statusCode}');
   }
 
   Future<void> deleteEntry(int id) async {
-    final res = await http.delete(Uri.parse('$_base${ApiConstants.entriesPath}/$id'));
+    final res = await http.delete(
+      Uri.parse('$_base${ApiConstants.entriesPath}/$id'),
+      headers: _userHeaders,
+    );
     if (res.statusCode != 204) throw Exception('Failed to delete entry: ${res.statusCode}');
   }
 

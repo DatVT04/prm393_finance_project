@@ -53,6 +53,10 @@ dependencies:
   # Network
   http: ^1.2.2
 
+  # Auth & persistence
+  google_sign_in: ^6.2.2
+  shared_preferences: ^2.2.2
+
   # AI Quick Entry: OCR, Voice, Clipboard
   google_mlkit_text_recognition: ^0.13.0
   image_picker: ^1.0.7
