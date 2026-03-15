@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/register_screen.dart';
@@ -38,53 +36,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _emailController.text.trim(),
             _passwordController.text,
           );
-      if (!mounted) return;
-      final userId = res['userId'];
-      if (userId != null) {
-        await ref.read(currentUserIdProvider.notifier).setUserId((userId as num).toInt());
-      }
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainLayout()),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onLoginWithGoogle() async {
-    setState(() => _loading = true);
-    try {
-      final googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-        serverClientId: ApiConstants.googleWebClientId.isEmpty ? null : ApiConstants.googleWebClientId,
-      );
-      final account = await googleSignIn.signIn();
-      if (account == null || !mounted) {
-        setState(() => _loading = false);
-        return;
-      }
-      final auth = await account.authentication;
-      final idToken = auth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        if (!mounted) return;
-        setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không lấy được token từ Google. Vui lòng cấu hình OAuth (Web Client ID).'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-      final res = await ref.read(apiClientProvider).loginWithGoogle(idToken);
       if (!mounted) return;
       final userId = res['userId'];
       if (userId != null) {
@@ -275,19 +226,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                         ),
                         const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: _loading ? null : _onLoginWithGoogle,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF2D3250),
-                            side: const BorderSide(color: Color(0xFF2D3250)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          icon: const Icon(Icons.g_mobiledata, size: 22),
-                          label: const Text('Đăng nhập bằng Google'),
-                        ),
                       ],
                     ),
                   ),

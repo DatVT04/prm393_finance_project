@@ -9,4 +9,4 @@ class ApiConstants {
 
   /// Web Client ID (OAuth 2.0) từ Google Cloud Console. Để tắt Đăng nhập Google, đặt chuỗi rỗng ''.
   static const String googleWebClientId = '529213434141-h5plko9q9tekp6sa87ah4lqqsdglascq.apps.googleusercontent.com';
-}q
+}
