@@ -16,6 +16,21 @@ class FinanceApiClient {
 
   String get _base => ApiConstants.baseUrl;
 
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email.trim(), 'password': password}),
+    );
+    if (res.statusCode == 401) {
+      throw Exception('Email hoặc mật khẩu không đúng');
+    }
+    if (res.statusCode != 200) {
+      throw Exception('Đăng nhập thất bại: ${res.statusCode}');
+    }
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
   Future<List<CategoryModel>> getCategories() async {
     final res = await http.get(Uri.parse('$_base${ApiConstants.categoriesPath}'));
     if (res.statusCode != 200) throw Exception('Failed to load categories: ${res.statusCode}');

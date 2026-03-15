@@ -7,6 +7,7 @@ import 'src/core/theme/app_theme.dart';
 import 'src/core/theme/theme_provider.dart';
 import 'src/core/theme/locale_provider.dart';
 import 'src/core/constants/app_constants.dart';
+import 'src/features/auth/login_screen.dart';
 import 'src/layout/main_layout.dart';
 
 void main() {
@@ -29,7 +30,7 @@ class FinanceApp extends ConsumerWidget {
 
       themeMode: themeMode,
       locale: locale,
-      home: const MainLayout(),
+      home: const LoginScreen(),
 
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

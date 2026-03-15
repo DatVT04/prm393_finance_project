@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/features/auth/login_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import '../../accounts/screens/account_list_screen.dart';
 
@@ -302,6 +303,26 @@ class HomeAppBar extends ConsumerWidget {
               child: IconButton(
                 onPressed: showTodaySummarySheet,
                 icon: const Icon(Icons.notifications_outlined),
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Logout
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
+                icon: const Icon(Icons.logout),
                 color: Colors.black87,
               ),
             ),
