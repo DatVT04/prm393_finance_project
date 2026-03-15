@@ -3,4 +3,5 @@ class ApiConstants {
   static const String baseUrl = 'http://10.0.2.2:8080';
   static const String categoriesPath = '/api/categories';
   static const String entriesPath = '/api/entries';
+  static const String accountsPath = '/api/accounts';
 }

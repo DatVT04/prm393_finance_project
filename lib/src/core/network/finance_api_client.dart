@@ -23,6 +23,52 @@ class FinanceApiClient {
     return list.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  Future<CategoryModel> createCategory(CategoryModel category) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.categoriesPath}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(category.toCreateJson()),
+    );
+    if (res.statusCode != 201 && res.statusCode != 200) {
+      throw Exception('Failed to create category: ${res.statusCode}');
+    }
+    return CategoryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<CategoryModel> updateCategory(int id, CategoryModel category) async {
+    final res = await http.put(
+      Uri.parse('$_base${ApiConstants.categoriesPath}/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(category.toCreateJson()),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to update category: ${res.statusCode}');
+    return CategoryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteCategory(int id) async {
+    final res = await http.delete(Uri.parse('$_base${ApiConstants.categoriesPath}/$id'));
+    if (res.statusCode != 204) throw Exception('Failed to delete category: ${res.statusCode}');
+  }
+
+  Future<List<AccountModel>> getAccounts() async {
+    final res = await http.get(Uri.parse('$_base${ApiConstants.accountsPath}'));
+    if (res.statusCode != 200) throw Exception('Failed to load accounts: ${res.statusCode}');
+    final list = jsonDecode(res.body) as List;
+    return list.map((e) => AccountModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<AccountModel> createAccount(String name, double balance) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.accountsPath}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'name': name, 'balance': balance}),
+    );
+    if (res.statusCode != 201 && res.statusCode != 200) {
+      throw Exception('Failed to create account: ${res.statusCode}');
+    }
+    return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
   Future<List<FinancialEntryModel>> getEntries({
     DateTime? from,
     DateTime? to,
