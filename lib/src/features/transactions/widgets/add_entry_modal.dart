@@ -251,9 +251,28 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
-      );
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      if (msg.contains('Số dư ví không đủ')) {
+        // Thông báo riêng khi không đủ số dư và cho phép user chọn ví khác
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Số dư không đủ'),
+            content: Text('$msg\n\nBạn có muốn chọn ví khác không?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
+        );
+        // Không đóng modal, user có thể đổi ví ngay trên form và lưu lại
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $msg'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
