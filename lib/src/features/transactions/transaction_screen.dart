@@ -16,7 +16,6 @@ class TransactionScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
-  String? _filterTag;
   String _dateFilter = 'Tất cả';
   DateTime? _customDate;
 
@@ -45,19 +44,21 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     );
   }
 
-  Future<void> _deleteEntry(FinancialEntryModel entry) async {
+  Future<bool> _deleteEntry(FinancialEntryModel entry) async {
     try {
       await ref.read(apiClientProvider).deleteEntry(entry.id);
       refreshEntries(ref);
-      if (!mounted) return;
+      if (!mounted) return true;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã xóa ghi chú'), backgroundColor: Colors.orange),
       );
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
       );
+      return false;
     }
   }
 
@@ -113,7 +114,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entriesAsync = ref.watch(entriesWithRefreshProvider);
+    final filterTag = ref.watch(filterTagProvider);
+    final entriesAsync = ref.watch(entriesFilteredProvider(filterTag));
 
     return Scaffold(
       appBar: AppBar(
@@ -121,26 +123,52 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          if (filterTag != null && filterTag.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Chip(
+                label: Text('#$filterTag'),
+                onDeleted: () {
+                  ref.read(filterTagProvider.notifier).state = null;
+                },
+              ),
+            ),
           IconButton(
             onPressed: () {
+              final controller = TextEditingController(text: filterTag ?? '');
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Lọc theo tag'),
                   content: TextField(
-                    decoration: const InputDecoration(hintText: 'Nhập #tag'),
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Nhập tag (vd: an_uong, mua_sam)',
+                      prefixText: '#',
+                    ),
                     onSubmitted: (v) {
-                      setState(() => _filterTag = v.trim().isEmpty ? null : v.trim());
+                      final t = v.trim();
+                      ref.read(filterTagProvider.notifier).state =
+                          t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
                       Navigator.pop(ctx);
                     },
                   ),
                   actions: [
                     TextButton(
                       onPressed: () {
-                        setState(() => _filterTag = null);
+                        ref.read(filterTagProvider.notifier).state = null;
                         Navigator.pop(ctx);
                       },
                       child: const Text('Bỏ lọc'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        final t = controller.text.trim();
+                        ref.read(filterTagProvider.notifier).state =
+                            t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Áp dụng'),
                     ),
                   ],
                 ),
@@ -154,11 +182,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       body: entriesAsync.when(
         data: (list) {
           var displayList = _filterByDate(list);
-          if (_filterTag != null && _filterTag!.isNotEmpty) {
-            displayList = displayList
-                .where((e) => e.tags.any((t) => t.toLowerCase().contains(_filterTag!.toLowerCase())))
-                .toList();
-          }
           final grouped = _groupByDate(displayList);
           final sortedKeys = grouped.keys.toList()
             ..sort((a, b) {
@@ -215,7 +238,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             ),
                             const SizedBox(height: 24),
                             Text(
-                              _filterTag != null ? 'Không có ghi chú với tag "$_filterTag"' : 'Chưa có ghi chú nào',
+                              filterTag != null ? 'Không có ghi chú với tag #$filterTag' : 'Chưa có ghi chú nào',
                               style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w600),
                               textAlign: TextAlign.center,
                             ),
@@ -337,7 +360,30 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.red),
       ),
-      onDismissed: (_) => _deleteEntry(e),
+      confirmDismiss: (direction) async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Xóa ghi chú'),
+            content: const Text(
+              'Bạn có chắc muốn xóa ghi chú chi tiêu này?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Xóa'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true) return false;
+        return await _deleteEntry(e);
+      },
       child: InkWell(
         onTap: () async {
           final updated = await showModalBottomSheet<FinancialEntryModel>(

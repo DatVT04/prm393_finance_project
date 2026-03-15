@@ -22,4 +22,13 @@ class CategoryModel {
       sortOrder: json['sortOrder'] as int?,
     );
   }
+
+  Map<String, dynamic> toCreateJson() {
+    return {
+      'name': name,
+      if (iconName != null && iconName!.isNotEmpty) 'iconName': iconName,
+      if (colorHex != null && colorHex!.isNotEmpty) 'colorHex': colorHex,
+      if (sortOrder != null) 'sortOrder': sortOrder,
+    };
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/core/theme/theme_provider.dart';
+import 'package:prm393_finance_project/src/features/categories/category_management_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -52,6 +53,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: const Text('Chế độ tối'),
               subtitle: const Text('Dark / Light mode'),
               secondary: const Icon(Icons.dark_mode),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // ===== DATA =====
+          _buildSectionTitle('Dữ liệu'),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.category),
+              title: const Text('Quản lý danh mục'),
+              subtitle: const Text('Thêm, sửa, xóa danh mục chi tiêu'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CategoryManagementScreen(),
+                  ),
+                );
+              },
             ),
           ),
 
