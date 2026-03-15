@@ -5,6 +5,7 @@ import '../features/dashboard/dashboard_screen.dart';
 import '../features/transactions/transaction_screen.dart';
 import '../features/reports/report_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/ai/ai_assistant_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -23,6 +24,7 @@ class _MainLayoutState extends State<MainLayout> {
         const TransactionScreen(),
         const ReportScreen(),
         const SettingsScreen(),
+        const AiAssistantScreen(),
       ];
 
   // Navigation destinations cho cả Mobile và Desktop
@@ -34,6 +36,7 @@ class _MainLayoutState extends State<MainLayout> {
     ),
     NavigationDestination(icon: Icon(Icons.bar_chart), label: 'Báo cáo'),
     NavigationDestination(icon: Icon(Icons.settings), label: 'Cài đặt'),
+    NavigationDestination(icon: Icon(Icons.auto_awesome), label: 'Trợ lý AI'),
   ];
 
   final List<NavigationRailDestination> _desktopDestinations = const [
@@ -53,6 +56,10 @@ class _MainLayoutState extends State<MainLayout> {
       icon: Icon(Icons.settings),
       label: Text('Cài đặt'),
     ),
+    NavigationRailDestination(
+      icon: Icon(Icons.auto_awesome),
+      label: Text('Trợ lý AI'),
+    ),
   ];
 
   void _onDestinationSelected(int index) {
@@ -68,7 +75,10 @@ class _MainLayoutState extends State<MainLayout> {
         // Mobile Layout: Bottom Navigation Bar
         if (constraints.maxWidth < AppConstants.mobileBreakpoint) {
           return Scaffold(
-            body: _screens[_selectedIndex],
+            body: IndexedStack(
+              index: _selectedIndex,
+              children: _screens,
+            ),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _selectedIndex,
               onDestinationSelected: _onDestinationSelected,
@@ -94,7 +104,12 @@ class _MainLayoutState extends State<MainLayout> {
                   destinations: _desktopDestinations,
                 ),
                 const VerticalDivider(thickness: 1, width: 1),
-                Expanded(child: _screens[_selectedIndex]),
+                Expanded(
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: _screens,
+                  ),
+                ),
               ],
             ),
           );

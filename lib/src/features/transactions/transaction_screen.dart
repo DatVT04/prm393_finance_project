@@ -257,7 +257,9 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                         itemBuilder: (context, index) {
                           final dateStr = sortedKeys[index];
                           final items = grouped[dateStr]!;
-                          final dailyTotal = items.fold<double>(0, (s, e) => s + e.amount);
+                          final incomeTotal = items.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
+                          final expenseTotal = items.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
+                          final dailyNet = incomeTotal - expenseTotal;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -274,9 +276,9 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                           fontSize: 14),
                                     ),
                                     Text(
-                                      '-${NumberFormat("#,###", "vi_VN").format(dailyTotal)} đ',
+                                      '${dailyNet >= 0 ? '+' : '-'}${NumberFormat("#,###", "vi_VN").format(dailyNet.abs())} đ',
                                       style: TextStyle(
-                                          color: Colors.grey[700],
+                                          color: dailyNet >= 0 ? Colors.green[700] : Colors.red[700],
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14),
                                     ),
@@ -434,8 +436,12 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   )
                 : null,
             trailing: Text(
-              '-${NumberFormat("#,###", "vi_VN").format(e.amount)} đ',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFE53935)),
+              '${e.type == 'INCOME' ? '+' : '-'}${NumberFormat("#,###", "vi_VN").format(e.amount)} đ',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: e.type == 'INCOME' ? Colors.green[600] : Colors.red[600],
+              ),
             ),
           ),
         ),
@@ -459,6 +465,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         return Icons.school;
       case 'Gửi xe':
         return Icons.local_parking;
+      case 'Nạp tiền':
+        return Icons.account_balance_wallet;
       default:
         return Icons.category;
     }
@@ -480,6 +488,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         return Colors.indigo;
       case 'Gửi xe':
         return Colors.brown;
+      case 'Nạp tiền':
+        return Colors.green;
       default:
         return Colors.teal;
     }

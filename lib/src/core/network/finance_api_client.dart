@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../constants/api_constants.dart';
+import '../models/account_model.dart';
+import '../models/ai_assistant_response.dart';
 import '../models/category_model.dart';
 import '../models/financial_entry_model.dart';
 
@@ -19,33 +21,6 @@ class FinanceApiClient {
     if (res.statusCode != 200) throw Exception('Failed to load categories: ${res.statusCode}');
     final list = jsonDecode(res.body) as List;
     return list.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
-  Future<CategoryModel> createCategory(CategoryModel category) async {
-    final res = await http.post(
-      Uri.parse('$_base${ApiConstants.categoriesPath}'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(category.toCreateJson()),
-    );
-    if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception('Failed to create category: ${res.statusCode}');
-    }
-    return CategoryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
-  }
-
-  Future<CategoryModel> updateCategory(int id, CategoryModel category) async {
-    final res = await http.put(
-      Uri.parse('$_base${ApiConstants.categoriesPath}/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(category.toCreateJson()),
-    );
-    if (res.statusCode != 200) throw Exception('Failed to update category: ${res.statusCode}');
-    return CategoryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
-  }
-
-  Future<void> deleteCategory(int id) async {
-    final res = await http.delete(Uri.parse('$_base${ApiConstants.categoriesPath}/$id'));
-    if (res.statusCode != 204) throw Exception('Failed to delete category: ${res.statusCode}');
   }
 
   Future<List<FinancialEntryModel>> getEntries({
@@ -99,6 +74,24 @@ class FinanceApiClient {
   Future<void> deleteEntry(int id) async {
     final res = await http.delete(Uri.parse('$_base${ApiConstants.entriesPath}/$id'));
     if (res.statusCode != 204) throw Exception('Failed to delete entry: ${res.statusCode}');
+  }
+
+  Future<AiAssistantResponse> askAssistant(
+    String message, {
+    String? conversationId,
+    int? accountId,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$_base/api/ai/assistant'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'message': message,
+        if (conversationId != null && conversationId.isNotEmpty) 'conversationId': conversationId,
+        if (accountId != null) 'accountId': accountId,
+      }),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to ask AI: ${res.statusCode}');
+    return AiAssistantResponse.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   static String _dateStr(DateTime d) =>

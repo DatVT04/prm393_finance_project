@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,8 +18,35 @@ class AddEntryInput {
   final double? amount;
   final int? categoryId;
   final String? note;
+  final String? type;
   final String? source;
-  AddEntryInput({this.amount, this.categoryId, this.note, this.source});
+  AddEntryInput({this.amount, this.categoryId, this.note, this.type, this.source});
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Only allow digits and handle specific suffixes 'k', 'tr' if needed, 
+    // but typically thousand separators are for pure numbers.
+    // Here we'll handle pure numbers. If they type k/tr, we might want to let it pass or format after.
+    // Let's stick to standard numeric formatting first.
+    String text = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (text.isEmpty) return newValue.copyWith(text: '');
+    
+    double value = double.parse(text);
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    String newText = formatter.format(value);
+
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
 }
 
 class AddEntryModal extends ConsumerStatefulWidget {
@@ -41,6 +69,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   final _formKey = GlobalKey<FormState>();
 
   int? _selectedCategoryId;
+  int? _selectedAccountId;
+  String _selectedType = 'EXPENSE'; // INCOME, EXPENSE, TRANSFER
   DateTime _selectedDate = DateTime.now();
   String? _imagePath;
   String? _existingImageUrl;
@@ -63,6 +93,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
         _noteController.text = noteRaw;
       }
       _selectedDate = e.transactionDate;
+      _selectedAccountId = e.accountId;
+      _selectedType = e.type;
       _existingImageUrl = e.imageUrl;
       _latitude = e.latitude;
       _longitude = e.longitude;
@@ -70,13 +102,15 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       if (p.amount != null) _amountController.text = _formatAmount(p.amount!);
       _selectedCategoryId = p.categoryId;
       if (p.note != null && p.note!.isNotEmpty) _noteController.text = p.note!;
+      if (p.type != null) _selectedType = p.type!;
     }
   }
 
   String _formatAmount(double v) {
-    if (v >= 1000000 && v % 1000000 == 0) return '${(v / 1000000).toInt()}tr';
-    if (v >= 1000 && v % 1000 == 0) return '${(v / 1000).toInt()}k';
-    return v.toInt().toString();
+    // If it's a "clean" number, we can still use k/tr for initial display if we want,
+    // but for the controller with formatter, we should probably use the dotted format.
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    return formatter.format(v);
   }
 
   @override
@@ -118,7 +152,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   }
 
   double? _parseAmount(String s) {
-    s = s.trim().replaceAll(',', '.').replaceAll(' ', '');
+    s = s.trim().replaceAll('.', '').replaceAll(',', '.').replaceAll(' ', '');
+    // If it ends with k or tr after removing dots
     if (s.endsWith('k')) {
       final n = double.tryParse(s.substring(0, s.length - 1));
       return n != null ? n * 1000 : null;
@@ -132,9 +167,29 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedType == 'INCOME' && _selectedCategoryId == null) {
+      final categories = ref.read(categoriesProvider).value;
+      if (categories != null && categories.isNotEmpty) {
+        final napVi = categories.firstWhere(
+          (c) => c.name.toLowerCase().contains('nạp ví') || c.name.toLowerCase().contains('thu nhập'),
+          orElse: () => categories.firstWhere(
+            (c) => c.name.toLowerCase() == 'khác',
+            orElse: () => categories.first,
+          ),
+        );
+        _selectedCategoryId = napVi.id;
+      }
+    }
+
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn danh mục')),
+      );
+      return;
+    }
+    if (_selectedAccountId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn tài khoản')),
       );
       return;
     }
@@ -163,6 +218,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       amount: amount,
       note: noteWithMeta.isEmpty ? null : noteWithMeta,
       categoryId: _selectedCategoryId!,
+      accountId: _selectedAccountId!,
+      type: _selectedType,
       transactionDate: _selectedDate,
       tags: tags,
       mentions: mentions,
@@ -223,6 +280,33 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 16),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'EXPENSE', label: Text('Chi'), icon: Icon(Icons.remove_circle_outline)),
+                  ButtonSegment(value: 'INCOME', label: Text('Thu'), icon: Icon(Icons.add_circle_outline)),
+                ],
+                selected: {_selectedType},
+                onSelectionChanged: (val) {
+                  final newType = val.first;
+                  setState(() {
+                    _selectedType = newType;
+                    if (_selectedType == 'INCOME') {
+                      final categories = ref.read(categoriesProvider).value;
+                      if (categories != null && categories.isNotEmpty) {
+                        final napVi = categories.firstWhere(
+                          (c) => c.name.toLowerCase().contains('nạp ví') || c.name.toLowerCase().contains('thu nhập'),
+                          orElse: () => categories.firstWhere(
+                            (c) => c.name.toLowerCase() == 'khác',
+                            orElse: () => categories.first,
+                          ),
+                        );
+                        _selectedCategoryId = napVi.id;
+                      }
+                    }
+                  });
+                },
+              ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _amountController,
@@ -232,6 +316,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   border: OutlineInputBorder(),
                   helperText: 'Ví dụ: 50k, 1.5tr, 50000',
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.ktr]')),
+                  CurrencyInputFormatter(),
+                ],
                 keyboardType: TextInputType.text,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số tiền';
@@ -241,24 +329,49 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 },
               ),
               const SizedBox(height: 16),
-              categoriesAsync.when(
+              if (_selectedType != 'INCOME') ...[
+                categoriesAsync.when(
+                  data: (list) {
+                    return DropdownButtonFormField<int>(
+                      value: _selectedCategoryId,
+                      decoration: const InputDecoration(
+                        labelText: 'Danh mục',
+                        prefixIcon: Icon(Icons.category),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: list
+                          .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.name)))
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedCategoryId = v),
+                      validator: (v) => v == null ? 'Vui lòng chọn danh mục' : null,
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => const Text('Không tải được danh mục'),
+                ),
+                const SizedBox(height: 16),
+              ],
+              ref.watch(accountsProvider).when(
                 data: (list) {
+                  if (_selectedAccountId == null && list.isNotEmpty) {
+                    _selectedAccountId = list.first.id;
+                  }
                   return DropdownButtonFormField<int>(
-                    value: _selectedCategoryId,
+                    value: _selectedAccountId,
                     decoration: const InputDecoration(
-                      labelText: 'Danh mục',
-                      prefixIcon: Icon(Icons.category),
+                      labelText: 'Tài khoản/Ví',
+                      prefixIcon: Icon(Icons.account_balance_wallet),
                       border: OutlineInputBorder(),
                     ),
                     items: list
-                        .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.name)))
+                        .map((a) => DropdownMenuItem<int>(value: a.id, child: Text('${a.name} (${NumberFormat('#,###', 'vi').format(a.balance)}đ)')))
                         .toList(),
-                    onChanged: (v) => setState(() => _selectedCategoryId = v),
-                    validator: (v) => v == null ? 'Vui lòng chọn danh mục' : null,
+                    onChanged: (v) => setState(() => _selectedAccountId = v),
+                    validator: (v) => v == null ? 'Vui lòng chọn tài khoản' : null,
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Không tải được danh mục'),
+                error: (_, __) => const Text('Không tải được tài khoản'),
               ),
               const SizedBox(height: 16),
               TextFormField(

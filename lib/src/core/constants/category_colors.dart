@@ -9,6 +9,7 @@ class CategoryColors {
     'Y tế': Color(0xFFe94560),
     'Giáo dục': Color(0xFF3F51B5),
     'Gửi xe': Color(0xFF795548),
+    'Nạp tiền': Color(0xFF4CAF50),
     'Khác': Color(0xFF13d38e),
   };
 

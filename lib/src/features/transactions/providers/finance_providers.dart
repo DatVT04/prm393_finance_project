@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
@@ -22,6 +23,11 @@ final categoriesWithRefreshProvider = FutureProvider<List<CategoryModel>>((ref) 
 void refreshCategories(WidgetRef ref) {
   ref.read(categoriesRefreshProvider.notifier).update((v) => v + 1);
 }
+
+final accountsProvider = FutureProvider<List<AccountModel>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  return client.getAccounts();
+});
 
 final entriesProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {
   final client = ref.watch(apiClientProvider);

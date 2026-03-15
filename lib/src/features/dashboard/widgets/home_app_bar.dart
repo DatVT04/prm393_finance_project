@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import '../../accounts/screens/account_list_screen.dart';
 
 class HomeAppBar extends ConsumerWidget {
   const HomeAppBar({super.key});
@@ -45,7 +46,10 @@ class HomeAppBar extends ConsumerWidget {
               ),
               data: (all) {
                 final todayEntries = _filterToday(all);
-                final total = todayEntries.fold<double>(0, (s, e) => s + e.amount);
+                final income = todayEntries.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
+                final expense = todayEntries.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
+                final net = income - expense;
+                
                 final count = todayEntries.length;
                 final currency = NumberFormat('#,###', 'vi_VN');
 
@@ -85,7 +89,7 @@ class HomeAppBar extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Tổng quan chi tiêu hôm nay',
+                          'Tổng quan thu chi hôm nay',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Container(
@@ -136,16 +140,16 @@ class HomeAppBar extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Tổng chi hôm nay',
+                                'Dòng tiền hôm nay',
                                 style: TextStyle(fontSize: 13, color: Colors.grey),
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                '-${currency.format(total)} đ',
-                                style: const TextStyle(
+                                '${net >= 0 ? '+' : '-'}${currency.format(net.abs())} đ',
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFFE53935),
+                                  color: net >= 0 ? Colors.green[600] : const Color(0xFFE53935),
                                 ),
                               ),
                             ],
@@ -195,11 +199,11 @@ class HomeAppBar extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '-${currency.format(e.amount)} đ',
-                              style: const TextStyle(
+                              '${e.type == 'INCOME' ? '+' : '-'}${currency.format(e.amount)} đ',
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: Color(0xFFE53935),
+                                color: e.type == 'INCOME' ? Colors.green[600] : const Color(0xFFE53935),
                               ),
                             ),
                           ],
@@ -270,6 +274,24 @@ class HomeAppBar extends ConsumerWidget {
         // Actions
         Row(
           children: [
+            // Wallet Icon
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (ctx) => const AccountListScreen()),
+                  );
+                },
+                icon: const Icon(Icons.account_balance_wallet_outlined),
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 8),
             // Notification Icon
             Container(
               decoration: BoxDecoration(
