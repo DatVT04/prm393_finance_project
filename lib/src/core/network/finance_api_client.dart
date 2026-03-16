@@ -66,21 +66,6 @@ class FinanceApiClient {
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
-    final res = await http.post(
-      Uri.parse('$_base${ApiConstants.authPath}/google'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'idToken': idToken}),
-    );
-    if (res.statusCode == 401) {
-      throw Exception('Đăng nhập Google thất bại. Vui lòng thử lại.');
-    }
-    if (res.statusCode != 200) {
-      throw Exception('Đăng nhập Google thất bại: ${res.statusCode}');
-    }
-    return jsonDecode(res.body) as Map<String, dynamic>;
-  }
-
   Future<List<CategoryModel>> getCategories() async {
     final res = await http.get(Uri.parse('$_base${ApiConstants.categoriesPath}'));
     if (res.statusCode != 200) throw Exception('Failed to load categories: ${res.statusCode}');
