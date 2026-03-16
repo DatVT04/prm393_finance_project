@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+
+import 'add_category_modal.dart';
 
 class CategoryManagementScreen extends ConsumerStatefulWidget {
   const CategoryManagementScreen({super.key});
@@ -53,115 +56,13 @@ class _CategoryManagementScreenState
   }
 
   Future<void> _openEditSheet(CategoryModel? existing) async {
-    final nameController = TextEditingController(text: existing?.name ?? '');
-    final iconController = TextEditingController(text: existing?.iconName ?? '');
-    final colorController = TextEditingController(text: existing?.colorHex ?? '');
-    final sortController = TextEditingController(
-      text: existing?.sortOrder != null ? '${existing!.sortOrder}' : '',
-    );
-
     final result = await showModalBottomSheet<CategoryModel>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                existing != null ? 'Sửa danh mục' : 'Thêm danh mục',
-                style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Tên danh mục *',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: iconController,
-                decoration: const InputDecoration(
-                  labelText: 'Icon (tên Material Icons, tùy chọn)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: colorController,
-                decoration: const InputDecoration(
-                  labelText: 'Màu hex (vd: #006D5B, tùy chọn)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: sortController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Thứ tự sắp xếp (số, tùy chọn)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Hủy'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final name = nameController.text.trim();
-                        if (name.isEmpty) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng nhập tên danh mục')),
-                          );
-                          return;
-                        }
-                        final sortOrder = int.tryParse(sortController.text.trim());
-                        final category = CategoryModel(
-                          id: existing?.id ?? 0,
-                          name: name,
-                          iconName: iconController.text.trim().isEmpty
-                              ? null
-                              : iconController.text.trim(),
-                          colorHex: colorController.text.trim().isEmpty
-                              ? null
-                              : colorController.text.trim(),
-                          sortOrder: sortOrder,
-                        );
-                        Navigator.of(ctx).pop(category);
-                      },
-                      child: Text(existing != null ? 'Lưu' : 'Thêm'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
+      builder: (ctx) => AddCategoryModal(existing: existing),
     );
 
     if (result == null || !mounted) return;
@@ -240,10 +141,7 @@ class _CategoryManagementScreenState
                   ),
                   leading: CircleAvatar(
                     backgroundColor: _parseColor(c.colorHex).withOpacity(0.2),
-                    child: Icon(
-                      _iconFromName(c.iconName),
-                      color: _parseColor(c.colorHex),
-                    ),
+                    child: _buildIcon(c),
                   ),
                   title: Text(
                     c.name,
@@ -295,28 +193,6 @@ class _CategoryManagementScreenState
     );
   }
 
-  IconData _iconFromName(String? name) {
-    if (name == null || name.isEmpty) return Icons.category;
-    switch (name.toLowerCase()) {
-      case 'restaurant':
-        return Icons.restaurant;
-      case 'local_gas_station':
-        return Icons.local_gas_station;
-      case 'shopping_bag':
-        return Icons.shopping_bag;
-      case 'confirmation_number':
-        return Icons.confirmation_number;
-      case 'medical_services':
-        return Icons.medical_services;
-      case 'school':
-        return Icons.school;
-      case 'local_parking':
-        return Icons.local_parking;
-      default:
-        return Icons.category;
-    }
-  }
-
   Color _parseColor(String? hex) {
     if (hex == null || hex.isEmpty) return Colors.teal;
     final h = hex.startsWith('#') ? hex : '#$hex';
@@ -326,5 +202,79 @@ class _CategoryManagementScreenState
     final b = int.tryParse(h.substring(5, 7), radix: 16);
     if (r == null || g == null || b == null) return Colors.teal;
     return Color.fromARGB(255, r, g, b);
+  }
+
+  Widget _buildIcon(CategoryModel category) {
+    final color = _parseColor(category.colorHex);
+    final name = category.iconName;
+    if (name == null || name.isEmpty) {
+      return Icon(Icons.category, color: color);
+    }
+    IconData icon;
+    switch (name) {
+      case 'utensils':
+        icon = FontAwesomeIcons.utensils;
+        break;
+      case 'cartShopping':
+        icon = FontAwesomeIcons.cartShopping;
+        break;
+      case 'moneyBillWave':
+        icon = FontAwesomeIcons.moneyBillWave;
+        break;
+      case 'sackDollar':
+        icon = FontAwesomeIcons.sackDollar;
+        break;
+      case 'piggyBank':
+        icon = FontAwesomeIcons.piggyBank;
+        break;
+      case 'wallet':
+        icon = FontAwesomeIcons.wallet;
+        break;
+      case 'film':
+        icon = FontAwesomeIcons.film;
+        break;
+      case 'gamepad':
+        icon = FontAwesomeIcons.gamepad;
+        break;
+      case 'heartbeat':
+        icon = FontAwesomeIcons.heartPulse;
+        break;
+      case 'hospital':
+        icon = FontAwesomeIcons.hospital;
+        break;
+      case 'stethoscope':
+        icon = FontAwesomeIcons.stethoscope;
+        break;
+      case 'graduationCap':
+        icon = FontAwesomeIcons.graduationCap;
+        break;
+      case 'bus':
+        icon = FontAwesomeIcons.bus;
+        break;
+      case 'car':
+        icon = FontAwesomeIcons.car;
+        break;
+      case 'motorcycle':
+        icon = FontAwesomeIcons.motorcycle;
+        break;
+      case 'house':
+        icon = FontAwesomeIcons.house;
+        break;
+      case 'lightbulb':
+        icon = FontAwesomeIcons.lightbulb;
+        break;
+      case 'gift':
+        icon = FontAwesomeIcons.gift;
+        break;
+      case 'plane':
+        icon = FontAwesomeIcons.plane;
+        break;
+      case 'coffee':
+        icon = FontAwesomeIcons.mugSaucer;
+        break;
+      default:
+        icon = Icons.category;
+    }
+    return FaIcon(icon, color: color, size: 20);
   }
 }

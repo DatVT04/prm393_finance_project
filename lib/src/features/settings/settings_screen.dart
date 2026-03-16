@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/core/theme/theme_provider.dart';
-import 'package:prm393_finance_project/src/features/categories/category_management_screen.dart';
+import 'package:prm393_finance_project/src/features/categories/category_list_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -72,7 +72,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const CategoryManagementScreen(),
+                    builder: (_) => const CategoryListScreen(),
                   ),
                 );
               },
