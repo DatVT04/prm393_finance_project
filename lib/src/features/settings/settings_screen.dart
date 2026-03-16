@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:image_picker/image_picker.dart';
+import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/core/theme/theme_provider.dart';
+import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/categories/category_list_screen.dart';
+import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -14,6 +18,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isDarkMode = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -22,8 +27,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _isDarkMode = mode == ThemeMode.dark;
   }
 
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final x = await picker.pickImage(source: ImageSource.gallery);
+    if (x == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final bytes = await x.readAsBytes();
+      final url = await ref.read(apiClientProvider).uploadAvatar(bytes, x.name);
+      await ref.read(currentUserIdProvider.notifier).updateAvatar(url);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật avatar thành công')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final profile = ref.watch(userProfileProvider);
+    final avatar = profile.avatarUrl;
+    final name = profile.displayName ?? 'User';
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -35,6 +68,82 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // ===== PROFILE =====
+          _buildSectionTitle('Tài khoản'),
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: _isLoading ? null : _pickAndUploadAvatar,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 35,
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage: (avatar != null && avatar.isNotEmpty)
+                              ? NetworkImage('${ApiConstants.baseUrl}$avatar')
+                              : const NetworkImage(
+                                      'https://ui-avatars.com/api/?background=random&name=User')
+                                  as ImageProvider,
+                        ),
+                        if (_isLoading)
+                          const Positioned.fill(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.teal,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.camera_alt,
+                                size: 14, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text('Cá nhân hóa trải nghiệm của bạn',
+                            style: TextStyle(fontSize: 13, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              leading: const Icon(Icons.lock_outline),
+              title: const Text('Đổi mật khẩu'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: _showChangePasswordDialog,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // ===== THEME =====
           _buildSectionTitle('Giao diện'),
           Card(
@@ -96,6 +205,116 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _showAboutDialog();
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final oldPassCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    final confirmPassCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        title: const Text(
+          'Đổi mật khẩu',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Mật khẩu mới phải có ít nhất 6 ký tự để bảo mật tài khoản của bạn.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: oldPassCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Mật khẩu cũ',
+                  prefixIcon: const Icon(Icons.lock_open),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Vui lòng nhập mật khẩu cũ' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: newPassCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Mật khẩu mới',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu mới';
+                  if (v.length < 6) return 'Tối thiểu 6 ký tự';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: confirmPassCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Xác nhận mật khẩu mới',
+                  prefixIcon: const Icon(Icons.check_circle_outline),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) =>
+                    v != newPassCtrl.text ? 'Mật khẩu không khớp' : null,
+              ),
+            ],
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Hủy', style: TextStyle(color: Colors.grey.shade600)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+              try {
+                await ref
+                    .read(apiClientProvider)
+                    .updatePassword(oldPassCtrl.text, newPassCtrl.text);
+                if (!mounted) return;
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Đổi mật khẩu thành công'),
+                      backgroundColor: Colors.green),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text('Cập nhật'),
           ),
         ],
       ),

@@ -19,6 +19,21 @@ class FinanceApiClient {
     _userId = id;
   }
 
+  String _errorMessage(String body) {
+    try {
+      final data = jsonDecode(body);
+      if (data is Map) {
+        if (data.containsKey('message') && data['message'] != null) {
+          return data['message'].toString();
+        }
+        if (data.containsKey('error') && data['error'] != null) {
+          return data['error'].toString();
+        }
+      }
+    } catch (_) {}
+    return body.isNotEmpty ? body : 'Đã có lỗi xảy ra';
+  }
+
   String get _base => ApiConstants.baseUrl;
 
   /// Headers for requests that are scoped by user (accounts, entries).
@@ -40,6 +55,56 @@ class FinanceApiClient {
       throw Exception('Đăng nhập thất bại: ${res.statusCode}');
     }
     return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<void> updatePassword(String oldPassword, String newPassword) async {
+    final res = await http.put(
+      Uri.parse('$_base${ApiConstants.authPath}/password'),
+      headers: _userHeaders,
+      body: jsonEncode({
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      }),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(res.body.isNotEmpty ? res.body : 'Đổi mật khẩu thất bại: ${res.statusCode}');
+    }
+  }
+
+  Future<String> uploadAvatar(List<int> bytes, String filename) async {
+    final uri = Uri.parse('$_base${ApiConstants.authPath}/avatar');
+    final req = http.MultipartRequest('POST', uri);
+    if (_userId != null) req.headers['X-User-Id'] = _userId.toString();
+    req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    final res = await req.send();
+    final resData = await http.Response.fromStream(res);
+    if (res.statusCode != 200) {
+      throw Exception(resData.body.isNotEmpty ? resData.body : 'Upload avatar thất bại: ${res.statusCode}');
+    }
+    return resData.body;
+  }
+
+  Future<void> forgotPassword(String email) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/forgot-password?email=$email'),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(_errorMessage(res.body));
+    }
+  }
+
+  Future<void> resetPassword(String code, String newPassword) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/reset-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'code': code,
+        'newPassword': newPassword,
+      }),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(_errorMessage(res.body));
+    }
   }
 
   Future<Map<String, dynamic>> register(

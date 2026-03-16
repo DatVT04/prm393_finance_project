@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/register_screen.dart';
+import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/layout/main_layout.dart';
 
@@ -39,7 +40,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       final userId = res['userId'];
       if (userId != null) {
-        await ref.read(currentUserIdProvider.notifier).setUserId((userId as num).toInt());
+        await ref.read(currentUserIdProvider.notifier).setUserId(
+              (userId as num).toInt(),
+              name: res['displayName'] as String?,
+              avatar: res['avatarUrl'] as String?,
+            );
       }
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -224,6 +229,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                              );
+                            },
+                            child: const Text('Quên mật khẩu?'),
+                          ),
                         ),
                         const SizedBox(height: 16),
                       ],
