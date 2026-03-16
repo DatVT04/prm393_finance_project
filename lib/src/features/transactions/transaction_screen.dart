@@ -316,7 +316,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           FloatingActionButton.small(
             heroTag: 'ai',
             onPressed: _openAiQuickEntry,
-            child: const Icon(Icons.auto_awesome),
+            child: const Icon(Icons.mic),
           ),
           const SizedBox(height: 12),
           FloatingActionButton(

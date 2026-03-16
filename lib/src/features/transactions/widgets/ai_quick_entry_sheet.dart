@@ -1,17 +1,12 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
+import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/services/clipboard_parser.dart';
 import 'package:prm393_finance_project/src/core/services/natural_language_parser.dart';
-import 'package:prm393_finance_project/src/core/services/receipt_ocr_parser.dart';
 import '../providers/finance_providers.dart';
 import 'add_entry_modal.dart';
 
@@ -73,86 +68,26 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
     return v.toInt().toString();
   }
 
-  Future<void> _pickReceiptAndOcr() async {
-    // ML Kit OCR hiện chỉ hỗ trợ Android / iOS trong app này.
-    final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-    if (!isMobile) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('OCR hiện chỉ hỗ trợ trên Android / iOS. Vui lòng thử trên điện thoại.'),
-          ),
-        );
-      }
-      return;
-    }
-
-    final picker = ImagePicker();
-    final x = await picker.pickImage(source: ImageSource.camera);
-    if (x == null || !mounted) return;
-    Navigator.of(context).pop();
-    try {
-      final inputImage = InputImage.fromFilePath(x.path);
-      final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final result = await recognizer.processImage(inputImage);
-      await recognizer.close();
-      final text = result.text;
-      if (text.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không nhận diện được chữ trên ảnh')),
-          );
-        }
-        return;
-      }
-      final ocrResult = ReceiptOcrParser.parse(text);
-      _openAddEntryFromOcr(ocrResult);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi OCR: $e')),
-        );
-      }
-    }
-  }
-
-  void _openAddEntryFromOcr(ReceiptOcrResult ocr) async {
-    List<CategoryModel> list;
-    try {
-      list = await ref.read(apiClientProvider).getCategories();
-    } catch (_) {
-      list = [];
-    }
-    int? categoryId;
-    for (final c in list) {
-      if (c.name == 'Ăn uống') {
-        categoryId = c.id;
-        break;
-      }
-    }
-    if (categoryId == null && list.isNotEmpty) categoryId = list.first.id;
-    final amount = ocr.totalAmount ?? 0.0;
-    final note = [if (ocr.storeName != null) ocr.storeName!, ocr.rawText].join('\n');
-    final date = ocr.date;
-    final prefill = AddEntryInput(
-      amount: amount > 0 ? amount : null,
-      categoryId: categoryId,
-      note: note.isNotEmpty ? note : null,
-      type: 'EXPENSE',
-      source: 'OCR',
-    );
-    if (!mounted) return;
-    _openAddModal(prefill, initialDate: date);
-  }
-
   void _openAddModal(AddEntryInput prefill, {DateTime? initialDate}) {
-    showModalBottomSheet<dynamic>(
+    // Kept for backward compatibility with existing calls.
+    _openAddModalAwaitable(prefill, initialDate: initialDate);
+  }
+
+  Future<FinancialEntryModel?> _openAddModalAwaitable(
+    AddEntryInput prefill, {
+    DateTime? initialDate,
+    FinancialEntryModel? entryToEdit,
+  }) {
+    return showModalBottomSheet<FinancialEntryModel>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => AddEntryModal(prefill: prefill),
+      builder: (ctx) => AddEntryModal(
+        prefill: prefill,
+        entryToEdit: entryToEdit,
+      ),
     );
   }
 
@@ -179,36 +114,180 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
   void _submitNaturalText() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
-    final parsed = NaturalLanguageParser.parse(text);
-    if (parsed == null) {
+    final parsedList = NaturalLanguageParser.parseMultiple(text);
+    if (parsedList.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Không tìm thấy số tiền. Thử "Ăn phở 50k" hoặc "100.000"')),
       );
       return;
     }
-    List<CategoryModel> list;
+
+    if (parsedList.length == 1) {
+      // Giữ hành vi cũ với 1 giao dịch.
+      await _openSingleFromParsed(parsedList.first, source: 'VOICE');
+    } else {
+      // Nhiều giao dịch: mở màn xem trước, cho chọn, rồi lần lượt vào form chi tiết.
+      await _openMultiEntriesPreview(parsedList);
+    }
+  }
+
+  Future<FinancialEntryModel?> _openSingleFromParsed(
+    ParsedQuickEntry parsed, {
+    required String source,
+  }) async {
+    List<CategoryModel> categories;
     try {
-      list = await ref.read(apiClientProvider).getCategories();
+      categories = await ref.read(apiClientProvider).getCategories();
     } catch (_) {
-      list = [];
+      categories = [];
     }
     int? categoryId;
-    for (final c in list) {
-      if (c.name == (parsed.suggestedCategoryName ?? '')) {
+    for (final c in categories) {
+      if (c.name.toLowerCase() == (parsed.suggestedCategoryName ?? '').toLowerCase()) {
         categoryId = c.id;
         break;
       }
     }
-    if (categoryId == null && list.isNotEmpty) categoryId = list.first.id;
-    if (!mounted) return;
-    Navigator.of(context).pop();
-    _openAddModal(AddEntryInput(
+    if (categoryId == null && categories.isNotEmpty) categoryId = categories.first.id;
+
+    return _openAddModalAwaitable(AddEntryInput(
       amount: parsed.amount,
       categoryId: categoryId,
       note: parsed.note,
-      type: 'EXPENSE', // Could detect from text, but keeping it simple for now
-      source: 'VOICE',
+      type: 'EXPENSE',
+      source: source,
     ));
+  }
+
+  Future<void> _openMultiEntriesPreview(List<ParsedQuickEntry> entries) async {
+    if (!mounted) return;
+
+    // Hiển thị sheet danh sách để user tick chọn giao dịch nào muốn lưu.
+    final selectedIndexes = await showModalBottomSheet<List<int>>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        final selected = List<bool>.filled(entries.length, true);
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Xem lại các giao dịch',
+                    style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Đã nhận diện ${entries.length} giao dịch từ câu nói. Chọn những giao dịch bạn muốn lưu.',
+                    style: Theme.of(ctx).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: entries.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final e = entries[index];
+                        return Material(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          child: CheckboxListTile(
+                            value: selected[index],
+                            onChanged: (v) {
+                              setState(() {
+                                selected[index] = v ?? false;
+                              });
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                            title: Text(
+                              '${_formatMoney(e.amount)} đ',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (e.suggestedCategoryName != null)
+                                  Text('Gợi ý danh mục: ${e.suggestedCategoryName}'),
+                                if (e.note != null) Text(e.note!),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(ctx).pop(<int>[]),
+                          child: const Text('Hủy'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final chosen = <int>[];
+                            for (var i = 0; i < selected.length; i++) {
+                              if (selected[i]) chosen.add(i);
+                            }
+                            Navigator.of(ctx).pop(chosen);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('Tiếp tục'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selectedIndexes == null || selectedIndexes.isEmpty) return;
+
+    final chosenEntries = [
+      for (final idx in selectedIndexes) if (idx >= 0 && idx < entries.length) entries[idx],
+    ];
+    if (chosenEntries.isEmpty || !mounted) return;
+
+    // Đợi 1 nhịp để sheet preview đóng hẳn (tránh race condition trên web/desktop).
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+
+    // Sau khi xem trước, lần lượt mở form chi tiết cho từng giao dịch đã chọn.
+    for (final e in chosenEntries) {
+      if (!mounted) break;
+      final saved = await _openSingleFromParsed(e, source: 'VOICE_MULTI');
+      // Nếu user đóng/hủy ở giữa thì dừng chuỗi.
+      if (saved == null) break;
+      refreshEntries(ref);
+      refreshAccounts(ref);
+    }
   }
 
   void _useClipboardSuggestion() async {
@@ -252,7 +331,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Nhập nhanh bằng AI',
+            'Nhập nhanh bằng giọng nói',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -271,15 +350,8 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
             ),
             const SizedBox(height: 16),
           ],
-          OutlinedButton.icon(
-            onPressed: _pickReceiptAndOcr,
-            icon: const Icon(Icons.camera_alt),
-            label: const Text('Chụp hóa đơn (OCR)'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
+          // Chỉ còn nhập nhanh bằng giọng nói / văn bản + clipboard,
+          // bỏ hoàn toàn chức năng chụp hóa đơn OCR.
           const SizedBox(height: 12),
           TextField(
             controller: _textController,
