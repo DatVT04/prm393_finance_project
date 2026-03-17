@@ -1,9 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvider;
-import 'package:flutter_localizations/flutter_localizations.dart';
-
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'src/core/state/app_state.dart';
 import 'src/core/theme/app_theme.dart';

@@ -77,7 +77,7 @@ class FakeFinanceApiClient implements FinanceApiClient {
     String? tag,
   }) async {
     if (tag != null && tag.isNotEmpty) {
-      return fakeEntries.where((e) => e.tags?.contains(tag) ?? false).toList();
+      return fakeEntries.where((e) => (e.tags ?? const []).contains(tag)).toList();
     }
     return fakeEntries;
   }
@@ -210,7 +210,12 @@ class FakeFinanceApiClient implements FinanceApiClient {
 
   @override
   Future<Map<String, dynamic>> login(String email, String password) async {
-    return {'id': 1, 'email': email, 'displayName': 'Test User'};
+    return {
+      'userId': 1,
+      'email': email,
+      'displayName': 'Test User',
+      'avatarUrl': null,
+    };
   }
 
   @override
@@ -219,12 +224,60 @@ class FakeFinanceApiClient implements FinanceApiClient {
     String password, {
     String? displayName,
   }) async {
-    return {'id': 1, 'email': email, 'displayName': displayName ?? 'Test User'};
+    return {
+      'userId': 1,
+      'email': email,
+      'displayName': displayName ?? 'Test User',
+      'avatarUrl': null,
+    };
   }
 
   @override
-  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
-    return {'id': 1, 'email': 'test@gmail.com', 'displayName': 'Google User'};
+  Future<void> verifyAccount(String email, String code) async {
+    // No-op in test
+  }
+
+  @override
+  Future<void> resendVerificationCode(String email) async {
+    // No-op in test
+  }
+
+  @override
+  Future<Map<String, dynamic>> googleLogin(
+    String email,
+    String? displayName,
+  ) async {
+    return {
+      'userId': 1,
+      'email': email,
+      'displayName': displayName ?? 'Google User',
+      'avatarUrl': null,
+    };
+  }
+
+  @override
+  Future<void> updatePassword(String oldPassword, String newPassword) async {
+    // No-op in test
+  }
+
+  @override
+  Future<void> updateDisplayName(String displayName) async {
+    // No-op in test
+  }
+
+  @override
+  Future<String> uploadAvatar(List<int> bytes, String filename) async {
+    return '/uploads/$filename';
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    // No-op in test
+  }
+
+  @override
+  Future<void> resetPassword(String code, String newPassword) async {
+    // No-op in test
   }
 
   @override
@@ -232,6 +285,7 @@ class FakeFinanceApiClient implements FinanceApiClient {
     String message, {
     String? conversationId,
     int? accountId,
+    String? language,
   }) async {
     return AiAssistantResponse(
       reply: 'Đây là câu trả lời giả lập từ AI',
