@@ -1,657 +1,328 @@
-# 🎯 Hướng dẫn Demo Code - Chương (Thành viên 1)
+## PRM393 Finance Project – Hướng dẫn Demo & Giới thiệu Tính năng
 
-## 📋 Mục lục
-1. [Chuẩn bị trước khi demo](#chuẩn-bị-trước-khi-demo)
-2. [Luồng demo chi tiết](#luồng-demo-chi-tiết)
-3. [Giải thích code](#giải-thích-code)
-4. [Các điểm cần highlight](#các-điểm-cần-highlight)
-5. [Q&A dự kiến](#qa-dự-kiến)
+### 1. Mục tiêu & Nghiệp vụ của ứng dụng
 
----
+- **Mục tiêu chính**: Giúp người dùng quản lý chi tiêu cá nhân một cách rõ ràng, nhanh, trực quan, hoạt động tốt trên nhiều nền tảng (Android, Web, Desktop).
+- **Đối tượng**: Sinh viên, người đi làm, bất kỳ ai muốn theo dõi thu/chi, số dư ví, và phân tích thói quen chi tiêu.
+- **Lý do nên dùng app**:
+  - Quản lý **nhiều ví / tài khoản** cùng lúc (tiền mặt, Momo, ngân hàng…).
+  - Ghi lại **mọi giao dịch thu/chi** theo danh mục, ví, ngày tháng, ghi chú, vị trí, ảnh kèm theo.
+  - Có **báo cáo, biểu đồ** để nhìn nhanh: chi theo danh mục, theo tháng, theo tag…
+  - Hỗ trợ **nhập nhanh bằng giọng nói** nhiều giao dịch trong một câu, tiết kiệm thời gian nhập.
+  - Có **AI Assistant** (text) để trả lời câu hỏi tài chính trong app.
+  - Dữ liệu lưu về backend (PostgreSQL + Spring Boot), có thể mở rộng thêm chức năng đồng bộ, auth…
 
-## 🚀 Chuẩn bị trước khi demo
-
-### 1. Kiểm tra môi trường
-```bash
-# Đảm bảo app chạy được trên cả 3 platform
-flutter doctor
-flutter pub get
-
-# Test nhanh
-flutter run -d windows
-flutter run -d chrome
-flutter run -d android
-```
-
-### 2. Chuẩn bị dữ liệu demo
-- Chuẩn bị sẵn 3-5 giao dịch mẫu để nhập nhanh khi demo
-- Ví dụ:
-  - Ăn uống: 150.000 đ - "Bữa trưa"
-  - Xăng xe: 200.000 đ - "Đổ xăng"
-  - Mua sắm: 500.000 đ - "Mua đồ dùng"
-
-### 3. Mở sẵn các file quan trọng
-- `lib/src/layout/main_layout.dart` - Navigation
-- `lib/src/features/transactions/transaction_screen.dart` - Transaction screen
-- `lib/main.dart` - Entry point
-- `pubspec.yaml` - Dependencies
+Khi demo với giảng viên, bạn có thể mở đầu:  
+“Đây là ứng dụng quản lý chi tiêu cá nhân, cho phép em theo dõi nhiều ví, phân loại chi tiêu, xem báo cáo và nhập nhanh giao dịch bằng giọng nói. Em sẽ demo lần lượt từng phần.”
 
 ---
 
-## 🎬 Luồng demo chi tiết
+### 2. Kiến trúc tổng quan
 
-### **PHẦN 1: Giới thiệu tổng quan (2 phút)**
+- **Frontend**: Flutter (`PRM393_Finance_Project`)
+  - State management: **Riverpod**
+  - Thư mục chính: `lib/src`
+    - `core/` – models, theme, formatter, dịch vụ chung
+    - `features/` – từng màn chức năng (auth, accounts, categories, transactions, dashboard, reports, settings, ai)
+    - `shared/` – widget dùng chung
+- **Backend**: Spring Boot (`Finance_Backend`)
+  - DB: PostgreSQL
+  - Các API chính:
+    - `/api/auth` – login/register
+    - `/api/accounts` – ví/tài khoản
+    - `/api/categories` – danh mục
+    - `/api/entries` – giao dịch
+    - `/api/ai/assistant` – AI chat
 
-#### 1.1. Giới thiệu dự án
-```
-"Xin chào thầy và các bạn, em là Chương - thành viên 1 của nhóm.
-Em phụ trách 2 phần chính:
-1. Setup dự án và Navigation (Leader)
-2. Màn hình quản lý Giao dịch (Transaction Screen)
-```
-
-#### 1.2. Demo app chạy trên 3 platform
-```
-"App của chúng em hỗ trợ đa nền tảng:
-- Desktop (Windows/macOS/Linux)
-- Web (Chrome)
-- Mobile (Android/iOS)
-
-Em sẽ demo trên Windows trước..."
-```
-
-**Hành động:**
-- Mở app trên Windows
-- Code liên quan nằm ở: `lib/src/layout/main_layout.dart`
-- Giải thích: "App tự động phát hiện kích thước màn hình và chuyển layout dựa theo kích thước"
+Khi demo, bạn có thể mở `PROJECT_STRUCTURE.md` để minh hoạ.
 
 ---
 
-### **PHẦN 2: Setup và Navigation (5 phút)**
+### 3. Đăng ký, đăng nhập & phân quyền nhẹ
 
-#### 2.1. Cấu trúc dự án
-```
-"Đầu tiên, em xin trình bày về cấu trúc dự án mà em đã setup..."
-```
+**Màn hình liên quan**:
+- `lib/src/features/auth/login_screen.dart`
+- `lib/src/features/auth/register_screen.dart`
+- `Finance_Backend/src/main/java/com/example/finance_backend/controller/AuthController.java`
 
-**Mở VS Code/IDE và show:**
-```
-lib/src/
-├── core/           # Core functionality
-│   ├── constants/  # App constants (breakpoints, indices)
-│   └── theme/      # App theme (light/dark)
-├── features/       # Feature modules
-│   ├── dashboard/
-│   ├── transactions/  ← Phần làm
-│   ├── reports/
-│   └── settings/
-├── layout/         # Navigation layout
-│   └── main_layout.dart  ← Responsive navigation
-└── shared/         # Shared resources
-    ├── utils/      # CurrencyFormatter, DateFormatter
-    └── widgets/    # EmptyStateWidget
-```
-
-**Giải thích:**
-- "Cấu trúc này tuân thủ Clean Architecture"
-- "Mỗi feature độc lập, dễ maintain và scale"
-- "Shared folder chứa code dùng chung"
-
-#### 2.2. Dependencies (pubspec.yaml)
-```
-"Em đã cấu hình các thư viện cần thiết..."
-```
-
-**Show pubspec.yaml:**
-```yaml
-dependencies:
-  flutter_riverpod: ^2.5.1  # State management
-  fl_chart: ^0.66.0         # Charts (cho phần báo cáo)
-  font_awesome_flutter: ^10.7.0  # Icons
-  intl: ^0.19.0             # Internationalization
-```
-
-**Giải thích:**
-- "flutter_riverpod: State management cho app"
-- "fl_chart: Sẽ dùng cho phần báo cáo của bạn khác"
-- "intl: Format date, currency theo locale"
-
-#### 2.3. Responsive Navigation
-```
-"Phần navigation em làm responsive, tự động chuyển đổi giữa Mobile và Desktop..."
-```
-
-**Mở `lib/src/layout/main_layout.dart`:**
-
-**Giải thích code:**
-```dart
-// Dùng LayoutBuilder để detect kích thước màn hình
-LayoutBuilder(
-  builder: (context, constraints) {
-    // Mobile: < 600px → Bottom Navigation Bar
-    if (constraints.maxWidth < AppConstants.mobileBreakpoint) {
-      return Scaffold(
-        bottomNavigationBar: NavigationBar(...),
-      );
-    }
-    // Desktop/Web: >= 600px → Side Navigation Rail
-    else {
-      return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(...),  // Side menu
-            Expanded(child: screen),
-          ],
-        ),
-      );
-    }
-  },
-)
-```
-
-**Demo:**
-1. Resize cửa sổ app (nếu web/desktop)
-2. Show: "Khi thu nhỏ < 600px → chuyển sang Bottom Bar"
-3. Show: "Khi mở rộng >= 600px → chuyển sang Side Rail"
-
-**Highlight:**
-- ✅ Tự động responsive
-- ✅ Chạy được trên cả 3 platform
-- ✅ UX tốt trên mọi kích thước màn hình
+**Luồng demo**:
+1. Mở app → nếu chưa login sẽ vào màn **Đăng nhập**.
+2. Chọn **Đăng ký**:
+   - Nhập email, password, tên hiển thị.
+   - Gửi request lên `/api/auth/register`.
+3. Đăng nhập:
+   - Backend trả về `userId`, frontend lưu tạm và set vào header `X-User-Id` cho các API tiếp theo.
+4. Giải thích:
+   - App không dùng JWT phức tạp, mà dùng `X-User-Id` để tách dữ liệu từng user (phù hợp phạm vi môn học).
 
 ---
 
-### **PHẦN 3: Transaction Screen - Giao diện (5 phút)**
+### 4. Quản lý tài khoản / ví (Accounts)
 
-#### 3.1. Giới thiệu màn hình
-```
-"Bây giờ em sẽ trình bày phần Transaction Screen - màn hình quản lý giao dịch..."
-```
+**File quan trọng**:
+- Frontend:
+  - `lib/src/features/accounts/screens/account_list_screen.dart`
+  - `lib/src/features/accounts/widgets/add_account_modal.dart`
+  - `lib/src/core/models/account_model.dart`
+- Backend:
+  - `AccountController`, `AccountService`, `Account` entity
 
-**Chuyển sang tab "Giao dịch" trong app**
+**Chức năng & demo**:
+- **Xem danh sách ví**:
+  - Mở màn “Tài khoản / Ví”.
+  - Hiển thị tên ví, số dư hiện tại (định dạng tiền `vi_VN`).
+- **Thêm ví mới**:
+  - Bấm nút `+`, nhập tên ví (VD: “Tiền mặt”), số dư ban đầu.
+  - Gửi `POST /api/accounts`.
+- **Sửa / Xoá ví**:
+  - Sửa: bấm vào 1 ví, cập nhật tên/số dư → `PUT /api/accounts/{id}`.
+  - Xoá: nếu ví còn giao dịch, backend có rule **không cho xoá** (trả lỗi 409) để tránh mất dữ liệu.
 
-#### 3.2. Floating Action Button và Modal
-```
-"Màn hình này có nút (+) ở góc dưới bên phải để thêm giao dịch mới.
-Khi click, sẽ mở Modal Bottom Sheet với form nhập liệu..."
-```
-
-**Demo:**
-1. Click nút FloatingActionButton (+)
-2. Show: "Modal slide up từ dưới lên"
-3. Form có các trường:
-   - Số tiền (TextField với validation)
-   - Danh mục (DropdownButton với 7 danh mục)
-   - Ghi chú (TextField, tùy chọn, max 250 ký tự)
-   - Ngày (DatePicker)
-
-**Show code `add_transaction_modal.dart`:**
-```dart
-// Modal Bottom Sheet
-void _openAddTransactionModal(BuildContext context) async {
-  final newTransaction = await showModalBottomSheet<Transaction>(
-    context: context,
-    isScrollControlled: true,  // Cho phép modal mở rộng
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (context) => AddTransactionModal(),
-  );
-  
-  if (newTransaction != null) {
-    setState(() {
-      _transactions.add(newTransaction);
-      _transactions.sort((a, b) => b.date.compareTo(a.date));
-    });
-  }
-}
-
-// Form trong Modal
-TextFormField(
-  controller: _amountController,
-  keyboardType: TextInputType.numberWithOptions(decimal: true),
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'Vui lòng nhập số tiền';
-    }
-    final amount = double.tryParse(value);
-    if (amount == null) {
-      return 'Số tiền không hợp lệ';
-    }
-    if (amount <= 0) {
-      return 'Số tiền phải lớn hơn 0';
-    }
-    if (amount > 10000000000) {
-      return 'Số tiền quá lớn';
-    }
-    return null;
-  },
-)
-```
-
-**Giải thích:**
-- "Dùng Modal Bottom Sheet - UX tốt trên mobile"
-- "isScrollControlled: true để modal có thể mở rộng khi keyboard hiện"
-- "Form có validation đầy đủ (required, type, range)"
-- "DatePicker dùng locale tiếng Việt"
-
-#### 3.3. Danh sách giao dịch (Grouped by Date)
-```
-"Danh sách giao dịch được nhóm theo ngày và sắp xếp mới nhất trước..."
-```
-
-**Demo:**
-1. Show: "Giao dịch được group theo ngày"
-2. Show: "Header hiển thị 'Hôm nay', 'Hôm qua', hoặc ngày cụ thể"
-3. Show: "Tổng tiền trong ngày hiển thị ở header"
-
-**Show code:**
-```dart
-// Group transactions by date
-Map<String, List<Transaction>> _groupTransactionsByDate() {
-  Map<String, List<Transaction>> grouped = {};
-  for (var tx in _transactions) {
-    String dateKey = DateFormat('dd/MM/yyyy').format(tx.date);
-    if (grouped.containsKey(dateKey)) {
-      grouped[dateKey]!.add(tx);
-    } else {
-      grouped[dateKey] = [tx];
-    }
-  }
-  return grouped;
-}
-
-// Build transaction item với Dismissible
-Widget _buildTransactionItem(Transaction tx) {
-  return Dismissible(
-    key: Key(tx.id),
-    direction: DismissDirection.endToStart,  // Swipe từ phải sang trái
-    background: Container(
-      alignment: Alignment.centerRight,
-      child: Icon(Icons.delete, color: Colors.red),
-    ),
-    onDismissed: (_) => _deleteTransaction(tx.id),
-    child: ListTile(
-      leading: Container(
-        decoration: BoxDecoration(
-          color: _getCategoryColor(tx.category).withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(_getCategoryIcon(tx.category)),
-      ),
-      title: Text(tx.category),
-      subtitle: Text(tx.note),
-      trailing: Text(formatCurrency(tx.amount)),
-    ),
-  );
-}
-```
-
-**Giải thích:**
-- "Group transactions theo ngày để dễ xem"
-- "Dùng Dismissible để swipe delete (UX tốt trên mobile)"
-- "Mỗi category có icon và màu riêng"
-- "Format số tiền theo locale Việt Nam (1.500.000 đ)"
+Nghiệp vụ: Người dùng có thể theo dõi **nhiều nguồn tiền** cùng lúc, mỗi giao dịch luôn gắn với một ví cụ thể.
 
 ---
 
-### **PHẦN 4: Transaction Screen - Logic (8 phút)**
+### 5. Quản lý danh mục thu/chi (Categories)
 
-#### 4.1. Validation
-```
-"Khi nhấn nút Lưu, code sẽ validate..."
-```
+**File quan trọng**:
+- Model: `lib/src/core/models/category_model.dart`
+- Màn hình:
+  - `lib/src/features/categories/category_list_screen.dart`
+  - `lib/src/features/categories/add_category_modal.dart`
+  - Cũ: `category_management_screen.dart` (vẫn hoạt động, dùng chung modal mới)
 
-**Show code validation:**
-```dart
-void _saveTransaction() {
-  // 1. Validate form
-  if (!_formKey.currentState!.validate()) {
-    return;  // Hiển thị lỗi trên form
-  }
+**Chức năng & demo**:
+- Vào **Cài đặt → Quản lý danh mục**:
+  - Hiển thị danh mục dạng **Grid 2 cột**:
+    - Tên danh mục (Ăn uống, Mua sắm…)
+    - Icon FontAwesome + màu nền đại diện.
+- **Thêm danh mục**:
+  - Bấm nút `+`:
+    - Nhập tên.
+    - Chọn **Icon** trong grid (FontAwesome).
+    - Chọn **Màu** trong dải màu.
+  - Lưu → call `/api/categories`.
+- **Sửa / Xoá danh mục**:
+  - Tap vào 1 danh mục để sửa → cùng modal.
+  - Bấm nút `⋮` → Xoá → xác nhận → call `DELETE /api/categories/{id}`.
+- Danh sách danh mục được dùng ở:
+  - Dropdown chọn danh mục trong màn **Thêm giao dịch**.
+  - Báo cáo chi tiêu theo danh mục.
 
-  // 2. Validate số tiền > 0
-  final amount = double.tryParse(_amountController.text) ?? 0;
-  if (amount <= 0) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Số tiền phải lớn hơn 0!')),
-    );
-    return;
-  }
-
-  // 3. Validate đã chọn danh mục
-  if (_selectedCategory == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Vui lòng chọn danh mục!')),
-    );
-    return;
-  }
-  // ...
-}
-```
-
-**Demo validation:**
-1. Thử nhấn "Lưu" khi chưa nhập gì → Show lỗi
-2. Nhập số tiền = 0 → Show "Số tiền phải lớn hơn 0!"
-3. Không chọn danh mục → Show "Vui lòng chọn danh mục!"
-
-**Giải thích:**
-- "Validation 2 lớp: Form validation + Business logic validation"
-- "Hiển thị lỗi bằng SnackBar (màu đỏ) để user dễ thấy"
-
-#### 4.2. Lưu giao dịch (Fake Action)
-```
-"Khi validation pass, Modal sẽ return Transaction object về screen chính..."
-```
-
-**Show code trong Modal:**
-```dart
-void _submitData() {
-  if (!_formKey.currentState!.validate()) {
-    return;  // Validation failed
-  }
-
-  final enteredAmount = double.parse(_amountController.text);
-  
-  if (_selectedCategory == null) return;
-
-  // Tạo Transaction object
-  final newTransaction = Transaction(
-    id: DateTime.now().millisecondsSinceEpoch.toString(),
-    amount: enteredAmount,
-    note: _noteController.text,
-    category: _selectedCategory!,
-    date: _selectedDate,
-  );
-
-  // Return về screen chính
-  Navigator.of(context).pop(newTransaction);
-}
-```
-
-**Show code trong Screen:**
-```dart
-void _openAddTransactionModal(BuildContext context) async {
-  final newTransaction = await showModalBottomSheet<Transaction>(...);
-  
-  if (newTransaction != null) {
-    setState(() {
-      _transactions.add(newTransaction);
-      _transactions.sort((a, b) => b.date.compareTo(a.date));
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đã thêm giao dịch mới')),
-    );
-  }
-}
-```
-
-**Demo:**
-1. Nhập đầy đủ form trong Modal → Nhấn "Lưu Giao dịch"
-2. Show: "Modal đóng lại"
-3. Show: "Giao dịch xuất hiện ngay trong danh sách (đã group theo ngày)"
-4. Show: "Thông báo thành công (màu xanh)"
-
-**Giải thích:**
-- "Modal return Transaction object về screen chính"
-- "Screen chính nhận data và update List"
-- "Dùng setState() để trigger rebuild UI"
-- "Data lưu tạm trong RAM (List _transactions)"
-- "Sắp xếp theo ngày mới nhất trước"
-
-#### 4.3. Xóa giao dịch (Swipe to Delete)
-```
-"User có thể xóa giao dịch bằng cách swipe từ phải sang trái..."
-```
-
-**Show code:**
-```dart
-Widget _buildTransactionItem(Transaction tx) {
-  return Dismissible(
-    key: Key(tx.id),
-    direction: DismissDirection.endToStart,  // Chỉ swipe từ phải sang trái
-    background: Container(
-      alignment: Alignment.centerRight,
-      child: Icon(Icons.delete, color: Colors.red),
-    ),
-    onDismissed: (_) => _deleteTransaction(tx.id),
-    child: ListTile(...),
-  );
-}
-
-void _deleteTransaction(String id) {
-  setState(() {
-    _transactions.removeWhere((tx) => tx.id == id);
-  });
-  
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Đã xóa giao dịch')),
-  );
-}
-```
-
-**Demo:**
-1. Swipe một giao dịch từ phải sang trái
-2. Show: "Background màu đỏ với icon delete hiện ra"
-3. Show: "Khi swipe hết → giao dịch biến mất"
-4. Show: "Thông báo 'Đã xóa giao dịch'"
-
-**Giải thích:**
-- "Dùng Dismissible widget - UX tốt trên mobile"
-- "Swipe gesture tự nhiên, không cần nút"
-- "Dùng removeWhere() để xóa theo ID"
-- "setState() để cập nhật UI ngay lập tức"
-
-#### 4.4. Data Model
-```
-"Em đã tạo Transaction model để quản lý data..."
-```
-
-**Show `transaction_model.dart`:**
-```dart
-class Transaction {
-  final String id;
-  final double amount;
-  final String note;
-  final String category;
-  final DateTime date;
-
-  Transaction({
-    required this.id,
-    required this.amount,
-    required this.note,
-    required this.category,
-    required this.date,
-  });
-}
-```
-
-**Giải thích:**
-- "Model đơn giản, immutable"
-- "Dễ mở rộng sau này (thêm fields như type: income/expense)"
+Nghiệp vụ: Giúp người dùng **tùy biến hoàn toàn** cách phân loại chi tiêu cho phù hợp với bản thân.
 
 ---
 
-### **PHẦN 5: Shared Utilities (3 phút)**
+### 6. Ghi chú chi tiêu (Transactions)
 
-#### 5.1. Currency Formatter
-```
-"Em đã tạo CurrencyFormatter trong shared/utils để format số tiền..."
-```
+**File quan trọng**:
+- Frontend:
+  - `lib/src/features/transactions/transaction_screen.dart`
+  - `lib/src/features/transactions/widgets/add_entry_modal.dart`
+  - `lib/src/core/models/financial_entry_model.dart`
+- Backend:
+  - `FinancialEntryController`, `FinancialEntryService`, `FinancialEntry` entity
 
-**Show `currency_formatter.dart`:**
-```dart
-class CurrencyFormatter {
-  static String format(num amount) {
-    return "${amount.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'), 
-      (match) => '.'
-    )} đ";
-  }
-}
-```
+**Chức năng & demo**:
 
-**Giải thích:**
-- "Format: 25000000 → '25.000.000 đ'"
-- "Dùng regex để thêm dấu chấm phân cách"
-- "Có thể dùng lại ở các màn hình khác"
+#### 6.1 Danh sách giao dịch
+- Mở màn **Ghi chú chi tiêu**:
+  - Header có **lọc theo tag** (`#tag`).
+  - Thanh chip lọc theo **Tất cả / Tháng này / Năm nay / Ngày cụ thể**.
+  - Danh sách nhóm theo **ngày**, mỗi ngày có tổng thu – chi (net).
 
-#### 5.2. Date Formatter
-```
-"Tương tự, DateFormatter để format ngày tháng..."
-```
+#### 6.2 Thêm giao dịch thủ công
+- Bấm FAB `+`:
+  - Mở `AddEntryModal`:
+    - Chọn **Chi / Thu** (SegmentedButton).
+    - Nhập **Số tiền** (parser hỗ trợ `k`, `tr`).
+    - Chọn **Danh mục**.
+    - Chọn **Tài khoản / Ví**.
+    - Nhập **Ghi chú** (hỗ trợ `#tag` và `@mention`).
+    - Tuỳ chọn:
+      - Đính kèm ảnh (ví dụ ảnh hoá đơn).
+      - Thêm vị trí GPS.
+      - Chọn ngày giao dịch.
+  - Lưu → call `POST /api/entries` + upload ảnh nếu có.
+- Nghiệp vụ:
+  - Mỗi giao dịch luôn có:
+    - Số tiền, loại (INCOME/EXPENSE), danh mục, ví, ngày.
+  - Backend có rule kiểm tra **không cho chi vượt quá số dư ví**.
 
-**Show `date_formatter.dart`:**
-```dart
-class DateFormatter {
-  static String format(DateTime date) {
-    return "${date.day.toString().padLeft(2, '0')}/"
-           "${date.month.toString().padLeft(2, '0')}/"
-           "${date.year}";
-  }
-}
-```
-
-**Giải thích:**
-- "Format: DateTime(2024, 1, 15) → '15/01/2024'"
-- "Dùng padLeft để đảm bảo 2 chữ số"
+#### 6.3 Sửa / Xoá giao dịch
+- Vuốt sang trái để **xoá** (Dismissible + confirm dialog).
+- Tap vào giao dịch để **sửa**:
+  - Mở lại `AddEntryModal` với `entryToEdit`.
+  - Sau khi lưu → call `PUT /api/entries/{id}`.
 
 ---
 
-### **PHẦN 6: Tổng kết (2 phút)**
+### 7. Nhập nhanh bằng giọng nói (Voice Quick Entry)
 
-#### 6.1. Tóm tắt những gì đã làm
-```
-"Tóm lại, em đã hoàn thành:
+**File quan trọng**:
+- `lib/src/features/transactions/widgets/ai_quick_entry_sheet.dart`
+- `lib/src/core/services/natural_language_parser.dart`
 
-1. Setup dự án:
-   ✅ Cấu trúc thư mục chuẩn
-   ✅ Cấu hình dependencies
-   ✅ Responsive navigation (3 platform)
+**Mục tiêu**: Thêm giao dịch cực nhanh bằng giọng nói hoặc gõ câu tự nhiên.
 
-2. Transaction Screen:
-   ✅ Modal Bottom Sheet để thêm giao dịch
-   ✅ Form nhập liệu đầy đủ với validation
-   ✅ Group transactions theo ngày
-   ✅ Swipe to delete (Dismissible)
-   ✅ Lưu/xóa giao dịch (fake data)
-   ✅ UI/UX đẹp, responsive
+#### 7.1 Mở tính năng
+- Từ màn **Ghi chú chi tiêu**:
+  - FAB nhỏ icon **mic** → `_openAiQuickEntry()` → mở `AiQuickEntrySheet`.
 
-3. Shared utilities:
-   ✅ CurrencyFormatter
-   ✅ DateFormatter
-   ✅ EmptyStateWidget"
-```
+#### 7.2 Giao diện Nhập nhanh bằng giọng nói
+- Tiêu đề: **“Nhập nhanh bằng giọng nói”**.
+- Nếu clipboard có nội dung giống giao dịch → hiển thị gợi ý → bấm “Lưu” để tạo nhanh.
+- Ô TextField:
+  - Label: `Nói hoặc gõ: "Ăn phở 50k", "Đổ xăng 100k"`.
+  - Có nút **mic** để ghi âm bằng `speech_to_text`.
+- Nút **“Tạo ghi chú từ nội dung trên”**:
+  - Gọi `NaturalLanguageParser.parseMultiple(text)` để phân tích.
 
-#### 6.2. Điểm nổi bật
-```
-"Điểm nổi bật:
-- ✅ App chạy được trên 3 platform (Desktop, Web, Mobile)
-- ✅ Responsive tự động
-- ✅ Code clean, dễ maintain
-- ✅ Validation đầy đủ
-- ✅ UI/UX tốt"
-```
+#### 7.3 Parser nhiều giao dịch trong một câu
 
-#### 6.3. Hướng phát triển
-```
-"Sau này có thể mở rộng:
-- Kết nối Backend API
-- Lưu vào database (SQLite/Hive)
-- Thêm tính năng sửa giao dịch
-- Thêm filter, search
-- Export/Import data"
-```
+Ví dụ bạn nói:  
+**“đi chơi hết 200k, mua sắm hết 300k, ăn cơm hết 50k”**
 
----
+- `NaturalLanguageParser.parseMultiple` sẽ:
+  - Tách câu theo `,` / `;` / xuống dòng.
+  - Nếu không có dấu câu, parser fallback tách theo **vị trí xuất hiện các số tiền**.
+  - Mỗi đoạn → một `ParsedQuickEntry`:
+    - `amount`: 200000, 300000, 50000
+    - `suggestedCategoryName`: dựa trên từ khoá (`đi chơi` → “Giải trí”, `mua sắm` → “Mua sắm”, `ăn cơm` → “Ăn uống”)
+    - `note`: nguyên câu con đó (rút gọn 200 ký tự nếu quá dài).
+  - Heuristic: nếu parser chỉ thấy **“100”** (không có `k`/`tr`) thì coi là **100k** (nhân 1000) để phù hợp văn nói.
 
-## 💡 Các điểm cần highlight
+#### 7.4 Màn “Xem lại các giao dịch”
+- Nếu parser nhận được **>1 giao dịch**, app mở bottom sheet:
+  - Tiêu đề: `Xem lại các giao dịch`.
+  - Mô tả: `Đã nhận diện N giao dịch từ câu nói. Chọn những giao dịch bạn muốn lưu.`
+  - Mỗi dòng:
+    - Checkbox.
+    - Số tiền (định dạng `k`).
+    - Gợi ý danh mục (nếu có).
+    - Ghi chú (câu gốc).
+- User tick chọn các giao dịch muốn lưu → bấm **“Tiếp tục”**.
 
-### 1. Responsive Design
-- ✅ Tự động chuyển layout theo kích thước màn hình
-- ✅ Chạy tốt trên cả Desktop, Web, Mobile
+#### 7.5 Tạo giao dịch thật từ danh sách đã chọn
+- Sau khi bấm **Tiếp tục**:
+  - Lần lượt gọi `_openSingleFromParsed` cho từng `ParsedQuickEntry` đã chọn.
+  - Mỗi lần sẽ:
+    - Gọi API lấy danh sách danh mục để map `suggestedCategoryName` → `categoryId`.
+    - Mở `AddEntryModal` **prefill sẵn** số tiền, danh mục, ghi chú.
+    - User kiểm tra, chỉnh lại nếu cần, bấm Lưu → call API tạo giao dịch.
+  - Nếu user hủy ở giữa, chuỗi dừng lại.
 
-### 2. Code Quality
-- ✅ Clean Architecture
-- ✅ Separation of Concerns
-- ✅ Reusable components (shared/utils, shared/widgets)
-
-### 3. User Experience
-- ✅ Validation rõ ràng
-- ✅ Feedback ngay lập tức (SnackBar)
-- ✅ Form tự động reset sau khi lưu
-
-### 4. Best Practices
-- ✅ Dùng FormKey cho validation
-- ✅ setState() để update UI
-- ✅ Immutable models
-- ✅ Constants trong AppConstants
+Khi demo, bạn có thể:
+1. Bấm nút mic.
+2. Nói 2–3 giao dịch liên tiếp.
+3. Cho giảng viên xem sheet “Xem lại các giao dịch”.
+4. Chọn 1–2 giao dịch → Tiếp tục → show modal từng cái.
 
 ---
 
-## ❓ Q&A dự kiến
+### 8. Dashboard & thống kê nhanh
 
-### Q1: "Tại sao dùng List trong RAM thay vì database?"
-**A:** 
-"Hiện tại em dùng fake data trong RAM để demo UI/UX. Sau này sẽ tích hợp Backend API hoặc local database (SQLite/Hive) để lưu trữ persistent."
+**File quan trọng**:
+- `lib/src/features/dashboard/dashboard_screen.dart`
+- Các widget:
+  - `total_balance_card.dart`
+  - `recent_transactions_list.dart`
+  - `quick_action_buttons.dart`
 
-### Q2: "Làm sao để data không mất khi đóng app?"
-**A:**
-"Sau này sẽ dùng:
-- SharedPreferences cho settings đơn giản
-- SQLite/Hive cho data phức tạp
-- Hoặc Backend API để sync data"
+**Chức năng & demo**:
+- **Tổng số dư**: hiển thị tổng tài sản = sum(balance các ví).
+- **Giao dịch gần đây**: 5–10 giao dịch mới nhất.
+- **Quick actions**:
+  - Thêm giao dịch mới.
+  - Nhảy đến báo cáo / quản lý ví / danh mục.
 
-### Q3: "Navigation responsive hoạt động như thế nào?"
-**A:**
-"Dùng LayoutBuilder để detect kích thước màn hình. Nếu < 600px → Bottom Bar, >= 600px → Side Rail. Flutter tự động rebuild khi resize."
-
-### Q4: "Có thể thêm tính năng sửa giao dịch không?"
-**A:**
-"Có thể. Chỉ cần:
-1. Thêm nút Edit trên mỗi item
-2. Mở dialog/modal với form đã điền sẵn
-3. Update transaction trong List
-4. setState() để refresh UI"
-
-### Q5: "Validation có đủ không?"
-**A:**
-"Hiện tại có:
-- Form validation (required fields)
-- Business logic validation (amount > 0, category selected)
-- Type validation (số tiền phải là số)
-
-Có thể thêm:
-- Max amount limit
-- Date range validation
-- Note length limit"
+Giải thích: Dashboard cho người dùng **cái nhìn 1 màn hình** về tình hình tài chính hiện tại.
 
 ---
 
-## 📝 Checklist trước khi demo
+### 9. Báo cáo & biểu đồ (Reports)
 
-- [ ] App chạy được trên Windows
-- [ ] App chạy được trên Web (Chrome)
-- [ ] App chạy được trên Android (nếu có)
-- [ ] Chuẩn bị 3-5 giao dịch mẫu
-- [ ] Mở sẵn các file quan trọng trong IDE
-- [ ] Test lại các tính năng:
-  - [ ] Nhập form
-  - [ ] Validation
-  - [ ] Lưu giao dịch
-  - [ ] Xóa giao dịch
-  - [ ] Responsive navigation
-- [ ] Chuẩn bị sẵn câu trả lời cho Q&A
+**File quan trọng**:
+- `lib/src/features/reports/report_screen.dart`
+- Widgets:
+  - `expenses_pie_chart.dart`
+  - `report_summary_card.dart`
+  - `report_period_selector.dart`
+  - `category_breakdown_list.dart`
+
+**Chức năng & demo**:
+- Chọn **khoảng thời gian**: tháng / năm / custom.
+- Biểu đồ **pie chart** theo danh mục:
+  - Màu sắc theo `CategoryColors`.
+  - Tỷ lệ phần trăm chi tiêu từng danh mục.
+- **Danh sách breakdown**:
+  - Tên danh mục, tổng chi tiêu, phần trăm.
+- Giải thích: Người dùng có thể trả lời câu hỏi “Tháng này mình chi nhiều nhất vào đâu?”.
 
 ---
 
-## 🎯 Tips khi demo
+### 10. Cài đặt & cá nhân hoá
 
-1. **Nói rõ ràng, không nói nhanh quá**
-2. **Vừa demo vừa giải thích code**
-3. **Highlight các điểm nổi bật**
-4. **Sẵn sàng trả lời câu hỏi**
-5. **Nếu có lỗi, bình tĩnh xử lý**
+**File quan trọng**:
+- `lib/src/features/settings/settings_screen.dart`
+- `lib/src/core/theme/theme_provider.dart`
+- `lib/src/core/theme/app_theme.dart`
 
-**Chúc bạn demo thành công! 🚀**
+**Chức năng & demo**:
+- **Đổi theme Light/Dark**:
+  - Switch “Chế độ tối” → cập nhật `themeModeProvider`.
+- **Quản lý danh mục** như đã trình bày ở trên.
+- **Thông tin nhóm**:
+  - Show dialog `About` với tên app, version, thông tin nhóm, thành viên.
+
+---
+
+### 11. AI Assistant (text)
+
+**File quan trọng**:
+- Frontend:
+  - `lib/src/features/ai/ai_assistant_screen.dart`
+  - `lib/src/core/models/ai_assistant_response.dart`
+  - `lib/src/core/network/finance_api_client.dart` – `askAssistant`
+- Backend:
+  - `AiAssistantController`, `AiAssistantService`
+  - Sử dụng thư viện `google-genai` (Gemini)
+
+**Chức năng & demo**:
+- Màn chat với AI:
+  - Nhập câu hỏi như:
+    - “Tháng này mình chi nhiều cho ăn uống không?”
+    - “Gợi ý cách tiết kiệm tiền từ dữ liệu chi tiêu của mình.”
+  - Backend gọi Gemini model (`ai.gemini.model=gemini-flash-latest`) và trả câu trả lời.
+
+Giải thích: Đây là phần mở rộng thông minh, giúp người dùng nhận gợi ý / giải thích về thói quen chi tiêu.
+
+---
+
+### 12. Cách chạy project khi demo
+
+1. **Chạy backend**:
+   - Mở terminal tại `Finance_Backend`:
+   - Chạy:
+     - `mvn spring-boot:run`
+   - Đảm bảo PostgreSQL đang chạy, DB `finance_db` sẵn sàng (config trong `application.properties`).
+2. **Chạy frontend Flutter**:
+   - Mở terminal tại `PRM393_Finance_Project`:
+   - Chạy:
+     - `flutter pub get`
+     - `flutter run -d chrome` (hoặc Android/emulator).
+3. Đảm bảo `ApiConstants.baseUrl` trỏ đúng tới backend (VD: `http://192.168.x.x:8081`).
+
+Khi demo, bạn có thể đi theo thứ tự:
+1. Đăng ký / đăng nhập.
+2. Tạo ví.
+3. Tạo danh mục.
+4. Thêm giao dịch thủ công.
+5. Dùng **Nhập nhanh bằng giọng nói** để thêm nhanh nhiều giao dịch.
+6. Xem Dashboard.
+7. Xem Báo cáo.
+8. Vào Cài đặt: đổi theme, quản lý danh mục.
+9. Thử AI Assistant.
+
+Như vậy, giảng viên sẽ thấy rõ đầy đủ **nghiệp vụ tài chính**, **kiến trúc full-stack**, và **các tính năng nổi bật** của project. 
+
