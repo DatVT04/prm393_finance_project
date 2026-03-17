@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,24 +21,32 @@ class AddEntryInput {
   final String? note;
   final String? type;
   final String? source;
-  AddEntryInput({this.amount, this.categoryId, this.note, this.type, this.source});
+  AddEntryInput({
+    this.amount,
+    this.categoryId,
+    this.note,
+    this.type,
+    this.source,
+  });
 }
 
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (newValue.text.isEmpty) {
       return newValue.copyWith(text: '');
     }
 
-    // Only allow digits and handle specific suffixes 'k', 'tr' if needed, 
+    // Only allow digits and handle specific suffixes 'k', 'tr' if needed,
     // but typically thousand separators are for pure numbers.
     // Here we'll handle pure numbers. If they type k/tr, we might want to let it pass or format after.
     // Let's stick to standard numeric formatting first.
     String text = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (text.isEmpty) return newValue.copyWith(text: '');
-    
+
     double value = double.parse(text);
     final formatter = NumberFormat('#,###', 'vi_VN');
     String newText = formatter.format(value);
@@ -50,11 +59,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
 }
 
 class AddEntryModal extends ConsumerStatefulWidget {
-  const AddEntryModal({
-    super.key,
-    this.prefill,
-    this.entryToEdit,
-  });
+  const AddEntryModal({super.key, this.prefill, this.entryToEdit});
 
   final AddEntryInput? prefill;
   final FinancialEntryModel? entryToEdit;
@@ -73,6 +78,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   String _selectedType = 'EXPENSE'; // INCOME, EXPENSE, TRANSFER
   DateTime _selectedDate = DateTime.now();
   String? _imagePath;
+  XFile? _imageFile;
   String? _existingImageUrl;
   double? _latitude;
   double? _longitude;
@@ -123,30 +129,37 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final x = await picker.pickImage(source: ImageSource.gallery);
-    if (x != null) setState(() => _imagePath = x.path);
+    if (x != null) {
+      setState(() {
+        _imagePath = x.path;
+        _imageFile = x;
+      });
+    }
   }
 
   Future<void> _pickLocation() async {
     final ok = await Geolocator.isLocationServiceEnabled();
     if (!ok) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng bật định vị')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Vui lòng bật định vị')));
       }
       return;
     }
     try {
-      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
       setState(() {
         _latitude = pos.latitude;
         _longitude = pos.longitude;
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không lấy được vị trí: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không lấy được vị trí: $e')));
       }
     }
   }
@@ -171,7 +184,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       final categories = ref.read(categoriesProvider).value;
       if (categories != null && categories.isNotEmpty) {
         final napVi = categories.firstWhere(
-          (c) => c.name.toLowerCase().contains('nạp ví') || c.name.toLowerCase().contains('thu nhập'),
+          (c) =>
+              c.name.toLowerCase().contains('nạp ví') ||
+              c.name.toLowerCase().contains('thu nhập'),
           orElse: () => categories.firstWhere(
             (c) => c.name.toLowerCase() == 'khác',
             orElse: () => categories.first,
@@ -182,32 +197,34 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     }
 
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn danh mục')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn danh mục')));
       return;
     }
     if (_selectedAccountId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn tài khoản')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn tài khoản')));
       return;
     }
 
     final amount = _parseAmount(_amountController.text.trim());
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Số tiền không hợp lệ')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Số tiền không hợp lệ')));
       return;
     }
 
     setState(() => _saving = true);
     final note = _noteController.text.trim();
     var noteWithMeta = note;
-    if (_imagePath != null) noteWithMeta += (note.isEmpty ? '' : '\n') + '📷 Ảnh đính kèm';
+    if (_imagePath != null)
+      noteWithMeta += (note.isEmpty ? '' : '\n') + '📷 Ảnh đính kèm';
     if (_latitude != null && _longitude != null) {
-      noteWithMeta += (noteWithMeta.isEmpty ? '' : '\n') + '📍 $_latitude, $_longitude';
+      noteWithMeta +=
+          (noteWithMeta.isEmpty ? '' : '\n') + '📍 $_latitude, $_longitude';
     }
 
     final tags = NoteTagParser.extractTags(note);
@@ -223,7 +240,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       transactionDate: _selectedDate,
       tags: tags,
       mentions: mentions,
-      imageUrl: null, // local path not sent to server; note has "📷 Ảnh đính kèm"
+      imageUrl:
+          null, // local path not sent to server; note has "📷 Ảnh đính kèm"
       latitude: _latitude,
       longitude: _longitude,
       source: widget.prefill?.source ?? 'MANUAL',
@@ -237,9 +255,14 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       } else {
         result = await client.createEntry(entry);
       }
-      
+
       if (_imagePath != null && !_imagePath!.startsWith('http')) {
-        await client.uploadImage(result.id, _imagePath!);
+        if (kIsWeb && _imageFile != null) {
+          final bytes = await _imageFile!.readAsBytes();
+          await client.uploadImageBytes(result.id, bytes, _imageFile!.name);
+        } else {
+          await client.uploadImage(result.id, _imagePath!);
+        }
       }
 
       if (!mounted) return;
@@ -247,7 +270,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       refreshAccounts(ref);
       Navigator.of(context).pop(result);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã lưu ghi chú'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Đã lưu ghi chú'),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -296,15 +322,27 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                widget.entryToEdit != null ? 'Sửa ghi chú' : 'Thêm ghi chú chi tiêu',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                widget.entryToEdit != null
+                    ? 'Sửa ghi chú'
+                    : 'Thêm ghi chú chi tiêu',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'EXPENSE', label: Text('Chi'), icon: Icon(Icons.remove_circle_outline)),
-                  ButtonSegment(value: 'INCOME', label: Text('Thu'), icon: Icon(Icons.add_circle_outline)),
+                  ButtonSegment(
+                    value: 'EXPENSE',
+                    label: Text('Chi'),
+                    icon: Icon(Icons.remove_circle_outline),
+                  ),
+                  ButtonSegment(
+                    value: 'INCOME',
+                    label: Text('Thu'),
+                    icon: Icon(Icons.add_circle_outline),
+                  ),
                 ],
                 selected: {_selectedType},
                 onSelectionChanged: (val) {
@@ -315,7 +353,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                       final categories = ref.read(categoriesProvider).value;
                       if (categories != null && categories.isNotEmpty) {
                         final napVi = categories.firstWhere(
-                          (c) => c.name.toLowerCase().contains('nạp ví') || c.name.toLowerCase().contains('thu nhập'),
+                          (c) =>
+                              c.name.toLowerCase().contains('nạp ví') ||
+                              c.name.toLowerCase().contains('thu nhập'),
                           orElse: () => categories.firstWhere(
                             (c) => c.name.toLowerCase() == 'khác',
                             orElse: () => categories.first,
@@ -342,7 +382,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 ],
                 keyboardType: TextInputType.text,
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số tiền';
+                  if (v == null || v.trim().isEmpty)
+                    return 'Vui lòng nhập số tiền';
                   final a = _parseAmount(v.trim());
                   if (a == null || a <= 0) return 'Số tiền không hợp lệ';
                   return null;
@@ -360,39 +401,58 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                         border: OutlineInputBorder(),
                       ),
                       items: list
-                          .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.name)))
+                          .map(
+                            (c) => DropdownMenuItem<int>(
+                              value: c.id,
+                              child: Text(c.name),
+                            ),
+                          )
                           .toList(),
                       onChanged: (v) => setState(() => _selectedCategoryId = v),
-                      validator: (v) => v == null ? 'Vui lòng chọn danh mục' : null,
+                      validator: (v) =>
+                          v == null ? 'Vui lòng chọn danh mục' : null,
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (_, __) => const Text('Không tải được danh mục'),
                 ),
                 const SizedBox(height: 16),
               ],
-              ref.watch(accountsProvider).when(
-                data: (list) {
-                  if (_selectedAccountId == null && list.isNotEmpty) {
-                    _selectedAccountId = list.first.id;
-                  }
-                  return DropdownButtonFormField<int>(
-                    value: _selectedAccountId,
-                    decoration: const InputDecoration(
-                      labelText: 'Tài khoản/Ví',
-                      prefixIcon: Icon(Icons.account_balance_wallet),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: list
-                        .map((a) => DropdownMenuItem<int>(value: a.id, child: Text('${a.name} (${NumberFormat('#,###', 'vi').format(a.balance)}đ)')))
-                        .toList(),
-                    onChanged: (v) => setState(() => _selectedAccountId = v),
-                    validator: (v) => v == null ? 'Vui lòng chọn tài khoản' : null,
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Không tải được tài khoản'),
-              ),
+              ref
+                  .watch(accountsProvider)
+                  .when(
+                    data: (list) {
+                      if (_selectedAccountId == null && list.isNotEmpty) {
+                        _selectedAccountId = list.first.id;
+                      }
+                      return DropdownButtonFormField<int>(
+                        value: _selectedAccountId,
+                        decoration: const InputDecoration(
+                          labelText: 'Tài khoản/Ví',
+                          prefixIcon: Icon(Icons.account_balance_wallet),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: list
+                            .map(
+                              (a) => DropdownMenuItem<int>(
+                                value: a.id,
+                                child: Text(
+                                  '${a.name} (${NumberFormat('#,###', 'vi').format(a.balance)}đ)',
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => _selectedAccountId = v),
+                        validator: (v) =>
+                            v == null ? 'Vui lòng chọn tài khoản' : null,
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => const Text('Không tải được tài khoản'),
+                  ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _noteController,
@@ -410,19 +470,36 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 spacing: 8,
                 children: [
                   TextButton.icon(
-                    onPressed: (_imagePath == null && _existingImageUrl == null) ? _pickImage : () {
-                      setState(() {
-                        _imagePath = null;
-                        _existingImageUrl = null;
-                      });
-                    },
-                    icon: Icon((_imagePath != null || _existingImageUrl != null) ? Icons.cancel : Icons.add_photo_alternate),
-                    label: Text((_imagePath != null || _existingImageUrl != null) ? 'Xóa ảnh' : 'Đính kèm ảnh'),
+                    onPressed: (_imagePath == null && _existingImageUrl == null)
+                        ? _pickImage
+                        : () {
+                            setState(() {
+                              _imagePath = null;
+                              _imageFile = null;
+                              _existingImageUrl = null;
+                            });
+                          },
+                    icon: Icon(
+                      (_imagePath != null || _existingImageUrl != null)
+                          ? Icons.cancel
+                          : Icons.add_photo_alternate,
+                    ),
+                    label: Text(
+                      (_imagePath != null || _existingImageUrl != null)
+                          ? 'Xóa ảnh'
+                          : 'Đính kèm ảnh',
+                    ),
                   ),
                   TextButton.icon(
                     onPressed: _latitude == null ? _pickLocation : null,
-                    icon: Icon(_latitude != null ? Icons.location_on : Icons.location_off),
-                    label: Text(_latitude != null ? 'Đã thêm vị trí' : 'Thêm vị trí'),
+                    icon: Icon(
+                      _latitude != null
+                          ? Icons.location_on
+                          : Icons.location_off,
+                    ),
+                    label: Text(
+                      _latitude != null ? 'Đã thêm vị trí' : 'Thêm vị trí',
+                    ),
                   ),
                 ],
               ),
@@ -440,19 +517,28 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                             panEnabled: true,
                             minScale: 0.5,
                             maxScale: 4.0,
-                            child: Image.file(File(_imagePath!)),
+                            child: kIsWeb
+                                ? Image.network(_imagePath!)
+                                : Image.file(File(_imagePath!)),
                           ),
                         ),
                       );
                     },
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(_imagePath!),
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                      child: kIsWeb
+                          ? Image.network(
+                              _imagePath!,
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.file(
+                              File(_imagePath!),
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                 )
@@ -470,7 +556,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                             panEnabled: true,
                             minScale: 0.5,
                             maxScale: 4.0,
-                            child: Image.network('${ApiConstants.baseUrl}$_existingImageUrl'),
+                            child: Image.network(
+                              '${ApiConstants.baseUrl}$_existingImageUrl',
+                            ),
                           ),
                         ),
                       );
@@ -520,15 +608,26 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   backgroundColor: Colors.teal,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: _saving
                     ? const SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
-                    : const Text('Lưu ghi chú', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : const Text(
+                        'Lưu ghi chú',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
               const SizedBox(height: 24),
             ],

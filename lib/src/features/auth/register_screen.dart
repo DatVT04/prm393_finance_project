@@ -46,7 +46,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (!mounted) return;
       final userId = res['userId'];
       if (userId != null) {
-        await ref.read(currentUserIdProvider.notifier).setUserId((userId as num).toInt());
+        await ref.read(currentUserIdProvider.notifier).setUserId(
+              (userId as num).toInt(),
+              name: res['displayName'] as String?,
+              avatar: res['avatarUrl'] as String?,
+            );
       }
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(

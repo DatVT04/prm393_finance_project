@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/login_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
@@ -228,29 +229,35 @@ class HomeAppBar extends ConsumerWidget {
         Row(
           children: [
             // Avatar
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                shape: BoxShape.circle,
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://i.pravatar.cc/150?img=11', // Mock Avatar
+            Consumer(
+              builder: (context, ref, _) {
+                final profile = ref.watch(userProfileProvider);
+                final avatar = profile.avatarUrl;
+                return Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: (avatar != null && avatar.isNotEmpty)
+                          ? NetworkImage('${ApiConstants.baseUrl}$avatar')
+                          : const NetworkImage(
+                              'https://ui-avatars.com/api/?background=random&name=User',
+                            ) as ImageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  fit: BoxFit.cover,
-                ),
-                border: Border.all(color: Colors.white, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
             const SizedBox(width: 12),
             // Greeting Text
@@ -263,11 +270,17 @@ class HomeAppBar extends ConsumerWidget {
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 ),
-                Text(
-                  'Khách hàng',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final profile = ref.watch(userProfileProvider);
+                    final name = profile.displayName ?? 'Khách hàng';
+                    return Text(
+                      name,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    );
+                  },
                 ),
               ],
             ),
