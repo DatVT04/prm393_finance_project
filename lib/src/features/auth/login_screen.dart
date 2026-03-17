@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/register_screen.dart';
 import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.dart';
@@ -75,6 +74,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('change_language'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text('english'.tr()),
+              trailing: context.locale.languageCode == 'en'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('en'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              title: Text('vietnamese'.tr()),
+              trailing: context.locale.languageCode == 'vi'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('vi'));
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -102,7 +135,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const SizedBox(height: 48),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: _showLanguageDialog,
+                        icon: const Icon(Icons.language, color: Colors.white),
+                        tooltip: 'change_language'.tr(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -117,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    AppConstants.appName,
+                    'app_title'.tr(),
                     style: theme.textTheme.headlineSmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

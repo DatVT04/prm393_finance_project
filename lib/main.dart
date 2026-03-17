@@ -8,7 +8,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'src/core/state/app_state.dart';
 import 'src/core/theme/app_theme.dart';
-import 'src/core/constants/app_constants.dart';
 import 'src/features/auth/auth_provider.dart';
 import 'src/features/auth/login_screen.dart';
 import 'src/layout/main_layout.dart';
@@ -51,7 +50,7 @@ class FinanceApp extends ConsumerWidget {
     final userIdAsync = ref.watch(currentUserIdProvider);
 
     return MaterialApp(
-      title: AppConstants.appName,
+      title: 'app_title'.tr(),
       debugShowCheckedModeBanner: false,
 
       theme: AppTheme.lightTheme,

@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/verification_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 
@@ -74,6 +73,40 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('change_language'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text('english'.tr()),
+              trailing: context.locale.languageCode == 'en'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('en'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              title: Text('vietnamese'.tr()),
+              trailing: context.locale.languageCode == 'vi'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('vi'));
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -101,15 +134,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                    alignment: Alignment.centerLeft,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: _showLanguageDialog,
+                        icon: const Icon(Icons.language, color: Colors.white),
+                        tooltip: 'change_language'.tr(),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    AppConstants.appName,
+                    'app_title'.tr(),
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

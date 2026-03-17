@@ -1,6 +1,5 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
-import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/core/state/app_state.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.dart';
@@ -379,7 +378,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
     showAboutDialog(
       context: context,
-      applicationName: AppConstants.appName,
+      applicationName: 'app_title'.tr(),
       applicationVersion: '1.0.0',
       applicationIcon: Icon(
         Icons.account_balance_wallet,
