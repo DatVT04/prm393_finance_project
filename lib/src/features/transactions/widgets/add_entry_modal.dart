@@ -78,6 +78,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   final _noteController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  bool _didInitDependencies = false;
+  double? _initialAmount;
   int? _selectedCategoryId;
   int? _selectedAccountId;
   String _selectedType = 'EXPENSE'; // INCOME, EXPENSE, TRANSFER
@@ -95,7 +97,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     final p = widget.prefill;
     final e = widget.entryToEdit;
     if (e != null) {
-      _amountController.text = _formatAmount(e.amount);
+      _initialAmount = e.amount;
       _selectedCategoryId = e.categoryId;
       if (e.note != null && e.note!.isNotEmpty) {
         String noteRaw = e.note!;
@@ -110,11 +112,21 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       _latitude = e.latitude;
       _longitude = e.longitude;
     } else if (p != null) {
-      if (p.amount != null) _amountController.text = _formatAmount(p.amount!);
+      _initialAmount = p.amount;
       _selectedCategoryId = p.categoryId;
       if (p.note != null && p.note!.isNotEmpty) _noteController.text = p.note!;
       if (p.type != null) _selectedType = p.type!;
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitDependencies) return;
+    if (_initialAmount != null) {
+      _amountController.text = _formatAmount(_initialAmount!);
+    }
+    _didInitDependencies = true;
   }
 
   String _formatAmount(double v) {
