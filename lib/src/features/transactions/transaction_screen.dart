@@ -23,6 +23,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     final created = await showModalBottomSheet<FinancialEntryModel>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -38,6 +39,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -241,13 +243,13 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             const SizedBox(height: 24),
                             Text(
                               filterTag != null ? 'Không có ghi chú với tag #$filterTag' : 'Chưa có ghi chú nào',
-                              style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                              style: Theme.of(context).textTheme.titleLarge,
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Dùng nút (+) hoặc (★) để thêm nhanh',
-                              style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                              style: Theme.of(context).textTheme.bodySmall,
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -393,7 +395,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           final updated = await showModalBottomSheet<FinancialEntryModel>(
             context: context,
             isScrollControlled: true,
-            backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).cardColor,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
@@ -407,16 +409,9 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade100),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF006D5B).withOpacity(0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Theme.of(context).dividerColor),
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -430,12 +425,12 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             ),
             title: Text(
               e.categoryName ?? 'Khác',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             subtitle: (e.note != null && e.note!.isNotEmpty)
                 ? Text(
                     e.note!,
-                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   )

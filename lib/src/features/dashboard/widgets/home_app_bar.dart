@@ -126,15 +126,9 @@ class HomeAppBar extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        border: Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -237,7 +231,7 @@ class HomeAppBar extends ConsumerWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).dividerColor,
                     shape: BoxShape.circle,
                     image: DecorationImage(
                       image: (avatar != null && avatar.isNotEmpty)
@@ -247,14 +241,7 @@ class HomeAppBar extends ConsumerWidget {
                             ) as ImageProvider,
                       fit: BoxFit.cover,
                     ),
-                    border: Border.all(color: Colors.white, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    border: Border.all(color: Theme.of(context).cardColor, width: 2),
                   ),
                 );
               },
@@ -292,9 +279,9 @@ class HomeAppBar extends ConsumerWidget {
             // Wallet Icon
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey[200]!),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: IconButton(
                 onPressed: () {
@@ -303,30 +290,30 @@ class HomeAppBar extends ConsumerWidget {
                   );
                 },
                 icon: const Icon(Icons.account_balance_wallet_outlined),
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(width: 8),
             // Notification Icon
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey[200]!),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: IconButton(
                 onPressed: showTodaySummarySheet,
                 icon: const Icon(Icons.notifications_outlined),
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(width: 8),
             // Logout
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey[200]!),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: IconButton(
                 onPressed: () async {
@@ -339,7 +326,7 @@ class HomeAppBar extends ConsumerWidget {
                   );
                 },
                 icon: const Icon(Icons.logout),
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

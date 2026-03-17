@@ -78,7 +78,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             colors: [
               colorScheme.primary,
               colorScheme.primary.withOpacity(0.85),
-              const Color(0xFF004D40),
+              colorScheme.primaryContainer,
             ],
           ),
         ),
@@ -124,15 +124,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 24,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -141,7 +134,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           'Đăng nhập',
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF2D3250),
                           ),
                         ),
                         const SizedBox(height: 24),

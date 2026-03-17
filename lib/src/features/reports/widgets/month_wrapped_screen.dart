@@ -23,13 +23,16 @@ class MonthWrappedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nf = NumberFormat('#,###', 'vi_VN');
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onBackground),
           onPressed: () => Navigator.of(context).pop(),
           tooltip: 'Quay lại',
         ),
@@ -41,36 +44,29 @@ class MonthWrappedScreen extends StatelessWidget {
             children: [
               Text(
                 'Nhìn lại $monthName',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'Nhật ký Tài chính Thông minh',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
-                ),
+                style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 40),
               _buildCard(
+                context,
                 child: Column(
                   children: [
                     Text(
                       'Tổng chi tiêu',
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                      style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '${nf.format(totalExpense)} đ',
-                      style: const TextStyle(
-                        fontSize: 32,
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        color: colorScheme.error,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFe94560),
                       ),
                     ),
                   ],
@@ -78,19 +74,18 @@ class MonthWrappedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               _buildCard(
+                context,
                 child: Column(
                   children: [
                     Text(
                       'Danh mục chi nhiều nhất',
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                      style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       topCategory,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -98,19 +93,19 @@ class MonthWrappedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               _buildCard(
+                context,
                 child: Column(
                   children: [
                     Text(
                       'Số ghi chú đã lưu',
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                      style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '$entryCount',
-                      style: const TextStyle(
-                        fontSize: 36,
+                      style: theme.textTheme.displayLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0f3460),
+                        color: colorScheme.primary,
                       ),
                     ),
                   ],
@@ -119,7 +114,7 @@ class MonthWrappedScreen extends StatelessWidget {
               const SizedBox(height: 32),
               Text(
                 'Chia sẻ báo cáo của bạn',
-                style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12),
+                style: theme.textTheme.labelSmall,
               ),
             ],
           ),
@@ -128,27 +123,15 @@ class MonthWrappedScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCard({required Widget child}) {
+  Widget _buildCard(BuildContext context, {required Widget child}) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF16213e),
-            const Color(0xFF0f3460),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFe94560).withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: theme.dividerColor),
       ),
       child: child,
     );

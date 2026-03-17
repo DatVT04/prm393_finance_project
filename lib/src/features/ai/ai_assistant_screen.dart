@@ -154,19 +154,23 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     final nf = NumberFormat('#,###', 'vi_VN');
     final selected = await showModalBottomSheet<AccountModel>(
       context: context,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => ListView.separated(
         shrinkWrap: true,
         itemCount: accounts.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, __) => Divider(height: 1, color: Theme.of(context).dividerColor),
         itemBuilder: (context, index) {
           final account = accounts[index];
           return ListTile(
-            leading: const Icon(Icons.account_balance_wallet),
-            title: Text(account.name),
-            subtitle: Text('Số dư: ${nf.format(account.balance)} đ'),
+            leading: Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.primary),
+            title: Text(account.name, style: Theme.of(context).textTheme.titleMedium),
+            subtitle: Text(
+              'Số dư: ${nf.format(account.balance)} đ',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             onTap: () => Navigator.of(ctx).pop(account),
           );
         },
@@ -268,7 +272,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             const SizedBox(height: 8),
             Text(
               'Bạn có thể hỏi thống kê hoặc nhập nhanh giao dịch bằng ngôn ngữ tự nhiên.',
-              style: TextStyle(color: Colors.grey[700]),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -292,14 +296,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 12,
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, -2),
-            ),
-          ],
+          color: Theme.of(context).cardColor,
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
+          ),
         ),
         child: Row(
           children: [
@@ -393,8 +393,11 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == _ChatRole.user;
-    final bubbleColor = isUser ? Colors.teal.shade600 : Colors.grey.shade200;
-    final textColor = isUser ? Colors.white : Colors.black87;
+    final theme = Theme.of(context);
+    
+    final bubbleColor = isUser ? theme.colorScheme.primary : theme.cardColor;
+    final textColor = isUser ? Colors.white : theme.textTheme.bodyLarge?.color;
+    final borderColor = isUser ? Colors.transparent : theme.dividerColor;
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -404,6 +407,7 @@ class _ChatBubble extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 320),
         decoration: BoxDecoration(
           color: bubbleColor,
+          border: isUser ? null : Border.all(color: borderColor),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -413,7 +417,11 @@ class _ChatBubble extends StatelessWidget {
         ),
         child: Text(
           message.text,
-          style: TextStyle(color: textColor, fontSize: 14, height: 1.4),
+          style: TextStyle(
+            color: textColor,
+            fontSize: 14,
+            height: 1.4,
+          ),
         ),
       ),
     );

@@ -1,14 +1,15 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
-import 'package:prm393_finance_project/src/core/theme/theme_provider.dart';
+import 'package:prm393_finance_project/src/core/state/app_state.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.dart';
 import 'package:prm393_finance_project/src/features/categories/category_list_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvider;
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -18,14 +19,11 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool _isDarkMode = false;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    final mode = ref.read(themeModeProvider);
-    _isDarkMode = mode == ThemeMode.dark;
   }
 
   Future<void> _pickAndUploadAvatar() async {
@@ -57,23 +55,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final profile = ref.watch(userProfileProvider);
     final avatar = profile.avatarUrl;
     final name = profile.displayName ?? 'User';
+    final appState = context.watch<AppState>();
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Cài đặt'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        elevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // ===== PROFILE =====
-          _buildSectionTitle('Tài khoản'),
+          _buildSectionTitle(context, 'Tài khoản'),
           Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -84,7 +79,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       children: [
                         CircleAvatar(
                           radius: 35,
-                          backgroundColor: Colors.grey.shade200,
+                          backgroundColor: theme.dividerColor,
                           backgroundImage: (avatar != null && avatar.isNotEmpty)
                               ? NetworkImage('${ApiConstants.baseUrl}$avatar')
                               : const NetworkImage(
@@ -100,8 +95,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           right: 0,
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.teal,
+                            decoration: BoxDecoration(
+                              color: theme.primaryColor,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.camera_alt,
@@ -118,12 +113,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       children: [
                         Text(
                           name,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge,
                         ),
                         const SizedBox(height: 4),
-                        const Text('Cá nhân hóa trải nghiệm của bạn',
-                            style: TextStyle(fontSize: 13, color: Colors.grey)),
+                        Text('Cá nhân hóa trải nghiệm của bạn',
+                            style: theme.textTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -133,8 +127,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               leading: const Icon(Icons.lock_outline),
               title: const Text('Đổi mật khẩu'),
@@ -146,34 +138,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
 
           // ===== THEME =====
-          _buildSectionTitle('Giao diện'),
+          _buildSectionTitle(context, 'Giao diện'),
           Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: SwitchListTile(
-              value: _isDarkMode,
+              value: appState.themeMode == ThemeMode.dark,
               onChanged: (value) {
-                setState(() {
-                  _isDarkMode = value;
-                });
-                ref.read(themeModeProvider.notifier).state =
-                    value ? ThemeMode.dark : ThemeMode.light;
+                appState.toggleTheme();
               },
               title: const Text('Chế độ tối'),
               subtitle: const Text('Dark / Light mode'),
-              secondary: const Icon(Icons.dark_mode),
+              secondary: Icon(appState.themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode),
             ),
           ),
 
           const SizedBox(height: 24),
 
           // ===== DATA =====
-          _buildSectionTitle('Dữ liệu'),
+          _buildSectionTitle(context, 'Dữ liệu'),
           Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: ListTile(
               leading: const Icon(Icons.category),
               title: const Text('Quản lý danh mục'),
@@ -192,11 +174,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
 
           // ===== ABOUT =====
-          _buildSectionTitle('Thông tin'),
+          _buildSectionTitle(context, 'Thông tin'),
           Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('Thông tin nhóm'),
@@ -213,6 +192,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showChangePasswordDialog() {
+    final theme = Theme.of(context);
     final oldPassCtrl = TextEditingController();
     final newPassCtrl = TextEditingController();
     final confirmPassCtrl = TextEditingController();
@@ -234,7 +214,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Text(
                 'Mật khẩu mới phải có ít nhất 6 ký tự để bảo mật tài khoản của bạn.',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -300,7 +280,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Hủy', style: TextStyle(color: Colors.grey.shade600)),
+            child: Text('Hủy', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -313,23 +293,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text('Đổi mật khẩu thành công'),
-                      backgroundColor: Colors.green),
+                    content: Text('Đổi mật khẩu thành công'),
+                    backgroundColor: Colors.green,
+                  ),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+                    content: Text('Lỗi: $e'),
+                    backgroundColor: theme.colorScheme.error,
+                  ),
                 );
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
             child: const Text('Cập nhật'),
           ),
         ],
@@ -338,15 +314,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // ===== SECTION TITLE =====
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.primary,
           fontWeight: FontWeight.bold,
-          color: Colors.grey.shade700,
         ),
       ),
     );
@@ -354,14 +330,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   // ===== ABOUT DIALOG =====
   void _showAboutDialog() {
+    final theme = Theme.of(context);
     showAboutDialog(
       context: context,
       applicationName: AppConstants.appName,
       applicationVersion: '1.0.0',
-      applicationIcon: const Icon(
+      applicationIcon: Icon(
         Icons.account_balance_wallet,
         size: 40,
-        color: Colors.teal,
+        color: theme.colorScheme.primary,
       ),
       children: const [
         SizedBox(height: 16),

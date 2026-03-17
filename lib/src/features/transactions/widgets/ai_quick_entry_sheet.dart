@@ -81,6 +81,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
     return showModalBottomSheet<FinancialEntryModel>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -166,6 +167,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
     final selectedIndexes = await showModalBottomSheet<List<int>>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -203,7 +205,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                       itemBuilder: (context, index) {
                         final e = entries[index];
                         return Material(
-                          color: Colors.grey.shade50,
+                          color: Theme.of(context).dividerColor.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
                           child: CheckboxListTile(
                             value: selected[index],
@@ -251,7 +253,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                             Navigator.of(ctx).pop(chosen);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -374,7 +376,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
           FilledButton(
             onPressed: _submitNaturalText,
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.teal,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
