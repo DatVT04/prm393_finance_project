@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
@@ -10,11 +8,6 @@ import 'package:prm393_finance_project/src/features/transactions/providers/finan
 const String _keyUserId = 'user_id';
 const String _keyDisplayName = 'display_name';
 const String _keyAvatarUrl = 'avatar_url';
-
-final GoogleSignIn _googleSignIn = GoogleSignIn(
-  clientId: kIsWeb ? '954893711733-v3bv8152vpscgj3oacpcoefgqmsg0l9u.apps.googleusercontent.com' : null,
-  scopes: <String>['email', 'profile'],
-);
 
 class UserProfileData {
   final String? displayName;
@@ -65,53 +58,6 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
 
     FinanceApiClient.setUserId(id);
     state = AsyncValue.data(id);
-  }
-
-  Future<void> signInWithGoogle() async {
-    state = const AsyncValue.loading();
-    try {
-      debugPrint('Starting Google Sign-In...');
-
-      // On Web, signIn() might hang if not initialized properly or due to cookies.
-      // We use a single instance to avoid "multiple calls" warning.
-      final googleUser = await _googleSignIn.signIn().timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw Exception('Hết thời gian đăng nhập Google. Vui lòng thử lại.'),
-      );
-
-      if (googleUser == null) {
-        debugPrint('Google Sign-In cancelled by user.');
-        state = const AsyncValue.data(null);
-        return;
-      }
-
-      debugPrint('Google Sign-In success: ${googleUser.email}');
-
-      // Call our backend
-      final client = ref.read(apiClientProvider);
-      final response = await client.googleLogin(
-        googleUser.email,
-        googleUser.displayName,
-      );
-
-      debugPrint('Backend Google Login success: $response');
-
-      final id = (response['userId'] as num).toInt();
-      final name = response['displayName'] as String?;
-      final avatar = response['avatarUrl'] as String?;
-
-      await setUserId(id, name: name, avatar: avatar);
-      debugPrint('User ID set: $id');
-    } catch (e, stack) {
-      debugPrint('Google Sign-In Error: $e');
-      // If it fails on web, suggest testing on Android
-      String msg = e.toString();
-      if (kIsWeb) {
-        msg += '\n(Lưu ý: Google Sign-In trên Web có thể bị chặn bởi trình duyệt. Hãy thử trên Android để ổn định nhất.)';
-      }
-      state = AsyncValue.error(msg, stack);
-      rethrow;
-    }
   }
 
   Future<void> updateAvatar(String avatar) async {

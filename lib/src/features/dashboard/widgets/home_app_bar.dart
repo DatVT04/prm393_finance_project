@@ -219,62 +219,65 @@ class HomeAppBar extends ConsumerWidget {
     }
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            // Avatar
-            Consumer(
-              builder: (context, ref, _) {
-                final profile = ref.watch(userProfileProvider);
-                final avatar = profile.avatarUrl;
-                return Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor,
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: (avatar != null && avatar.isNotEmpty)
-                          ? NetworkImage('${ApiConstants.baseUrl}$avatar')
-                          : const NetworkImage(
-                              'https://ui-avatars.com/api/?background=random&name=User',
-                            ) as ImageProvider,
-                      fit: BoxFit.cover,
+        // Left: avatar + greeting (flex to avoid overflow)
+        Expanded(
+          child: Row(
+            children: [
+              // Avatar (no external URL fallback to avoid DNS issues on web)
+              Consumer(
+                builder: (context, ref, _) {
+                  final profile = ref.watch(userProfileProvider);
+                  final avatar = profile.avatarUrl;
+                  final name = (profile.displayName ?? 'customer'.tr()).trim();
+                  final initials = name.isNotEmpty ? name.characters.first.toUpperCase() : 'U';
+                  final imageUrl = (avatar != null && avatar.isNotEmpty) ? '${ApiConstants.baseUrl}$avatar' : null;
+
+                  return CircleAvatar(
+                    radius: 25,
+                    backgroundColor: Theme.of(context).dividerColor,
+                    foregroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                    onForegroundImageError: imageUrl != null ? (_, __) {} : null,
+                    child: Text(
+                      initials,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    border: Border.all(color: Theme.of(context).cardColor, width: 2),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 12),
-            // Greeting Text
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'hello'.tr(),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              // Greeting Text (flexible)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'hello'.tr(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final profile = ref.watch(userProfileProvider);
+                        final name = profile.displayName ?? 'customer'.tr();
+                        return Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                Consumer(
-                  builder: (context, ref, _) {
-                    final profile = ref.watch(userProfileProvider);
-                    final name = profile.displayName ?? 'customer'.tr();
-                    return Text(
-                      name,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
-        // Actions
+        // Right: Actions
         Row(
           children: [
             // Wallet Icon

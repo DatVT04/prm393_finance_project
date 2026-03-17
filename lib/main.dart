@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvi
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'src/core/state/app_state.dart';
 import 'src/core/theme/app_theme.dart';
@@ -17,11 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
 
-  if (!kIsWeb) {
-    await Firebase.initializeApp();
-  } else {
-    debugPrint('Firebase is not initialized on Web. Run on Android for full features.');
-  }
+  // Firebase removed for cross-platform reliability (Web/Windows/Android).
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('vi')],

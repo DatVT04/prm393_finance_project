@@ -94,8 +94,20 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
   }
 
   void _startListening() async {
-    final available = await _speech.initialize();
-    if (!available || !mounted) return;
+    final available = await _speech.initialize(
+      onStatus: (_) {},
+      onError: (_) {},
+    );
+    if (!mounted) return;
+    if (!available) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể truy cập micro. Hãy cấp quyền ghi âm (Microphone) cho ứng dụng.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     setState(() => _listening = true);
     await _speech.listen(
       onResult: (result) {

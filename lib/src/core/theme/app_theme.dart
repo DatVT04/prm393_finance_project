@@ -1,9 +1,9 @@
 // lib/src/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
+    final baseText = ThemeData.light().textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -21,22 +21,22 @@ class AppTheme {
         brightness: Brightness.light,
       ),
 
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
-        displayLarge: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        displayMedium: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        displaySmall: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        headlineLarge: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        headlineMedium: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        headlineSmall: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        titleLarge: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
-        titleMedium: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
-        titleSmall: GoogleFonts.outfit(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
-        bodyLarge: GoogleFonts.outfit(color: const Color(0xFF334155)),
-        bodyMedium: GoogleFonts.outfit(color: const Color(0xFF334155)),
-        bodySmall: GoogleFonts.outfit(color: const Color(0xFF64748B)),
-        labelLarge: GoogleFonts.outfit(color: const Color(0xFF64748B)),
-        labelMedium: GoogleFonts.outfit(color: const Color(0xFF64748B)),
-        labelSmall: GoogleFonts.outfit(color: const Color(0xFF64748B)),
+      textTheme: baseText.copyWith(
+        displayLarge: baseText.displayLarge?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
+        displayMedium: baseText.displayMedium?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
+        displaySmall: baseText.displaySmall?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
+        headlineLarge: baseText.headlineLarge?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
+        headlineMedium: baseText.headlineMedium?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
+        headlineSmall: baseText.headlineSmall?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.bold),
+        titleLarge: baseText.titleLarge?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
+        titleMedium: baseText.titleMedium?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
+        titleSmall: baseText.titleSmall?.copyWith(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
+        bodyLarge: baseText.bodyLarge?.copyWith(color: const Color(0xFF334155)),
+        bodyMedium: baseText.bodyMedium?.copyWith(color: const Color(0xFF334155)),
+        bodySmall: baseText.bodySmall?.copyWith(color: const Color(0xFF64748B)),
+        labelLarge: baseText.labelLarge?.copyWith(color: const Color(0xFF64748B)),
+        labelMedium: baseText.labelMedium?.copyWith(color: const Color(0xFF64748B)),
+        labelSmall: baseText.labelSmall?.copyWith(color: const Color(0xFF64748B)),
       ),
 
       cardTheme: CardThemeData(
@@ -75,13 +75,13 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
 
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFFF1F5F9),
-        labelStyle: GoogleFonts.outfit(color: const Color(0xFF334155), fontSize: 12),
+        labelStyle: const TextStyle(color: Color(0xFF334155), fontSize: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: BorderSide.none,
       ),
@@ -108,6 +108,7 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    final baseText = ThemeData.dark().textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -125,22 +126,22 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
 
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        displayMedium: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        displaySmall: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        headlineLarge: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        headlineMedium: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        headlineSmall: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        titleLarge: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
-        titleMedium: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
-        titleSmall: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
-        bodyLarge: GoogleFonts.outfit(color: Colors.white.withOpacity(0.7)),
-        bodyMedium: GoogleFonts.outfit(color: Colors.white.withOpacity(0.7)),
-        bodySmall: GoogleFonts.outfit(color: Colors.white.withOpacity(0.38)),
-        labelLarge: GoogleFonts.outfit(color: Colors.white.withOpacity(0.38)),
-        labelMedium: GoogleFonts.outfit(color: Colors.white.withOpacity(0.38)),
-        labelSmall: GoogleFonts.outfit(color: Colors.white.withOpacity(0.38)),
+      textTheme: baseText.copyWith(
+        displayLarge: baseText.displayLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        displayMedium: baseText.displayMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        displaySmall: baseText.displaySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        headlineLarge: baseText.headlineLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        headlineMedium: baseText.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        headlineSmall: baseText.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        titleLarge: baseText.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        titleMedium: baseText.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        titleSmall: baseText.titleSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        bodyLarge: baseText.bodyLarge?.copyWith(color: Colors.white.withOpacity(0.7)),
+        bodyMedium: baseText.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.7)),
+        bodySmall: baseText.bodySmall?.copyWith(color: Colors.white.withOpacity(0.38)),
+        labelLarge: baseText.labelLarge?.copyWith(color: Colors.white.withOpacity(0.38)),
+        labelMedium: baseText.labelMedium?.copyWith(color: Colors.white.withOpacity(0.38)),
+        labelSmall: baseText.labelSmall?.copyWith(color: Colors.white.withOpacity(0.38)),
       ),
 
       cardTheme: CardThemeData(
@@ -179,13 +180,13 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
 
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF334155),
-        labelStyle: GoogleFonts.outfit(color: Colors.white70, fontSize: 12),
+        labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: BorderSide.none,
       ),
