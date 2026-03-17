@@ -491,35 +491,33 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 },
               ),
               const SizedBox(height: 16),
-              if (_selectedType != 'INCOME') ...[
-                categoriesAsync.when(
-                  data: (list) {
-                    return DropdownButtonFormField<int>(
-                      value: _selectedCategoryId,
-                      decoration: InputDecoration(
-                        labelText: 'category_label'.tr(),
-                        prefixIcon: const Icon(Icons.category),
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: list
-                          .map(
-                            (c) => DropdownMenuItem<int>(
-                              value: c.id,
-                              child: Text(c.name),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedCategoryId = v),
-                      validator: (v) =>
-                          v == null ? 'category_required'.tr() : null,
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => Text('error_loading_categories'.tr()),
-                ),
-                const SizedBox(height: 16),
-              ],
+              categoriesAsync.when(
+                data: (list) {
+                  return DropdownButtonFormField<int>(
+                    value: _selectedCategoryId,
+                    decoration: InputDecoration(
+                      labelText: 'category_label'.tr(),
+                      prefixIcon: const Icon(Icons.category),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: list
+                        .map(
+                          (c) => DropdownMenuItem<int>(
+                            value: c.id,
+                            child: Text(c.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _selectedCategoryId = v),
+                    validator: (v) =>
+                        v == null ? 'category_required'.tr() : null,
+                  );
+                },
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Text('error_loading_categories'.tr()),
+              ),
+              const SizedBox(height: 16),
               ref
                   .watch(accountsProvider)
                   .when(
