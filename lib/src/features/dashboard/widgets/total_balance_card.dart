@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/features/dashboard/providers/dashboard_providers.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
@@ -11,7 +12,7 @@ class TotalBalanceCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = NumberFormat('#,###', 'vi_VN');
+    final currency = NumberFormat('#,###', context.locale.toString());
 
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
     final accountsAsync = ref.watch(accountsProvider);
@@ -81,7 +82,7 @@ class TotalBalanceCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Tổng số dư',
+                'total_balance'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.white.withOpacity(0.9),
                   fontWeight: FontWeight.w500,
@@ -106,7 +107,7 @@ class TotalBalanceCard extends ConsumerWidget {
               _buildIncomeExpenseInfo(
                 context,
                 icon: FontAwesomeIcons.arrowUp,
-                label: 'Thu nhập',
+                label: 'income'.tr(),
                 amount: formatMoney(income),
                 isIncome: true,
                 onTap: null,
@@ -119,7 +120,7 @@ class TotalBalanceCard extends ConsumerWidget {
               _buildIncomeExpenseInfo(
                 context,
                 icon: FontAwesomeIcons.arrowDown,
-                label: 'Chi tiêu',
+                label: 'expense'.tr(),
                 amount: formatMoney(expense),
                 isIncome: false,
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/services/export_service.dart';
@@ -19,16 +20,16 @@ class ReportScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportScreenState extends ConsumerState<ReportScreen> {
-  String _selectedPeriod = 'Tháng';
+  String _selectedPeriod = 'month';
   String _selectedType = 'EXPENSE';
 
   DateTime _rangeStart() {
     final now = DateTime.now();
-    if (_selectedPeriod == 'Tuần') {
+    if (_selectedPeriod == 'week') {
       final weekday = now.weekday;
       return DateTime(now.year, now.month, now.day - weekday + 1);
     }
-    if (_selectedPeriod == 'Tháng') {
+    if (_selectedPeriod == 'month') {
       return DateTime(now.year, now.month, 1);
     }
     return DateTime(now.year, 1, 1);
@@ -51,7 +52,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     final map = <String, double>{};
     for (final e in list) {
       if (e.type != type) continue;
-      final name = e.categoryName ?? 'Khác';
+      final name = e.categoryName ?? 'other'.tr();
       map[name] = (map[name] ?? 0) + e.amount;
     }
     return map;
@@ -63,7 +64,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Báo cáo thống kê'),
+        title: Text('report_title'.tr()),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -76,7 +77,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   final list = _filterByPeriod(all);
                   if (list.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Không có dữ liệu để xuất')),
+                      SnackBar(content: Text('no_data_to_export'.tr())),
                     );
                     return;
                   }
@@ -88,8 +89,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
               );
             },
             itemBuilder: (ctx) => [
-              const PopupMenuItem(value: 'excel', child: Text('Xuất Excel')),
-              const PopupMenuItem(value: 'pdf', child: Text('Xuất PDF')),
+              PopupMenuItem(value: 'excel', child: Text('export_excel'.tr())),
+              PopupMenuItem(value: 'pdf', child: Text('export_pdf'.tr())),
             ],
           ),
         ],
@@ -103,23 +104,23 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
           final categoryTotals = _categoryTotals(list, _selectedType);
           final sortedCategories = categoryTotals.entries.toList()
             ..sort((a, b) => b.value.compareTo(a.value));
-          final topCategory = sortedCategories.isNotEmpty ? sortedCategories.first.key : 'Khác';
+          final topCategory = sortedCategories.isNotEmpty ? sortedCategories.first.key : 'other'.tr();
 
           String wrappedButtonLabel;
           String wrappedTitle;
           final now = DateTime.now();
-          if (_selectedPeriod == 'Tuần') {
+          if (_selectedPeriod == 'week') {
             final start = _rangeStart();
             final end = _rangeEnd();
-            final df = DateFormat('dd/MM', 'vi');
-            wrappedButtonLabel = 'Nhìn lại tuần này';
+            final df = DateFormat('dd/MM', context.locale.toString());
+            wrappedButtonLabel = 'look_back_week'.tr();
             wrappedTitle = '${df.format(start)} - ${df.format(end)}';
-          } else if (_selectedPeriod == 'Năm') {
-            wrappedButtonLabel = 'Nhìn lại năm nay';
-            wrappedTitle = 'Năm ${now.year}';
+          } else if (_selectedPeriod == 'year') {
+            wrappedButtonLabel = 'look_back_year'.tr();
+            wrappedTitle = '${'year'.tr()} ${now.year}';
           } else {
-            wrappedButtonLabel = 'Nhìn lại tháng này';
-            wrappedTitle = DateFormat('MMMM yyyy', 'vi').format(now);
+            wrappedButtonLabel = 'look_back_month'.tr();
+            wrappedTitle = DateFormat('MMMM yyyy', context.locale.toString()).format(now);
           }
 
           return SingleChildScrollView(
@@ -132,9 +133,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 ),
                 const SizedBox(height: 16),
                 SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'EXPENSE', label: Text('Chi tiêu'), icon: Icon(Icons.remove_circle_outline)),
-                    ButtonSegment(value: 'INCOME', label: Text('Thu nhập'), icon: Icon(Icons.add_circle_outline)),
+                  segments: [
+                    ButtonSegment(value: 'EXPENSE', label: Text('expense'.tr()), icon: const Icon(Icons.remove_circle_outline)),
+                    ButtonSegment(value: 'INCOME', label: Text('income'.tr()), icon: const Icon(Icons.add_circle_outline)),
                   ],
                   selected: {_selectedType},
                   onSelectionChanged: (val) => setState(() => _selectedType = val.first),
@@ -165,7 +166,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  _selectedType == 'EXPENSE' ? 'Phân tích chi tiêu' : 'Phân tích thu nhập',
+                  _selectedType == 'EXPENSE' ? 'expense_analysis'.tr() : 'income_analysis'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -184,7 +185,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
               const SizedBox(height: 16),
-              const Text('Không tải được dữ liệu.', textAlign: TextAlign.center),
+              Text('error_loading_data'.tr(), textAlign: TextAlign.center),
             ],
           ),
         ),

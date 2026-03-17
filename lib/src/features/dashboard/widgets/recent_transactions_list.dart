@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
@@ -38,7 +39,7 @@ class RecentTransactionsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
-    final nf = NumberFormat('#,###', 'vi_VN');
+    final nf = NumberFormat('#,###', context.locale.toString());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,14 +47,14 @@ class RecentTransactionsList extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Ghi chú gần đây',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'recent_entries'.tr(),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             if (onViewAll != null)
               TextButton(
                 onPressed: onViewAll,
-                child: const Text('Xem tất cả'),
+                child: Text('view_all'.tr()),
               ),
           ],
         ),
@@ -70,7 +71,7 @@ class RecentTransactionsList extends ConsumerWidget {
                 ),
                 child: Center(
                   child: Text(
-                    'Chưa có ghi chú. Thêm từ tab Ghi chú.',
+                    'no_entries_hint'.tr(),
                     style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
@@ -84,7 +85,7 @@ class RecentTransactionsList extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final e = recent[index];
-                final dateStr = DateFormat('dd/MM').format(e.transactionDate);
+                final dateStr = DateFormat('dd/MM', context.locale.toString()).format(e.transactionDate);
                 final color = CategoryColors.get(e.categoryName ?? '');
                 return InkWell(
                   onTap: () async {
@@ -126,7 +127,7 @@ class RecentTransactionsList extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                e.categoryName ?? 'Khác',
+                                e.categoryName ?? 'other'.tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
@@ -168,7 +169,7 @@ class RecentTransactionsList extends ConsumerWidget {
             ),
             child: Center(
               child: Text(
-                'Không tải được dữ liệu',
+                'error_loading_data'.tr(),
                 style: TextStyle(color: Colors.red[700], fontSize: 14),
               ),
             ),

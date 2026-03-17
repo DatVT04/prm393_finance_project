@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ReportPeriodSelector extends StatelessWidget {
   final String selectedPeriod;
@@ -21,18 +22,18 @@ class ReportPeriodSelector extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildOption(context, 'Tuần'),
-          _buildOption(context, 'Tháng'),
-          _buildOption(context, 'Năm'),
+          _buildOption(context, 'week'),
+          _buildOption(context, 'month'),
+          _buildOption(context, 'year'),
         ],
       ),
     );
   }
 
-  Widget _buildOption(BuildContext context, String text) {
-    final bool isSelected = selectedPeriod == text;
+  Widget _buildOption(BuildContext context, String key) {
+    final bool isSelected = selectedPeriod == key;
     return GestureDetector(
-      onTap: () => onPeriodChanged(text),
+      onTap: () => onPeriodChanged(key),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -50,7 +51,7 @@ class ReportPeriodSelector extends StatelessWidget {
               : null,
         ),
         child: Text(
-          text,
+          key.tr(),
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.grey[700],
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,

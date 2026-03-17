@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -11,11 +12,11 @@ class AccountListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accountsAsync = ref.watch(accountsProvider);
-    final currency = NumberFormat('#,###', 'vi_VN');
+    final currency = NumberFormat('#,###', context.locale.toString());
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý ví / Tài khoản', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('manage_accounts'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             onPressed: () => _openAddAccount(context, ref),
@@ -32,11 +33,11 @@ class AccountListScreen extends ConsumerWidget {
                 children: [
                   Icon(Icons.account_balance_wallet_outlined, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
-                  const Text('Bạn chưa có tài khoản nào'),
+                  Text('no_accounts_msg'.tr()),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () => _openAddAccount(context, ref),
-                    child: const Text('Thêm tài khoản ngay'),
+                    child: Text('add_account_now'.tr()),
                   ),
                 ],
               ),
@@ -72,9 +73,9 @@ class AccountListScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Tổng số dư',
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    Text(
+                      'total_balance'.tr(),
+                      style: const TextStyle(color: Colors.white70, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -129,8 +130,8 @@ class AccountListScreen extends ConsumerWidget {
                             }
                           },
                           itemBuilder: (ctx) => [
-                            const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 20), SizedBox(width: 8), Text('Sửa')])),
-                            const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline, size: 20, color: Colors.red), SizedBox(width: 8), Text('Xóa', style: TextStyle(color: Colors.red))])),
+                            PopupMenuItem(value: 'edit', child: Row(children: [const Icon(Icons.edit, size: 20), const SizedBox(width: 8), Text('edit'.tr())])),
+                            PopupMenuItem(value: 'delete', child: Row(children: [const Icon(Icons.delete_outline, size: 20, color: Colors.red), const SizedBox(width: 8), Text('delete'.tr(), style: const TextStyle(color: Colors.red))])),
                           ],
                         ),
                         onTap: () => _openEditAccount(context, ref, account),
@@ -180,19 +181,19 @@ class AccountListScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa ví / tài khoản?'),
+        title: Text('delete_account_title'.tr()),
         content: Text(
-          'Bạn có chắc muốn xóa "${account.name}"? Chỉ xóa được khi ví không còn giao dịch nào.',
+          'delete_account_msg'.tr(args: [account.name]),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Hủy')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text('cancel'.tr())),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
               foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Xóa'),
+            child: Text('delete'.tr()),
           ),
         ],
       ),
@@ -203,8 +204,8 @@ class AccountListScreen extends ConsumerWidget {
       if (!context.mounted) return;
       ref.invalidate(accountsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xóa tài khoản'),
+        SnackBar(
+          content: Text('account_deleted_msg'.tr()),
           backgroundColor: Colors.green,
         ),
       );

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
@@ -38,7 +39,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mã xác thực đã được gửi về email của bạn')),
+        SnackBar(content: Text('verification_code_sent'.tr())),
       );
     } catch (e) {
       setState(() => _isLoading = false);
@@ -63,8 +64,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đặt lại mật khẩu thành công'),
+        SnackBar(
+          content: Text('reset_pass_success'.tr()),
           backgroundColor: Colors.green,
         ),
       );
@@ -83,7 +84,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quên mật khẩu'),
+        title: Text('forgot_password'.tr()),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -100,7 +101,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                _emailSent ? 'Cập nhật mật khẩu' : 'Khôi phục mật khẩu',
+                _emailSent ? 'update_password'.tr() : 'reset_password'.tr(),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -109,8 +110,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               const SizedBox(height: 12),
               Text(
                 _emailSent
-                    ? 'Vui lòng nhập mã Code vừa nhận được trong email và mật khẩu mới.'
-                    : 'Nhập email của bạn để nhận mã xác thực đặt lại mật khẩu.',
+                    ? 'reset_pass_instruction'.tr()
+                    : 'forgot_pass_instruction'.tr(),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
@@ -120,11 +121,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'email'.tr(),
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Vui lòng nhập email' : null,
+                  validator: (v) => v == null || v.isEmpty ? 'email_required'.tr() : null,
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -146,28 +147,28 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Gửi mã xác thực'),
+                      : Text('send_code'.tr()),
                 ),
               ] else ...[
                 TextFormField(
                   controller: _tokenController,
                   decoration: InputDecoration(
-                    labelText: 'Mã Code (xem trong email)',
+                    labelText: 'verification_code_label'.tr(),
                     prefixIcon: const Icon(Icons.key_outlined),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Vui lòng nhập mã Code' : null,
+                  validator: (v) => v == null || v.isEmpty ? 'verification_code_required'.tr() : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _newPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'Mật khẩu mới',
+                    labelText: 'new_pass_label'.tr(),
                     prefixIcon: const Icon(Icons.lock_outline),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  validator: (v) => (v == null || v.length < 6) ? 'Tối thiểu 6 ký tự' : null,
+                  validator: (v) => (v == null || v.length < 6) ? 'min_6_chars'.tr() : null,
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -189,11 +190,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Cập nhật mật khẩu'),
+                      : Text('update_password'.tr()),
                 ),
                 TextButton(
                   onPressed: () => setState(() => _emailSent = false),
-                  child: const Text('Gửi lại email khác'),
+                  child: Text('resend_email'.tr()),
                 ),
               ],
             ],

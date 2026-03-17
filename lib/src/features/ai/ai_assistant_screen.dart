@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
@@ -23,12 +24,12 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   String? _conversationId;
   String? _pendingMessageForAccount;
 
-  final List<String> _suggestions = const [
-    'Tháng này tôi tiêu nhiều nhất vào cái gì?',
-    'Tháng trước tôi tiêu bao nhiêu?',
-    'Danh sách chi tiêu của tôi hôm nay',
-    'Hôm nay tôi ăn phở 45k',
-    'Hôm nay tôi nạp 2 triệu vào ví',
+  final List<String> _suggestions = [
+    'suggestion_1'.tr(),
+    'suggestion_2'.tr(),
+    'suggestion_3'.tr(),
+    'suggestion_4'.tr(),
+    'suggestion_5'.tr(),
   ];
 
   @override
@@ -81,7 +82,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     setState(() {
       _sending = true;
       _messages.add(_ChatMessage.user(text));
-      _messages.add(_ChatMessage.assistant('Đang xử lý...', pending: true));
+      _messages.add(_ChatMessage.assistant('processing'.tr(), pending: true));
     });
     _inputController.clear();
     _scrollToBottom();
@@ -146,12 +147,12 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     if (!mounted) return;
     if (accounts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa có ví/tài khoản để chọn')),
+        SnackBar(content: Text('select_wallet_hint'.tr())),
       );
       return;
     }
 
-    final nf = NumberFormat('#,###', 'vi_VN');
+    final nf = NumberFormat('#,###', context.locale.toString());
     final selected = await showModalBottomSheet<AccountModel>(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
@@ -168,7 +169,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             leading: Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.primary),
             title: Text(account.name, style: Theme.of(context).textTheme.titleMedium),
             subtitle: Text(
-              'Số dư: ${nf.format(account.balance)} đ',
+              '${'balance_label'.tr()}: ${nf.format(account.balance)} đ',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             onTap: () => Navigator.of(ctx).pop(account),
@@ -189,8 +190,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
     setState(() {
       _sending = true;
-      _messages.add(_ChatMessage.user('Chọn ví: ${account.name}'));
-      _messages.add(_ChatMessage.assistant('Đang xử lý...', pending: true));
+      _messages.add(_ChatMessage.user('${'select_wallet_prefix'.tr()}: ${account.name}'));
+      _messages.add(_ChatMessage.assistant('processing'.tr(), pending: true));
     });
     _scrollToBottom();
 
@@ -220,12 +221,12 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trợ lý AI', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('ai_assistant_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            tooltip: 'Bắt đầu cuộc trò chuyện mới',
+            tooltip: 'new_chat_tooltip'.tr(),
             icon: const Icon(Icons.refresh),
             onPressed: _startNewConversation,
           ),
@@ -266,12 +267,12 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hỏi đáp chi tiêu bằng AI',
+              'ai_intro_title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Bạn có thể hỏi thống kê hoặc nhập nhanh giao dịch bằng ngôn ngữ tự nhiên.',
+              'ai_intro_body'.tr(),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -308,9 +309,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                 controller: _inputController,
                 minLines: 1,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Nhập câu hỏi hoặc ghi chú chi tiêu...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: 'ai_input_hint'.tr(),
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (_) => _sendMessage(),
@@ -340,16 +341,16 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Bắt đầu cuộc trò chuyện mới?'),
-        content: const Text('Lịch sử cuộc trò chuyện hiện tại sẽ bị xóa khỏi màn hình.'),
+        title: Text('start_new_chat_confirm'.tr()),
+        content: Text('start_new_chat_body'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Hủy'),
+            child: Text('cancel'.tr()),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Xóa'),
+            child: Text('clear'.tr()),
           ),
         ],
       ),
@@ -364,7 +365,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã bắt đầu cuộc trò chuyện mới')),
+        SnackBar(content: Text('new_chat_started'.tr())),
       );
     }
   }

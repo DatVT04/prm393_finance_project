@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvider;
+import 'package:easy_localization/easy_localization.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -38,7 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(currentUserIdProvider.notifier).updateAvatar(url);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cập nhật avatar thành công')),
+        SnackBar(content: Text('avatar_updated_msg'.tr())),
       );
     } catch (e) {
       if (!mounted) return;
@@ -61,13 +62,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Cài đặt'),
+        title: Text('settings'.tr()),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // ===== PROFILE =====
-          _buildSectionTitle(context, 'Tài khoản'),
+          _buildSectionTitle(context, 'account'.tr()),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -116,8 +117,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: theme.textTheme.titleLarge,
                         ),
                         const SizedBox(height: 4),
-                        Text('Cá nhân hóa trải nghiệm của bạn',
-                            style: theme.textTheme.bodySmall),
+                          Text('Cá nhân hóa trải nghiệm của bạn'.tr()),
                       ],
                     ),
                   ),
@@ -129,7 +129,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.lock_outline),
-              title: const Text('Đổi mật khẩu'),
+              title: Text('change_password'.tr()),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _showChangePasswordDialog,
             ),
@@ -138,28 +138,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
 
           // ===== THEME =====
-          _buildSectionTitle(context, 'Giao diện'),
+          _buildSectionTitle(context, 'appearance'.tr()),
           Card(
             child: SwitchListTile(
               value: appState.themeMode == ThemeMode.dark,
               onChanged: (value) {
                 appState.toggleTheme();
               },
-              title: const Text('Chế độ tối'),
-              subtitle: const Text('Dark / Light mode'),
+              title: Text('dark_mode'.tr()),
+              subtitle: Text('dark_light_mode'.tr()),
               secondary: Icon(appState.themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode),
             ),
           ),
 
           const SizedBox(height: 24),
 
+          // ===== LANGUAGE =====
+          _buildSectionTitle(context, 'language'.tr()),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.language),
+              title: Text('change_language'.tr()),
+              subtitle: Text(context.locale.languageCode == 'vi' ? 'vietnamese'.tr() : 'english'.tr()),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                _showLanguageDialog();
+              },
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // ===== DATA =====
-          _buildSectionTitle(context, 'Dữ liệu'),
+          _buildSectionTitle(context, 'data'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.category),
-              title: const Text('Quản lý danh mục'),
-              subtitle: const Text('Thêm, sửa, xóa danh mục chi tiêu'),
+              title: Text('manage_categories'.tr()),
+              subtitle: Text('Thêm, sửa, xóa danh mục chi tiêu'.tr()),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.of(context).push(
@@ -174,12 +190,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
 
           // ===== ABOUT =====
-          _buildSectionTitle(context, 'Thông tin'),
+          _buildSectionTitle(context, 'info'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('Thông tin nhóm'),
-              subtitle: const Text('PRM393 – Personal Finance'),
+              title: Text('group_info'.tr()),
+              subtitle: Text('prm_finance_subtitle'.tr()),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 _showAboutDialog();
@@ -203,9 +219,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-        title: const Text(
-          'Đổi mật khẩu',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          'change_password'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         content: Form(
           key: formKey,
@@ -213,7 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Mật khẩu mới phải có ít nhất 6 ký tự để bảo mật tài khoản của bạn.',
+                'change_pass_hint'.tr(),
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 20),
@@ -221,27 +237,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 controller: oldPassCtrl,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Mật khẩu cũ',
+                  labelText: 'old_pass_label'.tr(),
                   prefixIcon: const Icon(Icons.lock_open),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (v) =>
-                    v == null || v.isEmpty ? 'Vui lòng nhập mật khẩu cũ' : null,
+                    v == null || v.isEmpty ? 'old_pass_required'.tr() : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: newPassCtrl,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Mật khẩu mới',
+                  labelText: 'new_pass_label'.tr(),
                   prefixIcon: const Icon(Icons.lock_outline),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu mới';
-                  if (v.length < 6) return 'Tối thiểu 6 ký tự';
+                  if (v == null || v.isEmpty) return 'new_pass_required'.tr();
+                  if (v.length < 6) return 'min_6_chars'.tr();
                   return null;
                 },
               ),
@@ -250,13 +266,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 controller: confirmPassCtrl,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Xác nhận mật khẩu mới',
+                  labelText: 'confirm_pass_label'.tr(),
                   prefixIcon: const Icon(Icons.check_circle_outline),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (v) =>
-                    v != newPassCtrl.text ? 'Mật khẩu không khớp' : null,
+                    v != newPassCtrl.text ? 'pass_mismatch'.tr() : null,
               ),
               const SizedBox(height: 12),
               Align(
@@ -270,7 +286,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     );
                   },
-                  child: const Text('Quên mật khẩu?'),
+                child: Text('forgot_password'.tr()),
                 ),
               ),
             ],
@@ -280,7 +296,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Hủy', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+            child: Text('cancel'.tr(), style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -292,8 +308,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (!mounted) return;
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Đổi mật khẩu thành công'),
+                  SnackBar(
+                    content: Text('pass_updated_msg'.tr()),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -306,9 +322,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 );
               }
             },
-            child: const Text('Cập nhật'),
+            child: Text('update'.tr()),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('change_language'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text('english'.tr()),
+              trailing: context.locale.languageCode == 'en' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('en'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              title: Text('vietnamese'.tr()),
+              trailing: context.locale.languageCode == 'vi' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('vi'));
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -340,17 +386,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         size: 40,
         color: theme.colorScheme.primary,
       ),
-      children: const [
-        SizedBox(height: 16),
-        Text('Môn học: PRM393'),
-        Text('Nhóm: 한국어'),
-        SizedBox(height: 8),
-        Text('Thành viên:'),
-        Text('- Bùi Đức Chương (Leader)'),
-        Text('- Nguyễn Hữu Long'),
-        Text('- Nguyễn Danh Huy'),
-        Text('- Nguyễn Văn Sỹ'),
-        Text('- Vũ Tiến Đạt'),
+      children: [
+        const SizedBox(height: 16),
+        Text('${'subject_label'.tr()}: PRM393'),
+        Text('${'group_label'.tr()}: 한국어'),
+        const SizedBox(height: 8),
+        Text('${'members_label'.tr()}:'),
+        const Text('- Bùi Đức Chương (Leader)'),
+        const Text('- Nguyễn Hữu Long'),
+        const Text('- Nguyễn Danh Huy'),
+        const Text('- Nguyễn Văn Sỹ'),
+        const Text('- Vũ Tiến Đạt'),
       ],
     );
   }

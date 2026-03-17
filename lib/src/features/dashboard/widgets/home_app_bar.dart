@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
@@ -34,8 +35,8 @@ class HomeAppBar extends ConsumerWidget {
                   const SizedBox(height: 12),
                   const Icon(Icons.error_outline, color: Colors.redAccent, size: 32),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Không tải được dữ liệu hôm nay',
+                  Text(
+                    'error_loading_today'.tr(),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 4),
@@ -53,8 +54,8 @@ class HomeAppBar extends ConsumerWidget {
                 final expense = todayEntries.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
                 final net = income - expense;
                 
-                final count = todayEntries.length;
-                final currency = NumberFormat('#,###', 'vi_VN');
+                 final count = todayEntries.length;
+                final currency = NumberFormat('#,###', context.locale.toString());
 
                 if (count == 0) {
                   return Column(
@@ -68,14 +69,14 @@ class HomeAppBar extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Hôm nay bạn chưa ghi chi tiêu nào',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      Text(
+                        'no_entries_today'.tr(),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Nhấn nút (+) hoặc (★) ở màn hình ghi chú để thêm nhanh.',
+                        'add_entry_hint'.tr(),
                         style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                         textAlign: TextAlign.center,
                       ),
@@ -91,9 +92,9 @@ class HomeAppBar extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Tổng quan thu chi hôm nay',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        Text(
+                          'today_summary'.tr(),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -110,7 +111,7 @@ class HomeAppBar extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                                DateFormat('dd/MM/yyyy', context.locale.toString()).format(DateTime.now()),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Theme.of(context).colorScheme.primary,
@@ -136,16 +137,16 @@ class HomeAppBar extends ConsumerWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Dòng tiền hôm nay',
-                                style: TextStyle(fontSize: 13, color: Colors.grey),
+                              Text(
+                                'today_flow'.tr(),
+                                style: const TextStyle(fontSize: 13, color: Colors.grey),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 '${net >= 0 ? '+' : '-'}${currency.format(net.abs())} đ',
                                 style: TextStyle(
                                   fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: net >= 0 ? Colors.green[600] : const Color(0xFFE53935),
                                 ),
                               ),
@@ -154,9 +155,9 @@ class HomeAppBar extends ConsumerWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text(
-                                'Số ghi chú',
-                                style: TextStyle(fontSize: 13, color: Colors.grey),
+                              Text(
+                                'notes_count'.tr(),
+                                style: const TextStyle(fontSize: 13, color: Colors.grey),
                               ),
                               const SizedBox(height: 6),
                               Text(
@@ -173,7 +174,7 @@ class HomeAppBar extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Chi tiết gần nhất',
+                      'recent_details'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -189,7 +190,7 @@ class HomeAppBar extends ConsumerWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                e.categoryName ?? 'Khác',
+                                e.categoryName ?? 'other'.tr(),
                                 style: const TextStyle(fontSize: 14),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -252,7 +253,7 @@ class HomeAppBar extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Xin chào,',
+                  'hello'.tr(),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
@@ -260,7 +261,7 @@ class HomeAppBar extends ConsumerWidget {
                 Consumer(
                   builder: (context, ref, _) {
                     final profile = ref.watch(userProfileProvider);
-                    final name = profile.displayName ?? 'Khách hàng';
+                    final name = profile.displayName ?? 'customer'.tr();
                     return Text(
                       name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(

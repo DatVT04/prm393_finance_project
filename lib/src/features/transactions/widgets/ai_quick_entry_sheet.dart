@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -45,7 +46,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
       final suggestion = ClipboardParser.parse(data);
       if (suggestion != null && suggestion.amount > 0) {
         setState(() {
-          _clipboardSuggestion = 'Bạn vừa copy giao dịch ${_formatMoney(suggestion.amount)}';
+          _clipboardSuggestion = '${'clipboard_suggestion_prefix'.tr()} ${_formatMoney(suggestion.amount)}';
           _clipboardAmount = suggestion.amount;
           _clipboardCategory = suggestion.suggestedCategoryName;
         });
@@ -118,7 +119,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
     final parsedList = NaturalLanguageParser.parseMultiple(text);
     if (parsedList.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không tìm thấy số tiền. Thử "Ăn phở 50k" hoặc "100.000"')),
+        SnackBar(content: Text('no_amount_found_msg'.tr())),
       );
       return;
     }
@@ -187,13 +188,13 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Xem lại các giao dịch',
+                    'review_transactions_title'.tr(),
                     style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Đã nhận diện ${entries.length} giao dịch từ câu nói. Chọn những giao dịch bạn muốn lưu.',
+                    'recognized_transactions_msg'.tr(args: [entries.length.toString()]),
                     style: Theme.of(ctx).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
@@ -223,7 +224,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (e.suggestedCategoryName != null)
-                                  Text('Gợi ý danh mục: ${e.suggestedCategoryName}'),
+                                  Text('${'category_suggestion'.tr()}: ${e.suggestedCategoryName}'),
                                 if (e.note != null) Text(e.note!),
                               ],
                             ),
@@ -238,7 +239,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(ctx).pop(<int>[]),
-                          child: const Text('Hủy'),
+                          child: Text('cancel'.tr()),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -258,7 +259,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: const Text('Tiếp tục'),
+                          child: Text('continue'.tr()),
                         ),
                       ),
                     ],
@@ -313,7 +314,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
     _openAddModal(AddEntryInput(
       amount: _clipboardAmount!,
       categoryId: categoryId,
-      note: 'Từ clipboard',
+      note: 'from_clipboard'.tr(),
       type: 'EXPENSE',
       source: 'CLIPBOARD',
     ));
@@ -333,7 +334,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Nhập nhanh bằng giọng nói',
+            'voice_entry_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -343,10 +344,10 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
               child: ListTile(
                 leading: const Icon(Icons.content_paste),
                 title: Text(_clipboardSuggestion!),
-                subtitle: _clipboardCategory != null ? Text('Gợi ý: $_clipboardCategory') : null,
+                subtitle: _clipboardCategory != null ? Text('${'suggested'.tr()}: $_clipboardCategory') : null,
                 trailing: FilledButton(
                   onPressed: _useClipboardSuggestion,
-                  child: const Text('Lưu'),
+                  child: Text('save'.tr()),
                 ),
               ),
             ),
@@ -358,7 +359,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
           TextField(
             controller: _textController,
             decoration: InputDecoration(
-              labelText: 'Nói hoặc gõ: "Ăn phở 50k", "Đổ xăng 100k"',
+              labelText: 'voice_input_hint'.tr(),
               border: const OutlineInputBorder(),
               suffixIcon: _listening
                   ? IconButton(
@@ -380,7 +381,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Tạo ghi chú từ nội dung trên'),
+            child: Text('create_note_from_content'.tr()),
           ),
           const SizedBox(height: 24),
         ],

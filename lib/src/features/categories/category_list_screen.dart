@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -17,7 +18,7 @@ class CategoryListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Danh mục thu / chi'),
+        title: Text('category_management_title'.tr()),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -32,12 +33,12 @@ class CategoryListScreen extends ConsumerWidget {
                   Icon(Icons.category_outlined, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
-                    'Chưa có danh mục nào',
+                    'no_categories_msg'.tr(),
                     style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Nhấn nút (+) để thêm danh mục đầu tiên',
+                    'add_first_category_hint'.tr(),
                     style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     textAlign: TextAlign.center,
                   ),
@@ -108,7 +109,7 @@ class CategoryListScreen extends ConsumerWidget {
                             if (c.sortOrder != null) ...[
                               const SizedBox(height: 4),
                               Text(
-                                'Thứ tự: ${c.sortOrder}',
+                                '${'sort_order_label'.tr()}: ${c.sortOrder}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[700],
@@ -132,8 +133,8 @@ class CategoryListScreen extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
               const SizedBox(height: 16),
-              const Text(
-                'Không tải được danh mục.\nKiểm tra backend đã chạy.',
+              Text(
+                'error_loading_data'.tr(),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -235,16 +236,16 @@ class CategoryListScreen extends ConsumerWidget {
       if (existing != null) {
         await client.updateCategory(existing.id, result);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã cập nhật danh mục'),
+          SnackBar(
+            content: Text('category_updated_msg'.tr()),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         await client.createCategory(result);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã thêm danh mục'),
+          SnackBar(
+            content: Text('category_added_msg'.tr()),
             backgroundColor: Colors.green,
           ),
         );
@@ -268,20 +269,19 @@ class CategoryListScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa danh mục'),
+        title: Text('delete_category_title'.tr()),
         content: Text(
-          'Bạn có chắc muốn xóa danh mục "${category.name}"?\n'
-          'Các ghi chú đang dùng danh mục này có thể bị ảnh hưởng.',
+          'delete_category_msg'.tr(args: [category.name]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Hủy'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Xóa'),
+            child: Text('clear'.tr()),
           ),
         ],
       ),
@@ -293,8 +293,8 @@ class CategoryListScreen extends ConsumerWidget {
       refreshCategories(ref);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xóa danh mục'),
+        SnackBar(
+          content: Text('category_deleted_msg'.tr()),
           backgroundColor: Colors.green,
         ),
       );
@@ -324,7 +324,7 @@ class CategoryListScreen extends ConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('Sửa danh mục'),
+              title: Text('edit_category'.tr()),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _openEdit(context, ref, category);
@@ -332,7 +332,7 @@ class CategoryListScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Xóa danh mục'),
+              title: Text('delete_category'.tr()),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _deleteCategory(context, ref, category);

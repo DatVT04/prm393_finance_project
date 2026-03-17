@@ -6,6 +6,7 @@ import '../features/transactions/transaction_screen.dart';
 import '../features/reports/report_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/ai/ai_assistant_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -27,41 +28,6 @@ class _MainLayoutState extends State<MainLayout> {
         const AiAssistantScreen(),
       ];
 
-  // Navigation destinations cho cả Mobile và Desktop
-  final List<NavigationDestination> _mobileDestinations = const [
-    NavigationDestination(icon: Icon(Icons.dashboard), label: 'Tổng quan'),
-    NavigationDestination(
-      icon: Icon(Icons.account_balance_wallet),
-      label: 'Giao dịch',
-    ),
-    NavigationDestination(icon: Icon(Icons.bar_chart), label: 'Báo cáo'),
-    NavigationDestination(icon: Icon(Icons.settings), label: 'Cài đặt'),
-    NavigationDestination(icon: Icon(Icons.auto_awesome), label: 'Trợ lý AI'),
-  ];
-
-  final List<NavigationRailDestination> _desktopDestinations = const [
-    NavigationRailDestination(
-      icon: Icon(Icons.dashboard),
-      label: Text('Tổng quan'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.account_balance_wallet),
-      label: Text('Giao dịch'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.bar_chart),
-      label: Text('Báo cáo'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.settings),
-      label: Text('Cài đặt'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.auto_awesome),
-      label: Text('Trợ lý AI'),
-    ),
-  ];
-
   void _onDestinationSelected(int index) {
     setState(() {
       _selectedIndex = index;
@@ -70,6 +36,44 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    // Access context.locale to ensure build() is called on every change
+    final localeSuffix = context.locale.toString();
+
+    // Define destinations inside build to access context for translation
+    final List<NavigationDestination> mobileDestinations = [
+      NavigationDestination(icon: const Icon(Icons.dashboard), label: 'dashboard'.tr()),
+      NavigationDestination(
+        icon: const Icon(Icons.account_balance_wallet),
+        label: 'transactions'.tr(),
+      ),
+      NavigationDestination(icon: const Icon(Icons.bar_chart), label: 'reports'.tr()),
+      NavigationDestination(icon: const Icon(Icons.settings), label: 'settings'.tr()),
+      NavigationDestination(icon: const Icon(Icons.auto_awesome), label: 'ai_assistant'.tr()),
+    ];
+
+    final List<NavigationRailDestination> desktopDestinations = [
+      NavigationRailDestination(
+        icon: const Icon(Icons.dashboard),
+        label: Text('dashboard'.tr()),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.account_balance_wallet),
+        label: Text('transactions'.tr()),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.bar_chart),
+        label: Text('reports'.tr()),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.settings),
+        label: Text('settings'.tr()),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.auto_awesome),
+        label: Text('ai_assistant'.tr()),
+      ),
+    ];
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Mobile Layout: Bottom Navigation Bar
@@ -80,9 +84,10 @@ class _MainLayoutState extends State<MainLayout> {
               children: _screens,
             ),
             bottomNavigationBar: NavigationBar(
+              key: ValueKey('nav_bar_$localeSuffix'),
               selectedIndex: _selectedIndex,
               onDestinationSelected: _onDestinationSelected,
-              destinations: _mobileDestinations,
+              destinations: mobileDestinations,
             ),
           );
         }
@@ -93,6 +98,7 @@ class _MainLayoutState extends State<MainLayout> {
             body: Row(
               children: [
                 NavigationRail(
+                  key: ValueKey('nav_rail_$localeSuffix'),
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: _onDestinationSelected,
                   // Khi extended = true, labelType phải là null hoặc none
@@ -101,7 +107,7 @@ class _MainLayoutState extends State<MainLayout> {
                       ? NavigationRailLabelType.none
                       : NavigationRailLabelType.all,
                   extended: isExtended,
-                  destinations: _desktopDestinations,
+                  destinations: desktopDestinations,
                 ),
                 const VerticalDivider(thickness: 1, width: 1),
                 Expanded(

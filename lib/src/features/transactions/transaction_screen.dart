@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
@@ -16,7 +17,7 @@ class TransactionScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
-  String _dateFilter = 'Tất cả';
+  String _dateFilter = 'all';
   DateTime? _customDate;
 
   void _openAddEntry() async {
@@ -54,7 +55,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       refreshAccounts(ref);
       if (!mounted) return true;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã xóa ghi chú'), backgroundColor: Colors.orange),
+        SnackBar(content: Text('deleted_entry_msg'.tr()), backgroundColor: Colors.orange),
       );
       return true;
     } catch (e) {
@@ -69,7 +70,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   Map<String, List<FinancialEntryModel>> _groupByDate(List<FinancialEntryModel> list) {
     final map = <String, List<FinancialEntryModel>>{};
     for (final e in list) {
-      final key = DateFormat('dd/MM/yyyy').format(e.transactionDate);
+      final key = DateFormat('dd/MM/yyyy', context.locale.toString()).format(e.transactionDate);
       map.putIfAbsent(key, () => []).add(e);
     }
     for (final l in map.values) {
@@ -79,18 +80,18 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   }
 
   List<FinancialEntryModel> _filterByDate(List<FinancialEntryModel> list) {
-    if (_dateFilter == 'Tất cả') return list;
+    if (_dateFilter == 'all') return list;
 
     final now = DateTime.now();
-    if (_dateFilter == 'Tháng này') {
+    if (_dateFilter == 'this_month') {
       return list.where((e) =>
           e.transactionDate.year == now.year &&
           e.transactionDate.month == now.month).toList();
     }
-    if (_dateFilter == 'Năm nay') {
+    if (_dateFilter == 'this_year') {
       return list.where((e) => e.transactionDate.year == now.year).toList();
     }
-    if (_dateFilter == 'Ngày' && _customDate != null) {
+    if (_dateFilter == 'day' && _customDate != null) {
       return list.where((e) =>
           e.transactionDate.year == _customDate!.year &&
           e.transactionDate.month == _customDate!.month &&
@@ -111,7 +112,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     if (selected != null) {
       setState(() {
         _customDate = selected;
-        _dateFilter = 'Ngày';
+        _dateFilter = 'day';
       });
     }
   }
@@ -123,7 +124,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ghi chú chi tiêu', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('transactions_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -143,11 +144,11 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('Lọc theo tag'),
+                  title: Text('filter_by_tag'.tr()),
                   content: TextField(
                     controller: controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập tag (vd: an_uong, mua_sam)',
+                    decoration: InputDecoration(
+                      hintText: 'enter_tag_hint'.tr(),
                       prefixText: '#',
                     ),
                     onSubmitted: (v) {
@@ -163,7 +164,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                         ref.read(filterTagProvider.notifier).state = null;
                         Navigator.pop(ctx);
                       },
-                      child: const Text('Bỏ lọc'),
+                      child: Text('remove_filter'.tr()),
                     ),
                     TextButton(
                       onPressed: () {
@@ -172,7 +173,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
                         Navigator.pop(ctx);
                       },
-                      child: const Text('Áp dụng'),
+                      child: Text('apply'.tr()),
                     ),
                   ],
                 ),
@@ -189,8 +190,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           final grouped = _groupByDate(displayList);
           final sortedKeys = grouped.keys.toList()
             ..sort((a, b) {
-              final da = DateFormat('dd/MM/yyyy').parse(a);
-              final db = DateFormat('dd/MM/yyyy').parse(b);
+              final da = DateFormat('dd/MM/yyyy', context.locale.toString()).parse(a);
+              final db = DateFormat('dd/MM/yyyy', context.locale.toString()).parse(b);
               return db.compareTo(da);
             });
           return Column(
@@ -201,20 +202,20 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildDateFilterChip('Tất cả'),
+                      _buildDateFilterChip('all'),
                       const SizedBox(width: 8),
-                      _buildDateFilterChip('Tháng này'),
+                      _buildDateFilterChip('this_month'),
                       const SizedBox(width: 8),
-                      _buildDateFilterChip('Năm nay'),
+                      _buildDateFilterChip('this_year'),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: Text(
                           _customDate != null
-                              ? DateFormat('dd/MM/yyyy').format(_customDate!)
-                              : 'Ngày',
+                              ? DateFormat('dd/MM/yyyy', context.locale.toString()).format(_customDate!)
+                              : 'day'.tr(),
                         ),
                         avatar: const Icon(Icons.calendar_today, size: 18),
-                        selected: _dateFilter == 'Ngày',
+                        selected: _dateFilter == 'day',
                         onSelected: (_) => _pickCustomDate(),
                       ),
                     ],
@@ -242,13 +243,13 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             ),
                             const SizedBox(height: 24),
                             Text(
-                              filterTag != null ? 'Không có ghi chú với tag #$filterTag' : 'Chưa có ghi chú nào',
+                               filterTag != null ? '${'no_entries_with_tag'.tr()} #$filterTag' : 'no_entries_yet'.tr(),
                               style: Theme.of(context).textTheme.titleLarge,
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Dùng nút (+) hoặc (★) để thêm nhanh',
+                               'add_entry_hint'.tr(),
                               style: Theme.of(context).textTheme.bodySmall,
                               textAlign: TextAlign.center,
                             ),
@@ -280,7 +281,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                           fontSize: 14),
                                     ),
                                     Text(
-                                      '${dailyNet >= 0 ? '+' : '-'}${NumberFormat("#,###", "vi_VN").format(dailyNet.abs())} đ',
+                                      '${dailyNet >= 0 ? '+' : '-'}${NumberFormat("#,###", context.locale.toString()).format(dailyNet.abs())} đ',
                                       style: TextStyle(
                                           color: dailyNet >= 0 ? Colors.green[700] : Colors.red[700],
                                           fontWeight: FontWeight.bold,
@@ -305,7 +306,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
               const SizedBox(height: 16),
-              Text('Không tải được dữ liệu.\nKiểm tra backend đã chạy và kết nối mạng.', textAlign: TextAlign.center),
+              Text('error_loading_data'.tr(), textAlign: TextAlign.center),
               const SizedBox(height: 16),
               Text('$err', style: const TextStyle(fontSize: 12), textAlign: TextAlign.center),
             ],
@@ -333,12 +334,12 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   Widget _buildDateFilterChip(String label) {
     final isSelected = _dateFilter == label;
     return ChoiceChip(
-      label: Text(label),
+      label: Text(label.tr()),
       selected: isSelected,
       onSelected: (_) {
         setState(() {
           _dateFilter = label;
-          if (label != 'Ngày') {
+          if (label != 'day') {
             _customDate = null;
           }
         });
@@ -348,10 +349,10 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
   String _formatDateHeader(String dateStr) {
     final now = DateTime.now();
-    final today = DateFormat('dd/MM/yyyy').format(now);
-    final yesterday = DateFormat('dd/MM/yyyy').format(now.subtract(const Duration(days: 1)));
-    if (dateStr == today) return 'Hôm nay';
-    if (dateStr == yesterday) return 'Hôm qua';
+    final todayStr = DateFormat('dd/MM/yyyy').format(now);
+    final yesterdayStr = DateFormat('dd/MM/yyyy').format(now.subtract(const Duration(days: 1)));
+    if (dateStr == todayStr) return 'today'.tr();
+    if (dateStr == yesterdayStr) return 'yesterday'.tr();
     return dateStr;
   }
 
@@ -370,19 +371,19 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Xóa ghi chú'),
-            content: const Text(
-              'Bạn có chắc muốn xóa ghi chú chi tiêu này?',
+            title: Text('delete_entry_confirm'.tr()),
+            content: Text(
+              'delete_entry_body'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Hủy'),
+                child: Text('cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Xóa'),
+                child: Text('clear'.tr()),
               ),
             ],
           ),
@@ -424,7 +425,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               child: Icon(_getCategoryIcon(e.categoryName ?? ''), color: _getCategoryColor(e.categoryName ?? ''), size: 20),
             ),
             title: Text(
-              e.categoryName ?? 'Khác',
+              e.categoryName ?? 'other'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             subtitle: (e.note != null && e.note!.isNotEmpty)
@@ -436,7 +437,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   )
                 : null,
             trailing: Text(
-              '${e.type == 'INCOME' ? '+' : '-'}${NumberFormat("#,###", "vi_VN").format(e.amount)} đ',
+              '${e.type == 'INCOME' ? '+' : '-'}${NumberFormat("#,###", context.locale.toString()).format(e.amount)} đ',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

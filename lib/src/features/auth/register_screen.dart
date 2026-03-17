@@ -1,10 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
-import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
+import 'package:prm393_finance_project/src/features/auth/verification_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
-import 'package:prm393_finance_project/src/layout/main_layout.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -36,27 +36,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      final res = await ref.read(apiClientProvider).register(
-            _emailController.text.trim(),
-            _passwordController.text,
-            displayName: _displayNameController.text.trim().isEmpty
-                ? null
-                : _displayNameController.text.trim(),
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final displayName = _displayNameController.text.trim();
+
+      // Gọi API đăng ký → backend sẽ tạo user và GỬI MÃ XÁC THỰC qua email
+      await ref.read(apiClientProvider).register(
+            email,
+            password,
+            displayName: displayName.isNotEmpty ? displayName : null,
           );
+
       if (!mounted) return;
-      final userId = res['userId'];
-      if (userId != null) {
-        await ref.read(currentUserIdProvider.notifier).setUserId(
-              (userId as num).toInt(),
-              name: res['displayName'] as String?,
-              avatar: res['avatarUrl'] as String?,
-            );
-      }
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainLayout()),
-        (route) => false,
+      setState(() => _loading = false);
+
+      // Sau khi register thành công, chuyển sang màn hình nhập mã xác thực
+      final verified = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => VerificationScreen(email: email),
+        ),
       );
+
+      if (verified == true) {
+        if (!mounted) return;
+        // Nếu xác thực thành công, quay về màn hình đăng nhập
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -112,7 +117,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tạo tài khoản mới',
+                    'create_new_account'.tr(),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withOpacity(0.9),
                     ),
@@ -129,7 +134,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Đăng ký',
+                          'signup'.tr(),
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -137,11 +142,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         const SizedBox(height: 24),
                         TextFormField(
                           controller: _displayNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Họ tên (tùy chọn)',
-                            hintText: 'Nguyễn Văn A',
-                            prefixIcon: Icon(Icons.person_outline),
-                            border: OutlineInputBorder(
+                          decoration: InputDecoration(
+                            labelText: 'full_name_label'.tr(),
+                            hintText: 'full_name_hint'.tr(),
+                            prefixIcon: const Icon(Icons.person_outline),
+                            border: const OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(16)),
                             ),
                             filled: true,
@@ -151,21 +156,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Email *',
-                            hintText: 'email@example.com',
-                            prefixIcon: Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(
+                          decoration: InputDecoration(
+                            labelText: '${'email'.tr()} *',
+                            hintText: 'email_hint'.tr(),
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            border: const OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(16)),
                             ),
                             filled: true,
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Vui lòng nhập email';
+                              return 'email_required'.tr();
                             }
                             if (!v.contains('@') || !v.contains('.')) {
-                              return 'Email không hợp lệ';
+                              return 'email_invalid'.tr();
                             }
                             return null;
                           },
@@ -175,8 +180,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'Mật khẩu *',
-                            hintText: 'Tối thiểu 6 ký tự',
+                            labelText: '${'password'.tr()} *',
+                            hintText: 'min_6_chars'.tr(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -196,10 +201,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Vui lòng nhập mật khẩu';
+                              return 'password_required'.tr();
                             }
                             if (v.length < 6) {
-                              return 'Mật khẩu tối thiểu 6 ký tự';
+                              return 'min_6_chars'.tr();
                             }
                             return null;
                           },
@@ -209,8 +214,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirm,
                           decoration: InputDecoration(
-                            labelText: 'Xác nhận mật khẩu *',
-                            hintText: 'Nhập lại mật khẩu',
+                            labelText: '${'confirm_password_label'.tr()}',
+                            hintText: 'confirm_password_hint'.tr(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -230,10 +235,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Vui lòng xác nhận mật khẩu';
+                              return 'confirm_password_required'.tr();
                             }
                             if (v != _passwordController.text) {
-                              return 'Mật khẩu không trùng khớp';
+                              return 'pass_mismatch'.tr();
                             }
                             return null;
                           },
@@ -259,9 +264,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : const Text(
-                                  'Đăng ký',
-                                  style: TextStyle(
+                              : Text(
+                                  'signup'.tr(),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -274,7 +279,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      'Đã có tài khoản? Đăng nhập',
+                      'already_have_account'.tr(),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.95),
                         fontWeight: FontWeight.w600,

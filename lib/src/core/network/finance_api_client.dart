@@ -51,10 +51,32 @@ class FinanceApiClient {
     if (res.statusCode == 401) {
       throw Exception('Email hoặc mật khẩu không đúng');
     }
+    if (res.statusCode == 403) {
+      final body = jsonDecode(res.body);
+      throw Exception(body['message'] ?? 'Tài khoản chưa được kích hoạt');
+    }
     if (res.statusCode != 200) {
       throw Exception('Đăng nhập thất bại: ${res.statusCode}');
     }
     return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<void> verifyAccount(String email, String code) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/verify-account?email=$email&code=$code'),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(_errorMessage(res.body));
+    }
+  }
+
+  Future<void> resendVerificationCode(String email) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/resend-verification-code?email=$email'),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(_errorMessage(res.body));
+    }
   }
 
   Future<Map<String, dynamic>> googleLogin(String email, String? displayName) async {

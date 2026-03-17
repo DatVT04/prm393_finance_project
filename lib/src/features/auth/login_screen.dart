@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +6,7 @@ import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/register_screen.dart';
 import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.dart';
+import 'package:prm393_finance_project/src/features/auth/verification_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/layout/main_layout.dart';
 
@@ -53,9 +55,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      
+      if (errorMsg.contains('chưa được kích hoạt')) {
+        // Nếu tài khoản chưa kích hoạt, chuyển sang màn hình xác thực
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => VerificationScreen(email: _emailController.text.trim()),
+          ),
+        );
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          content: Text(errorMsg),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -96,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       color: Colors.white.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.account_balance_wallet_rounded,
                       size: 64,
                       color: Colors.white,
@@ -114,7 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Quản lý tài chính cá nhân',
+                    'app_description'.tr(),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withOpacity(0.9),
                     ),
@@ -131,7 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Đăng nhập',
+                          'login'.tr(),
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -141,8 +154,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: 'Email',
-                            hintText: 'email@example.com',
+                            labelText: 'email'.tr(),
+                            hintText: 'email_hint'.tr(),
                             prefixIcon: const Icon(Icons.email_outlined),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -151,10 +164,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Vui lòng nhập email';
+                              return 'email_required'.tr();
                             }
                             if (!v.contains('@') || !v.contains('.')) {
-                              return 'Email không hợp lệ';
+                              return 'email_invalid'.tr();
                             }
                             return null;
                           },
@@ -164,8 +177,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'Mật khẩu',
-                            hintText: '••••••••',
+                            labelText: 'password'.tr(),
+                            hintText: 'password_hint'.tr(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -185,10 +198,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Vui lòng nhập mật khẩu';
+                              return 'password_required'.tr();
                             }
                             if (v.length < 6) {
-                              return 'Mật khẩu tối thiểu 6 ký tự';
+                              return 'min_6_chars'.tr();
                             }
                             return null;
                           },
@@ -214,23 +227,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : const Text(
-                                  'Đăng nhập',
-                                  style: TextStyle(
+                              : Text(
+                                  'login'.tr(),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                         ),
                         const SizedBox(height: 16),
-                        const Row(
+                        Row(
                           children: [
-                            Expanded(child: Divider()),
+                            const Expanded(child: Divider()),
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text('HOẶC', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text('or_divider'.tr(), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                             ),
-                            Expanded(child: Divider()),
+                            const Expanded(child: Divider()),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -257,7 +270,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             }
                           },
                           icon: const Icon(Icons.login), // Simple icon instead of network image for reliability
-                          label: const Text('Đăng nhập với Google'),
+                          label: Text('login_google'.tr()),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -274,7 +287,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
                               );
                             },
-                            child: const Text('Quên mật khẩu?'),
+                            child: Text('forgot_password'.tr()),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -289,7 +302,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       );
                     },
                     child: Text(
-                      'Chưa có tài khoản? Đăng ký',
+                      'no_account_yet'.tr(),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.95),
                         fontWeight: FontWeight.w600,

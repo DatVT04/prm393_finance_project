@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
@@ -48,8 +49,12 @@ class CurrencyInputFormatter extends TextInputFormatter {
     if (text.isEmpty) return newValue.copyWith(text: '');
 
     double value = double.parse(text);
-    final formatter = NumberFormat('#,###', 'vi_VN');
-    String newText = formatter.format(value);
+    final formatter = NumberFormat('#,###', newValue.text.isEmpty ? 'vi_VN' : null); // Simple workaround or use a better way to get locale here if possible
+    // Actually, inside a formatter it's hard to get context.
+    // Let's use a standard format or just digits.
+    // Ideally we should pass the locale to the formatter.
+    // For now, let's stick to 'vi_VN' or a neutral one.
+    String newText = NumberFormat('#,###').format(value);
 
     return newValue.copyWith(
       text: newText,
@@ -115,7 +120,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   String _formatAmount(double v) {
     // If it's a "clean" number, we can still use k/tr for initial display if we want,
     // but for the controller with formatter, we should probably use the dotted format.
-    final formatter = NumberFormat('#,###', 'vi_VN');
+    final formatter = NumberFormat('#,###', context.locale.toString());
     return formatter.format(v);
   }
 
@@ -143,7 +148,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Vui lòng bật định vị')));
+        ).showSnackBar(SnackBar(content: Text('enable_location_msg'.tr())));
       }
       return;
     }
@@ -159,7 +164,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Không lấy được vị trí: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'error_getting_location'.tr()}: $e')));
       }
     }
   }
@@ -199,13 +204,13 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn danh mục')));
+      ).showSnackBar(SnackBar(content: Text('category_required'.tr())));
       return;
     }
     if (_selectedAccountId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn tài khoản')));
+      ).showSnackBar(SnackBar(content: Text('account_required'.tr())));
       return;
     }
 
@@ -213,7 +218,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Số tiền không hợp lệ')));
+      ).showSnackBar(SnackBar(content: Text('amount_invalid'.tr())));
       return;
     }
 
@@ -270,8 +275,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       refreshAccounts(ref);
       Navigator.of(context).pop(result);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã lưu ghi chú'),
+        SnackBar(
+          content: Text('entry_saved_msg'.tr()),
           backgroundColor: Colors.green,
         ),
       );
@@ -283,12 +288,12 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Số dư không đủ'),
-            content: Text('$msg\n\nBạn có muốn chọn ví khác không?'),
+            title: Text('insufficient_balance_title'.tr()),
+            content: Text('${'insufficient_balance_msg'.tr()}\n\n$msg'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Đóng'),
+                child: Text('close'.tr()),
               ),
             ],
           ),
@@ -323,8 +328,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
             children: [
               Text(
                 widget.entryToEdit != null
-                    ? 'Sửa ghi chú'
-                    : 'Thêm ghi chú chi tiêu',
+                    ? 'edit_entry_title'.tr()
+                    : 'add_entry_title'.tr(),
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -332,16 +337,16 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
               ),
               const SizedBox(height: 16),
               SegmentedButton<String>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: 'EXPENSE',
-                    label: Text('Chi'),
-                    icon: Icon(Icons.remove_circle_outline),
+                    label: Text('expense_short'.tr()),
+                    icon: const Icon(Icons.remove_circle_outline),
                   ),
                   ButtonSegment(
                     value: 'INCOME',
-                    label: Text('Thu'),
-                    icon: Icon(Icons.add_circle_outline),
+                    label: Text('income_short'.tr()),
+                    icon: const Icon(Icons.add_circle_outline),
                   ),
                 ],
                 selected: {_selectedType},
@@ -370,11 +375,11 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Số tiền',
-                  prefixIcon: Icon(Icons.attach_money),
-                  border: OutlineInputBorder(),
-                  helperText: 'Ví dụ: 50k, 1.5tr, 50000',
+                decoration: InputDecoration(
+                  labelText: 'amount_label'.tr(),
+                  prefixIcon: const Icon(Icons.attach_money),
+                  border: const OutlineInputBorder(),
+                  helperText: 'amount_hint'.tr(),
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.ktr]')),
@@ -383,9 +388,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 keyboardType: TextInputType.text,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty)
-                    return 'Vui lòng nhập số tiền';
+                    return 'amount_required'.tr();
                   final a = _parseAmount(v.trim());
-                  if (a == null || a <= 0) return 'Số tiền không hợp lệ';
+                  if (a == null || a <= 0) return 'amount_invalid'.tr();
                   return null;
                 },
               ),
@@ -395,10 +400,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   data: (list) {
                     return DropdownButtonFormField<int>(
                       value: _selectedCategoryId,
-                      decoration: const InputDecoration(
-                        labelText: 'Danh mục',
-                        prefixIcon: Icon(Icons.category),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'category_label'.tr(),
+                        prefixIcon: const Icon(Icons.category),
+                        border: const OutlineInputBorder(),
                       ),
                       items: list
                           .map(
@@ -410,12 +415,12 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                           .toList(),
                       onChanged: (v) => setState(() => _selectedCategoryId = v),
                       validator: (v) =>
-                          v == null ? 'Vui lòng chọn danh mục' : null,
+                          v == null ? 'category_required'.tr() : null,
                     );
                   },
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const Text('Không tải được danh mục'),
+                  error: (_, __) => Text('error_loading_categories'.tr()),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -428,17 +433,17 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                       }
                       return DropdownButtonFormField<int>(
                         value: _selectedAccountId,
-                        decoration: const InputDecoration(
-                          labelText: 'Tài khoản/Ví',
-                          prefixIcon: Icon(Icons.account_balance_wallet),
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'account_label'.tr(),
+                          prefixIcon: const Icon(Icons.account_balance_wallet),
+                          border: const OutlineInputBorder(),
                         ),
                         items: list
                             .map(
                               (a) => DropdownMenuItem<int>(
                                 value: a.id,
                                 child: Text(
-                                  '${a.name} (${NumberFormat('#,###', 'vi').format(a.balance)}đ)',
+                                  '${a.name} (${NumberFormat('#,###', context.locale.toString()).format(a.balance)}đ)',
                                 ),
                               ),
                             )
@@ -446,20 +451,20 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                         onChanged: (v) =>
                             setState(() => _selectedAccountId = v),
                         validator: (v) =>
-                            v == null ? 'Vui lòng chọn tài khoản' : null,
+                            v == null ? 'account_required'.tr() : null,
                       );
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => const Text('Không tải được tài khoản'),
+                    error: (_, __) => Text('error_loading_accounts'.tr()),
                   ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: 'Ghi chú (có thể dùng #tag và @mention)',
-                  prefixIcon: Icon(Icons.note),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'note_label'.tr(),
+                  prefixIcon: const Icon(Icons.note),
+                  border: const OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
                 maxLines: 3,
@@ -486,8 +491,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                     ),
                     label: Text(
                       (_imagePath != null || _existingImageUrl != null)
-                          ? 'Xóa ảnh'
-                          : 'Đính kèm ảnh',
+                          ? 'remove_image'.tr()
+                          : 'attach_image'.tr(),
                     ),
                   ),
                   TextButton.icon(
@@ -498,7 +503,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                           : Icons.location_off,
                     ),
                     label: Text(
-                      _latitude != null ? 'Đã thêm vị trí' : 'Thêm vị trí',
+                      _latitude != null ? 'location_added'.tr() : 'add_location'.tr(),
                     ),
                   ),
                 ],
@@ -582,20 +587,20 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                     initialDate: _selectedDate,
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
-                    locale: const Locale('vi', 'VN'),
+                    locale: context.locale,
                   );
                   if (picked != null) setState(() => _selectedDate = picked);
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Ngày',
-                    prefixIcon: Icon(Icons.calendar_today),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'date_label'.tr(),
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    border: const OutlineInputBorder(),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(DateFormat('dd/MM/yyyy').format(_selectedDate)),
+                      Text(DateFormat('dd/MM/yyyy', context.locale.toString()).format(_selectedDate)),
                       const Icon(Icons.arrow_drop_down),
                     ],
                   ),
@@ -621,9 +626,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Lưu ghi chú',
-                        style: TextStyle(
+                    : Text(
+                        'save_note'.tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
