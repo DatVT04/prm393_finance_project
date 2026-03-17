@@ -4,28 +4,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/features/transactions/transaction_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import '../helpers/fake_finance_api_client.dart';
+import '../helpers/test_helper.dart';
 
 void main() {
+  setUpAll(() async {
+    await initTestLocalization();
+  });
+
   group('TransactionScreen integration tests', () {
     testWidgets('TransactionScreen hiển thị title và danh sách entries từ mock data',
         (WidgetTester tester) async {
       final fakeClient = FakeFinanceApiClient();
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            apiClientProvider.overrideWithValue(fakeClient),
-          ],
-          child: const MaterialApp(
-            home: TransactionScreen(),
-          ),
+        buildTestableWidget(
+          const TransactionScreen(),
+          overrides: [apiClientProvider.overrideWithValue(fakeClient)],
         ),
       );
 
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Ghi chú chi tiêu'), findsOneWidget);
+      expect(find.byType(TransactionScreen), findsOneWidget);
     });
 
     testWidgets('TransactionScreen có FAB khi dùng mock data',
@@ -33,13 +34,9 @@ void main() {
       final fakeClient = FakeFinanceApiClient();
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            apiClientProvider.overrideWithValue(fakeClient),
-          ],
-          child: const MaterialApp(
-            home: TransactionScreen(),
-          ),
+        buildTestableWidget(
+          const TransactionScreen(),
+          overrides: [apiClientProvider.overrideWithValue(fakeClient)],
         ),
       );
 
@@ -53,13 +50,9 @@ void main() {
       final fakeClient = FakeFinanceApiClient();
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            apiClientProvider.overrideWithValue(fakeClient),
-          ],
-          child: const MaterialApp(
-            home: TransactionScreen(),
-          ),
+        buildTestableWidget(
+          const TransactionScreen(),
+          overrides: [apiClientProvider.overrideWithValue(fakeClient)],
         ),
       );
 

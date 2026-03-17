@@ -4,26 +4,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/features/dashboard/widgets/total_balance_card.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import '../helpers/fake_finance_api_client.dart';
+import '../helpers/test_helper.dart';
 
 void main() {
+  setUpAll(() async {
+    await initTestLocalization();
+  });
+
   group('Dashboard integration tests', () {
-    testWidgets('TotalBalanceCard hiển thị tổng số dư từ mock data',
+    testWidgets('TotalBalanceCard hiển thị khi có dữ liệu từ mock',
         (WidgetTester tester) async {
       final fakeClient = FakeFinanceApiClient();
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            apiClientProvider.overrideWithValue(fakeClient),
-          ],
-          child: const MaterialApp(
-            home: Scaffold(
-              body: TotalBalanceCard(),
-            ),
-          ),
+        buildTestableWidget(
+          const TotalBalanceCard(),
+          overrides: [apiClientProvider.overrideWithValue(fakeClient)],
         ),
       );
-
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
@@ -35,18 +33,11 @@ void main() {
       final fakeClient = FakeFinanceApiClient(entries: [], accounts: []);
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            apiClientProvider.overrideWithValue(fakeClient),
-          ],
-          child: const MaterialApp(
-            home: Scaffold(
-              body: TotalBalanceCard(),
-            ),
-          ),
+        buildTestableWidget(
+          const TotalBalanceCard(),
+          overrides: [apiClientProvider.overrideWithValue(fakeClient)],
         ),
       );
-
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
