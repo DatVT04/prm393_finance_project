@@ -281,6 +281,32 @@ class FakeFinanceApiClient implements FinanceApiClient {
   }
 
   @override
+  Future<void> verifyAccount(String email, String code) async {}
+
+  @override
+  Future<void> resendVerificationCode(String email) async {}
+
+  @override
+  Future<Map<String, dynamic>> googleLogin(String email, String? displayName) async {
+    return {'id': 1, 'email': email, 'displayName': displayName ?? 'Google User'};
+  }
+
+  @override
+  Future<void> updatePassword(String oldPassword, String newPassword) async {}
+
+  @override
+  Future<void> updateDisplayName(String displayName) async {}
+
+  @override
+  Future<String> uploadAvatar(List<int> bytes, String filename) async => '';
+
+  @override
+  Future<void> forgotPassword(String email) async {}
+
+  @override
+  Future<void> resetPassword(String code, String newPassword) async {}
+
+  @override
   Future<AiAssistantResponse> askAssistant(
     String message, {
     String? conversationId,
