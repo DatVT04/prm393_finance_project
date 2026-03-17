@@ -15,6 +15,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _tokenController = TextEditingController();
   final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   
   bool _isLoading = false;
@@ -25,6 +26,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     _emailController.dispose();
     _tokenController.dispose();
     _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -169,6 +171,26 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   validator: (v) => (v == null || v.length < 6) ? 'min_6_chars'.tr() : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'confirm_pass_label'.tr(),
+                    hintText: 'confirm_password_hint'.tr(),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'confirm_password_required'.tr();
+                    }
+                    if (v != _newPasswordController.text) {
+                      return 'pass_mismatch'.tr();
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
