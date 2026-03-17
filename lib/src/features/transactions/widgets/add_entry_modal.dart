@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -89,7 +90,30 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   String? _existingImageUrl;
   double? _latitude;
   double? _longitude;
+  String? _locationName;
+  bool _resolvingLocation = false;
   bool _saving = false;
+
+  String _stripNoteMeta(String input) {
+    if (input.isEmpty) return '';
+    final normalized = input.replaceAll('\r\n', '\n');
+    final lines = normalized.split('\n');
+    var end = lines.length;
+    while (end > 0) {
+      final line = lines[end - 1].trimRight();
+      if (line.isEmpty) {
+        end--;
+        continue;
+      }
+      if (line == '📷 Ảnh đính kèm' || line.startsWith('📍 ')) {
+        end--;
+        continue;
+      }
+      break;
+    }
+    final cleaned = lines.take(end).toList();
+    return cleaned.join('\n').trimRight();
+  }
 
   @override
   void initState() {
@@ -100,9 +124,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       _initialAmount = e.amount;
       _selectedCategoryId = e.categoryId;
       if (e.note != null && e.note!.isNotEmpty) {
-        String noteRaw = e.note!;
-        noteRaw = noteRaw.replaceAll(RegExp(r'\r?\n📷 Ảnh đính kèm$'), '');
-        noteRaw = noteRaw.replaceAll(RegExp(r'\r?\n📍 .*$'), '');
+        final noteRaw = _stripNoteMeta(e.note!);
         _noteController.text = noteRaw;
       }
       _selectedDate = e.transactionDate;
@@ -111,6 +133,11 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       _existingImageUrl = e.imageUrl;
       _latitude = e.latitude;
       _longitude = e.longitude;
+      if (_latitude != null && _longitude != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _resolveLocationName(_latitude!, _longitude!, showError: false);
+        });
+      }
     } else if (p != null) {
       _initialAmount = p.amount;
       _selectedCategoryId = p.categoryId;
@@ -154,6 +181,57 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     }
   }
 
+  String? _formatPlacemark(Placemark p) {
+    final parts = <String?>[
+      p.name,
+      p.subLocality,
+      p.locality,
+      p.administrativeArea,
+      p.country,
+    ];
+    final seen = <String>{};
+    final filtered = <String>[];
+    for (final part in parts) {
+      final value = (part ?? '').trim();
+      if (value.isEmpty) continue;
+      if (seen.add(value)) {
+        filtered.add(value);
+      }
+    }
+    if (filtered.isEmpty) return null;
+    return filtered.join(', ');
+  }
+
+  Future<String?> _reverseGeocode(double lat, double lon) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lon);
+      if (placemarks.isEmpty) return null;
+      return _formatPlacemark(placemarks.first);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _resolveLocationName(
+    double lat,
+    double lon, {
+    bool showError = true,
+  }) async {
+    if (_resolvingLocation) return;
+    setState(() => _resolvingLocation = true);
+    final name = await _reverseGeocode(lat, lon);
+    if (!mounted) return;
+    setState(() {
+      _locationName = name;
+      _resolvingLocation = false;
+    });
+    if (showError && name == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('location_name_unavailable'.tr())),
+      );
+    }
+  }
+
   Future<void> _pickLocation() async {
     final ok = await Geolocator.isLocationServiceEnabled();
     if (!ok) {
@@ -171,7 +249,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       setState(() {
         _latitude = pos.latitude;
         _longitude = pos.longitude;
+        _locationName = null;
       });
+      await _resolveLocationName(pos.latitude, pos.longitude);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -235,13 +315,17 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     }
 
     setState(() => _saving = true);
-    final note = _noteController.text.trim();
+    final note = _stripNoteMeta(_noteController.text).trim();
     var noteWithMeta = note;
-    if (_imagePath != null)
+    final hasImage = _imagePath != null || _existingImageUrl != null;
+    if (hasImage) {
       noteWithMeta += (note.isEmpty ? '' : '\n') + '📷 Ảnh đính kèm';
+    }
     if (_latitude != null && _longitude != null) {
-      noteWithMeta +=
-          (noteWithMeta.isEmpty ? '' : '\n') + '📍 $_latitude, $_longitude';
+      final locationText = (_locationName != null && _locationName!.trim().isNotEmpty)
+          ? _locationName!
+          : '${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}';
+      noteWithMeta += (noteWithMeta.isEmpty ? '' : '\n') + '📍 $locationText';
     }
 
     final tags = NoteTagParser.extractTags(note);
@@ -257,8 +341,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       transactionDate: _selectedDate,
       tags: tags,
       mentions: mentions,
-      imageUrl:
-          null, // local path not sent to server; note has "📷 Ảnh đính kèm"
+      imageUrl: _imagePath == null ? _existingImageUrl : null,
       latitude: _latitude,
       longitude: _longitude,
       source: widget.prefill?.source ?? 'MANUAL',
@@ -324,6 +407,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesWithRefreshProvider);
+    final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -520,6 +604,38 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   ),
                 ],
               ),
+              if (_latitude != null && _longitude != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.place,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _locationName ??
+                              '${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (_resolvingLocation) const SizedBox(width: 8),
+                      if (_resolvingLocation)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                    ],
+                  ),
+                ),
               if (_imagePath != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),

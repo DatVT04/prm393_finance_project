@@ -108,6 +108,19 @@ class FinanceApiClient {
     }
   }
 
+  Future<void> updateDisplayName(String displayName) async {
+    final res = await http.put(
+      Uri.parse('$_base${ApiConstants.authPath}/display-name'),
+      headers: _userHeaders,
+      body: jsonEncode({
+        'displayName': displayName.trim(),
+      }),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(_errorMessage(res.body));
+    }
+  }
+
   Future<String> uploadAvatar(List<int> bytes, String filename) async {
     final uri = Uri.parse('$_base${ApiConstants.authPath}/avatar');
     final req = http.MultipartRequest('POST', uri);
@@ -385,6 +398,7 @@ class FinanceApiClient {
     String message, {
     String? conversationId,
     int? accountId,
+    String? language,
   }) async {
     final res = await http.post(
       Uri.parse('$_base/api/ai/assistant'),
@@ -394,6 +408,7 @@ class FinanceApiClient {
         if (conversationId != null && conversationId.isNotEmpty)
           'conversationId': conversationId,
         if (accountId != null) 'accountId': accountId,
+        if (language != null && language.isNotEmpty) 'language': language,
       }),
     );
     if (res.statusCode != 200)

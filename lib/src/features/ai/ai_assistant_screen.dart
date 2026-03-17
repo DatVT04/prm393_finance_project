@@ -24,13 +24,13 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   String? _conversationId;
   String? _pendingMessageForAccount;
 
-  final List<String> _suggestions = [
-    'suggestion_1'.tr(),
-    'suggestion_2'.tr(),
-    'suggestion_3'.tr(),
-    'suggestion_4'.tr(),
-    'suggestion_5'.tr(),
-  ];
+  List<String> get _suggestions => [
+        'suggestion_1'.tr(),
+        'suggestion_2'.tr(),
+        'suggestion_3'.tr(),
+        'suggestion_4'.tr(),
+        'suggestion_5'.tr(),
+      ];
 
   @override
   void initState() {
@@ -88,7 +88,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     _scrollToBottom();
 
     try {
-      final res = await ref.read(apiClientProvider).askAssistant(text, conversationId: _conversationId);
+      final res = await ref.read(apiClientProvider).askAssistant(
+        text,
+        conversationId: _conversationId,
+        language: context.locale.languageCode,
+      );
       if (res.conversationId != null && res.conversationId!.isNotEmpty) {
         _conversationId = res.conversationId;
       }
@@ -200,6 +204,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             message,
             conversationId: _conversationId,
             accountId: account.id,
+            language: context.locale.languageCode,
           );
       if (res.conversationId != null && res.conversationId!.isNotEmpty) {
         _conversationId = res.conversationId;

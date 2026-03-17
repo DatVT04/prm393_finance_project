@@ -123,6 +123,15 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
         UserProfileData(displayName: current.displayName, avatarUrl: avatar);
   }
 
+  Future<void> updateDisplayName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyDisplayName, name);
+
+    final current = ref.read(userProfileProvider);
+    ref.read(userProfileProvider.notifier).state =
+        UserProfileData(displayName: name, avatarUrl: current.avatarUrl);
+  }
+
   Future<void> clearUserId() async {
     state = const AsyncValue.loading();
     final prefs = await SharedPreferences.getInstance();
