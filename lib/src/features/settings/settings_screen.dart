@@ -3,6 +3,7 @@ import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/core/theme/theme_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
+import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.dart';
 import 'package:prm393_finance_project/src/features/categories/category_list_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:flutter/foundation.dart';
@@ -276,6 +277,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 validator: (v) =>
                     v != newPassCtrl.text ? 'Mật khẩu không khớp' : null,
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Quên mật khẩu?'),
+                ),
               ),
             ],
           ),

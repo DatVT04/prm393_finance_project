@@ -57,6 +57,21 @@ class FinanceApiClient {
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> googleLogin(String email, String? displayName) async {
+    final res = await http.post(
+      Uri.parse('$_base${ApiConstants.authPath}/google-login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email.trim(),
+        'displayName': displayName,
+      }),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(_errorMessage(res.body));
+    }
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
   Future<void> updatePassword(String oldPassword, String newPassword) async {
     final res = await http.put(
       Uri.parse('$_base${ApiConstants.authPath}/password'),

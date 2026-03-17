@@ -230,6 +230,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                         ),
+                        const SizedBox(height: 16),
+                        const Row(
+                          children: [
+                            Expanded(child: Divider()),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Text('HOẶC', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                            ),
+                            Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: _loading ? null : () async {
+                            setState(() => _loading = true);
+                            try {
+                              await ref.read(currentUserIdProvider.notifier).signInWithGoogle();
+                              if (!mounted) return;
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const MainLayout()),
+                              );
+                            } catch (e, stack) {
+                              debugPrint('Error during Google Sign-In: $e');
+                              debugPrint(stack.toString());
+                              if (!mounted) return;
+                              setState(() => _loading = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Lỗi: ${e.toString().replaceFirst('Exception: ', '')}'),
+                                  backgroundColor: Colors.red.shade700,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.login), // Simple icon instead of network image for reliability
+                          label: const Text('Đăng nhập với Google'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         Align(
                           alignment: Alignment.centerRight,

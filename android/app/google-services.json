@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "954893711733",
+    "project_id": "project-prm-8caeb",
+    "storage_bucket": "project-prm-8caeb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:954893711733:android:b0bbc3bd902300c8613b3c",
+        "android_client_info": {
+          "package_name": "com.example.prm393_finance_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "954893711733-0qvfddd4erpv2i7785abjs605eb6gubj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.prm393_finance_project",
+            "certificate_hash": "b8d0ee7305300e64722ac3ba600a20a00e1609fd"
+          }
+        },
+        {
+          "client_id": "954893711733-v3bv8152vpscgj3oacpcoefgqmsg0l9u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnOxY3Lfn7W75OvcqAaTpwmntfsWPP0lU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "954893711733-v3bv8152vpscgj3oacpcoefgqmsg0l9u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
