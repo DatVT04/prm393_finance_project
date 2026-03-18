@@ -1,9 +1,12 @@
+import 'dart:convert';
+import 'dart:io' as io;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
-
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
@@ -78,14 +81,18 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     super.dispose();
   }
 
-  Future<void> _sendMessage([String? preset]) async {
+  Future<void> _sendMessage({String? preset, String? imagePath, String? base64Image}) async {
     if (_sending) return;
     final text = (preset ?? _inputController.text).trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && base64Image == null) return;
 
     setState(() {
       _sending = true;
-      _messages.add(_ChatMessage.user(text));
+      _messages.add(_ChatMessage.user(
+        text.isEmpty ? 'Gửi ảnh hóa đơn' : text,
+        imagePath: imagePath,
+        base64Image: base64Image,
+      ));
       _messages.add(_ChatMessage.assistant('processing'.tr(), pending: true));
     });
     _inputController.clear();
@@ -96,6 +103,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         text,
         conversationId: _conversationId,
         language: context.locale.languageCode,
+        base64Image: base64Image,
       );
       if (res.conversationId != null && res.conversationId!.isNotEmpty) {
         _conversationId = res.conversationId;
@@ -119,6 +127,17 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       setState(() => _sending = false);
       _scrollToBottom();
     }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    
+    final bytes = await image.readAsBytes();
+    final base64Image = base64Encode(bytes);
+    
+    _sendMessage(preset: '', imagePath: image.path, base64Image: base64Image);
   }
 
   void _replacePending(AiAssistantResponse res) {
@@ -285,25 +304,27 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       ),
       body: !_chatLoaded
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              itemCount: _messages.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _buildIntroCard(context);
-                }
-                final message = _messages[index - 1];
-                return _ChatBubble(message: message);
-              },
+          : SelectionArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      itemCount: _messages.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return _buildIntroCard(context);
+                        }
+                        final message = _messages[index - 1];
+                        return _ChatBubble(message: message);
+                      },
+                    ),
+                  ),
+                  _buildInputBar(context),
+                ],
+              ),
             ),
-          ),
-          _buildInputBar(context),
-        ],
-      ),
     );
   }
 
@@ -333,7 +354,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               children: _suggestions
                   .map((s) => ActionChip(
                         label: Text(s, overflow: TextOverflow.ellipsis),
-                        onPressed: () => _sendMessage(s),
+                        onPressed: () => _sendMessage(preset: s),
                       ))
                   .toList(),
             ),
@@ -367,6 +388,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                   ),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  prefixIcon: IconButton(
+                    icon: const Icon(Icons.image_outlined),
+                    onPressed: _sending ? null : _pickImage,
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _listening ? Icons.stop : Icons.mic,
@@ -439,10 +464,19 @@ class _ChatMessage {
   final _ChatRole role;
   final String text;
   final bool pending;
+  final String? imagePath;
+  final String? base64Image;
 
-  _ChatMessage({required this.role, required this.text, this.pending = false});
+  _ChatMessage({
+    required this.role,
+    required this.text,
+    this.pending = false,
+    this.imagePath,
+    this.base64Image,
+  });
 
-  factory _ChatMessage.user(String text) => _ChatMessage(role: _ChatRole.user, text: text);
+  factory _ChatMessage.user(String text, {String? imagePath, String? base64Image}) =>
+      _ChatMessage(role: _ChatRole.user, text: text, imagePath: imagePath, base64Image: base64Image);
 
   factory _ChatMessage.assistant(String text, {bool pending = false}) =>
       _ChatMessage(role: _ChatRole.assistant, text: text, pending: pending);
@@ -478,13 +512,70 @@ class _ChatBubble extends StatelessWidget {
             bottomRight: Radius.circular(isUser ? 4 : 16),
           ),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 14,
-            height: 1.4,
-          ),
+        child: Column(
+          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (message.imagePath != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        insetPadding: EdgeInsets.zero,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            InteractiveViewer(
+                              minScale: 0.5,
+                              maxScale: 4.0,
+                              child: message.base64Image != null
+                                  ? Image.memory(base64Decode(message.base64Image!))
+                                  : Image.file(io.File(message.imagePath!)),
+                            ),
+                            Positioned(
+                              top: 40,
+                              right: 20,
+                              child: IconButton(
+                                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: message.base64Image != null
+                        ? Image.memory(
+                            base64Decode(message.base64Image!),
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            io.File(message.imagePath!),
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                ),
+              ),
+            Text(
+              message.text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+          ],
         ),
       ),
     );

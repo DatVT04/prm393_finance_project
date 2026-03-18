@@ -399,16 +399,18 @@ class FinanceApiClient {
     String? conversationId,
     int? accountId,
     String? language,
+    String? base64Image,
   }) async {
     final res = await http.post(
       Uri.parse('$_base/api/ai/assistant'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _userHeaders,
       body: jsonEncode({
         'message': message,
         if (conversationId != null && conversationId.isNotEmpty)
           'conversationId': conversationId,
         if (accountId != null) 'accountId': accountId,
         if (language != null && language.isNotEmpty) 'language': language,
+        if (base64Image != null && base64Image.isNotEmpty) 'base64Image': base64Image,
       }),
     );
     if (res.statusCode != 200)
