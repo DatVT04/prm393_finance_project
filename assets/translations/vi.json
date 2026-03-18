@@ -138,6 +138,7 @@
   "from_clipboard": "Từ clipboard",
   "voice_entry_title": "Nhập nhanh bằng giọng nói",
   "voice_input_hint": "Nói hoặc gõ: \"Ăn phở 50k\", \"Đổ xăng 100k\"",
+  "mic_permission_error": "Không thể truy cập micro. Hãy cấp quyền ghi âm cho ứng dụng.",
   "create_note_from_content": "Tạo ghi chú từ nội dung trên",
   "suggested": "Gợi ý",
   "avatar_updated_msg": "Cập nhật avatar thành công",

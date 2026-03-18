@@ -138,6 +138,7 @@
   "from_clipboard": "From clipboard",
   "voice_entry_title": "Voice Quick Entry",
   "voice_input_hint": "Speak or type: 'Eat pho 50k', 'Gas 100k'",
+  "mic_permission_error": "Cannot access microphone. Please grant record audio permission.",
   "create_note_from_content": "Create note from above content",
   "suggested": "Suggested",
   "avatar_updated_msg": "Avatar updated successfully",

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import 'package:speech_to_text/speech_to_text.dart';
+
 import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart';
@@ -21,6 +23,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final List<_ChatMessage> _messages = [];
   bool _sending = false;
   bool _chatLoaded = false;
+  final _speech = SpeechToText();
+  bool _listening = false;
   String? _conversationId;
   String? _pendingMessageForAccount;
 
@@ -140,6 +144,48 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         curve: Curves.easeOut,
       );
     });
+  }
+
+  void _startListening() async {
+    final available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          if (mounted) setState(() => _listening = false);
+        }
+      },
+      onError: (_) {
+        if (mounted) setState(() => _listening = false);
+      },
+    );
+    if (!mounted) return;
+    if (!available) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('mic_permission_error'.tr()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    setState(() => _listening = true);
+    await _speech.listen(
+      onResult: (result) {
+        if (mounted) {
+          setState(() {
+            _inputController.text = result.recognizedWords;
+          });
+        }
+      },
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      partialResults: true,
+      localeId: context.locale.languageCode == 'vi' ? 'vi_VN' : 'en_US',
+    );
+  }
+
+  void _stopListening() async {
+    await _speech.stop();
+    if (mounted) setState(() => _listening = false);
   }
 
   Future<void> _promptAccountSelection() async {
@@ -316,17 +362,28 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: 'ai_input_hint'.tr(),
-                  border: const OutlineInputBorder(),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(24)),
+                  ),
                   isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _listening ? Icons.stop : Icons.mic,
+                      color: _listening ? Colors.red : Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: _listening ? _stopListening : _startListening,
+                  ),
                 ),
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: _sending ? null : _sendMessage,
+              onPressed: (_sending || _listening) ? null : _sendMessage,
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                shape: const CircleBorder(),
               ),
               child: _sending
                   ? const SizedBox(
