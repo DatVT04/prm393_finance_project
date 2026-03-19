@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
+import 'package:prm393_finance_project/src/core/state/app_state.dart';
 
 import 'package:prm393_finance_project/src/features/auth/verification_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
@@ -82,6 +84,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
               title: Text('english'.tr()),
               trailing: context.locale.languageCode == 'en'
                   ? const Icon(Icons.check, color: Colors.green)
@@ -92,12 +95,46 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               },
             ),
             ListTile(
+              leading: const Text('🇻🇳', style: TextStyle(fontSize: 24)),
               title: Text('vietnamese'.tr()),
               trailing: context.locale.languageCode == 'vi'
                   ? const Icon(Icons.check, color: Colors.green)
                   : null,
               onTap: () {
                 context.setLocale(const Locale('vi'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇯🇵', style: TextStyle(fontSize: 24)),
+              title: Text('japanese'.tr()),
+              trailing: context.locale.languageCode == 'ja'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('ja'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇰🇷', style: TextStyle(fontSize: 24)),
+              title: Text('korean'.tr()),
+              trailing: context.locale.languageCode == 'ko'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('ko'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇨🇳', style: TextStyle(fontSize: 24)),
+              title: Text('chinese'.tr()),
+              trailing: context.locale.languageCode == 'zh'
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('zh'));
                 Navigator.pop(ctx);
               },
             ),
@@ -142,6 +179,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                       ),
                       const Spacer(),
+                      IconButton(
+                        onPressed: () {
+                          context.read<AppState>().toggleTheme();
+                        },
+                        icon: Icon(
+                          context.watch<AppState>().themeMode == ThemeMode.dark
+                              ? Icons.light_mode
+                              : Icons.dark_mode,
+                          color: Colors.white,
+                        ),
+                        tooltip: 'dark_light_mode'.tr(),
+                      ),
                       IconButton(
                         onPressed: _showLanguageDialog,
                         icon: const Icon(Icons.language, color: Colors.white),

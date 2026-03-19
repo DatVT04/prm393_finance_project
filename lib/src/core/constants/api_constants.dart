@@ -2,7 +2,11 @@ class ApiConstants {
   /// Android emulator: 10.0.2.2. Real device / web: your machine IP (e.g. 192.168.1.x).
   /// Backend chạy port 8080 (xem application.properties). Emulator: 10.0.2.2; máy thật/Win: IP máy hoặc 127.0.0.1.
 
-  static const String baseUrl = 'http://192.168.120.10:8080';
+  /// Current backend base URL.
+  static const String baseUrl = 'http://192.168.1.9:8080';
+
+  // Alternative hosted backend (if you want to switch to Render):
+  // static const String baseUrl = 'https://finance-backend-4m21.onrender.com';
   static const String categoriesPath = '/api/categories';
   static const String entriesPath = '/api/entries';
   static const String accountsPath = '/api/accounts';
