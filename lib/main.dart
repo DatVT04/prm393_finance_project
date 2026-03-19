@@ -16,7 +16,7 @@ void main() async {
   // Firebase removed for cross-platform reliability (Web/Windows/Android).
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('vi')],
+      supportedLocales: const [Locale('en'), Locale('vi'), Locale('ja'), Locale('ko'), Locale('zh')],
       path: 'assets/translations',
       fallbackLocale: const Locale('vi'),
       useOnlyLangCode: true,

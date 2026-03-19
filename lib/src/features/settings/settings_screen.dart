@@ -238,7 +238,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: ListTile(
               leading: const Icon(Icons.language),
               title: Text('change_language'.tr()),
-              subtitle: Text(context.locale.languageCode == 'vi' ? 'vietnamese'.tr() : 'english'.tr()),
+              subtitle: Text(
+                context.locale.languageCode == 'vi'
+                    ? 'vietnamese'.tr()
+                    : context.locale.languageCode == 'en'
+                        ? 'english'.tr()
+                        : context.locale.languageCode == 'ja'
+                            ? 'japanese'.tr()
+                            : context.locale.languageCode == 'ko'
+                                ? 'korean'.tr()
+                                : 'chinese'.tr(),
+              ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 _showLanguageDialog();
@@ -417,6 +427,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
               title: Text('english'.tr()),
               trailing: context.locale.languageCode == 'en' ? const Icon(Icons.check, color: Colors.green) : null,
               onTap: () {
@@ -425,10 +436,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
             ListTile(
+              leading: const Text('🇻🇳', style: TextStyle(fontSize: 24)),
               title: Text('vietnamese'.tr()),
               trailing: context.locale.languageCode == 'vi' ? const Icon(Icons.check, color: Colors.green) : null,
               onTap: () {
                 context.setLocale(const Locale('vi'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇯🇵', style: TextStyle(fontSize: 24)),
+              title: Text('japanese'.tr()),
+              trailing: context.locale.languageCode == 'ja' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('ja'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇰🇷', style: TextStyle(fontSize: 24)),
+              title: Text('korean'.tr()),
+              trailing: context.locale.languageCode == 'ko' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('ko'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Text('🇨🇳', style: TextStyle(fontSize: 24)),
+              title: Text('chinese'.tr()),
+              trailing: context.locale.languageCode == 'zh' ? const Icon(Icons.check, color: Colors.green) : null,
+              onTap: () {
+                context.setLocale(const Locale('zh'));
                 Navigator.pop(ctx);
               },
             ),

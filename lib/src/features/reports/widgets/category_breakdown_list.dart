@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
 
@@ -33,7 +34,7 @@ class CategoryBreakdownList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Chi tiết chi tiêu',
+          'spending_details'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
@@ -69,7 +70,7 @@ class CategoryBreakdownList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(e.key, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text(e.key.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
                           Text(amountStr, style: const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),

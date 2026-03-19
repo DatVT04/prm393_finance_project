@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 
@@ -22,7 +23,7 @@ class MonthWrappedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nf = NumberFormat('#,###', 'vi_VN');
+    final nf = NumberFormat('#,###', context.locale.toString());
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -34,7 +35,7 @@ class MonthWrappedScreen extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: colorScheme.onBackground),
           onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Quay lại',
+          tooltip: 'back'.tr(),
         ),
       ),
       body: SafeArea(
@@ -43,14 +44,9 @@ class MonthWrappedScreen extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'Nhìn lại $monthName',
+                'look_back'.tr(args: [monthName]),
                 style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Nhật ký Tài chính Thông minh',
-                style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 40),
               _buildCard(
@@ -58,12 +54,12 @@ class MonthWrappedScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Tổng chi tiêu',
+                      'total_expense'.tr(),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${nf.format(totalExpense)} đ',
+                      '${nf.format(totalExpense)} ${context.locale.languageCode == 'vi' ? 'đ' : '\$'}',
                       style: theme.textTheme.displayMedium?.copyWith(
                         color: colorScheme.error,
                         fontWeight: FontWeight.bold,
@@ -78,12 +74,12 @@ class MonthWrappedScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Danh mục chi nhiều nhất',
+                      'top_spending_category'.tr(),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      topCategory,
+                      topCategory.tr(),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -97,7 +93,7 @@ class MonthWrappedScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Số ghi chú đã lưu',
+                      'notes_saved'.tr(),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
@@ -110,11 +106,6 @@ class MonthWrappedScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'Chia sẻ báo cáo của bạn',
-                style: theme.textTheme.labelSmall,
               ),
             ],
           ),
