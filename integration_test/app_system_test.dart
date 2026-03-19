@@ -136,16 +136,9 @@ void main() {
           await tester.pumpAndSettle();
 
           // Điền số tiền
-          final amountField = find.descendant(
-            of: find.byType(TextFormField),
-            matching: find.byWidgetPredicate((w) => w is TextFormField && w.decoration?.prefixIcon is Icon && (w.decoration?.prefixIcon as Icon).icon == Icons.attach_money),
-          );
-          if (amountField.evaluate().isNotEmpty) {
-             await tester.enterText(amountField.first, '55000');
-          } else {
-             final fallbackField = find.byType(TextFormField).first;
-             await tester.enterText(fallbackField, '55000');
-          }
+          // Trong modal thêm giao dịch, trường nhập số tiền thường nằm ở TextFormField đầu tiên.
+          final amountField = find.byType(TextFormField).first;
+          await tester.enterText(amountField, '55000');
           await tester.pumpAndSettle();
 
           // Nhấn nút Lưu (vì là dialog nên tìm ElevatedButton)

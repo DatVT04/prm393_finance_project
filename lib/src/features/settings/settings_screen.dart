@@ -21,6 +21,19 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isLoading = false;
 
+  String _avatarInitials(String rawName) {
+    final parts = rawName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'U';
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return '${parts[0].substring(0, 1)}${parts[1].substring(0, 1)}'.toUpperCase();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -157,9 +170,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           backgroundColor: theme.dividerColor,
                           backgroundImage: (avatar != null && avatar.isNotEmpty)
                               ? NetworkImage('${ApiConstants.baseUrl}$avatar')
-                              : const NetworkImage(
-                                      'https://ui-avatars.com/api/?background=random&name=User')
-                                  as ImageProvider,
+                              : null,
+                          child: (avatar == null || avatar.isEmpty)
+                              ? Text(
+                                  _avatarInitials(name),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )
+                              : null,
                         ),
                         if (_isLoading)
                           const Positioned.fill(
