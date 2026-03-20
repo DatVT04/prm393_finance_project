@@ -1,4 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
@@ -70,6 +73,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onGoogleLogin() async {
+    setState(() => _loading = true);
+    try {
+      final googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return;
+      }
+
+      final res = await ref.read(apiClientProvider).googleLogin(
+            googleUser.email,
+            googleUser.displayName,
+          );
+          
+      if (!mounted) return;
+      final userId = res['userId'];
+      if (userId != null) {
+        await ref.read(currentUserIdProvider.notifier).setUserId(
+              (userId as num).toInt(),
+              name: res['displayName'] as String?,
+              avatar: res['avatarUrl'] as String?,
+            );
+      }
+      
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainLayout()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Google Login Error: \${e.toString()}'),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -337,6 +382,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               );
                             },
                             child: Text('forgot_password'.tr()),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'or_divider'.tr(),
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: _loading ? null : _onGoogleLogin,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          icon: const FaIcon(
+                            FontAwesomeIcons.google,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
+                          label: Text(
+                            'login_google'.tr(),
+                            style: TextStyle(
+                              color: theme.textTheme.bodyLarge?.color,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),

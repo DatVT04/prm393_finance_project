@@ -155,7 +155,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           // ===== PROFILE =====
-          _buildSectionTitle(context, 'account'.tr()),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -236,7 +235,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
 
           // ===== THEME =====
-          _buildSectionTitle(context, 'appearance'.tr()),
           Card(
             child: SwitchListTile(
               value: appState.themeMode == ThemeMode.dark,
@@ -249,10 +247,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // ===== LANGUAGE =====
-          _buildSectionTitle(context, 'language'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.language),
@@ -275,10 +272,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // ===== DATA =====
-          _buildSectionTitle(context, 'data'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.category),
@@ -295,10 +291,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // ===== ABOUT =====
-          _buildSectionTitle(context, 'info'.tr()),
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline),

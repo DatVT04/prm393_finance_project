@@ -123,7 +123,7 @@
   "category_required": "Please select category",
   "account_label": "Account/Wallet",
   "account_required": "Please select account",
-  "note_label": "Note (can use #tag and @mention)",
+  "note_label": "Note",
   "attach_image": "Attach Image",
   "remove_image": "Remove Image",
   "add_location": "Add Location",

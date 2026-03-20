@@ -56,6 +56,9 @@ dependencies:
 
   # Auth & persistence
   shared_preferences: ^2.2.2
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.4.1
+  google_sign_in: ^6.2.2
 
   # Voice Quick Entry
   speech_to_text: ^7.0.0

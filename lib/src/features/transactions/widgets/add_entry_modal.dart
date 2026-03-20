@@ -13,7 +13,6 @@ import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
-import 'package:prm393_finance_project/src/core/services/note_tag_parser.dart';
 import '../providers/finance_providers.dart';
 
 /// Optional prefill from AI Quick Entry (OCR, voice, clipboard).
@@ -324,8 +323,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       noteWithMeta += (noteWithMeta.isEmpty ? '' : '\n') + '📍 $locationText';
     }
 
-    final tags = NoteTagParser.extractTags(note);
-    final mentions = NoteTagParser.extractMentions(note);
+    const tags = <String>[];
+    const mentions = <String>[];
 
     final entry = FinancialEntryModel(
       id: 0,
@@ -404,362 +403,362 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesWithRefreshProvider);
     final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                widget.entryToEdit != null
-                    ? 'edit_entry_title'.tr()
-                    : 'add_entry_title'.tr(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              SegmentedButton<String>(
-                segments: [
-                  ButtonSegment(
-                    value: 'EXPENSE',
-                    label: Text('expense_short'.tr()),
-                    icon: const Icon(Icons.remove_circle_outline),
-                  ),
-                  ButtonSegment(
-                    value: 'INCOME',
-                    label: Text('income_short'.tr()),
-                    icon: const Icon(Icons.add_circle_outline),
-                  ),
-                ],
-                selected: {_selectedType},
-                onSelectionChanged: (val) {
-                  final newType = val.first;
-                  setState(() {
-                    _selectedType = newType;
-                    if (_selectedType == 'INCOME') {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.entryToEdit != null
+                      ? 'edit_entry_title'.tr()
+                      : 'add_entry_title'.tr(),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(
+                      value: 'EXPENSE',
+                      label: Text('expense_short'.tr()),
+                      icon: const Icon(Icons.remove_circle_outline),
+                    ),
+                    ButtonSegment(
+                      value: 'INCOME',
+                      label: Text('income_short'.tr()),
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
+                  selected: {_selectedType},
+                  onSelectionChanged: (val) {
+                    final newType = val.first;
+                    setState(() {
+                      _selectedType = newType;
                       final categories = ref.read(categoriesProvider).value;
                       if (categories != null && categories.isNotEmpty) {
-                        final napVi = categories.firstWhere(
-                          (c) =>
-                              c.name.toLowerCase().contains('nạp ví') ||
-                              c.name.toLowerCase().contains('thu nhập'),
-                          orElse: () => categories.firstWhere(
-                            (c) => c.name.toLowerCase() == 'khác',
-                            orElse: () => categories.first,
-                          ),
-                        );
-                        _selectedCategoryId = napVi.id;
+                        final filtered = categories.where((c) => c.type == _selectedType).toList();
+                        if (filtered.isNotEmpty) {
+                          _selectedCategoryId = filtered.first.id;
+                        } else {
+                          _selectedCategoryId = null;
+                        }
                       }
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: 'amount_label'.tr(),
-                  prefixIcon: const Icon(Icons.attach_money),
-                  border: const OutlineInputBorder(),
+                    });
+                  },
                 ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  CurrencyInputFormatter(),
-                ],
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty)
-                    return 'amount_required'.tr();
-                  final a = _parseAmount(v.trim());
-                  if (a == null || a <= 0) return 'amount_invalid'.tr();
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              categoriesAsync.when(
-                data: (list) {
-                  return DropdownButtonFormField<int>(
-                    value: _selectedCategoryId,
-                    decoration: InputDecoration(
-                      labelText: 'category_label'.tr(),
-                      prefixIcon: const Icon(Icons.category),
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: list
-                        .map(
-                          (c) => DropdownMenuItem<int>(
-                            value: c.id,
-                            child: Text(c.name),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => setState(() => _selectedCategoryId = v),
-                    validator: (v) =>
-                        v == null ? 'category_required'.tr() : null,
-                  );
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (_, __) => Text('error_loading_categories'.tr()),
-              ),
-              const SizedBox(height: 16),
-              ref
-                  .watch(accountsProvider)
-                  .when(
-                    data: (list) {
-                      if (_selectedAccountId == null && list.isNotEmpty) {
-                        _selectedAccountId = list.first.id;
-                      }
-                      return DropdownButtonFormField<int>(
-                        value: _selectedAccountId,
-                        decoration: InputDecoration(
-                          labelText: 'account_label'.tr(),
-                          prefixIcon: const Icon(Icons.account_balance_wallet),
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: list
-                            .map(
-                              (a) => DropdownMenuItem<int>(
-                                value: a.id,
-                                child: Text(
-                                  '${a.name} (${NumberFormat('#,###', context.locale.toString()).format(a.balance)}đ)',
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (v) =>
-                            setState(() => _selectedAccountId = v),
-                        validator: (v) =>
-                            v == null ? 'account_required'.tr() : null,
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => Text('error_loading_accounts'.tr()),
-                  ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _noteController,
-                decoration: InputDecoration(
-                  labelText: 'note_label'.tr(),
-                  prefixIcon: const Icon(Icons.note),
-                  border: const OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 3,
-                maxLength: 500,
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton.icon(
-                    onPressed: (_imagePath == null && _existingImageUrl == null)
-                        ? _pickImage
-                        : () {
-                            setState(() {
-                              _imagePath = null;
-                              _imageFile = null;
-                              _existingImageUrl = null;
-                            });
-                          },
-                    icon: Icon(
-                      (_imagePath != null || _existingImageUrl != null)
-                          ? Icons.cancel
-                          : Icons.add_photo_alternate,
-                    ),
-                    label: Text(
-                      (_imagePath != null || _existingImageUrl != null)
-                          ? 'remove_image'.tr()
-                          : 'attach_image'.tr(),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _latitude == null ? _pickLocation : null,
-                    icon: Icon(
-                      _latitude != null
-                          ? Icons.location_on
-                          : Icons.location_off,
-                    ),
-                    label: Text(
-                      _latitude != null ? 'location_added'.tr() : 'add_location'.tr(),
-                    ),
-                  ),
-                ],
-              ),
-              if (_latitude != null && _longitude != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.place,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          _locationName ??
-                              '${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (_resolvingLocation) const SizedBox(width: 8),
-                      if (_resolvingLocation)
-                        const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                    ],
-                  ),
-                ),
-              if (_imagePath != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: const EdgeInsets.all(8),
-                          child: InteractiveViewer(
-                            panEnabled: true,
-                            minScale: 0.5,
-                            maxScale: 4.0,
-                            child: kIsWeb
-                                ? Image.network(_imagePath!)
-                                : Image.file(File(_imagePath!)),
-                          ),
-                        ),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: kIsWeb
-                          ? Image.network(
-                              _imagePath!,
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.file(
-                              File(_imagePath!),
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                )
-              else if (_existingImageUrl != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: const EdgeInsets.all(8),
-                          child: InteractiveViewer(
-                            panEnabled: true,
-                            minScale: 0.5,
-                            maxScale: 4.0,
-                            child: Image.network(
-                              '${ApiConstants.baseUrl}$_existingImageUrl',
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        '${ApiConstants.baseUrl}$_existingImageUrl',
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                    locale: context.locale,
-                  );
-                  if (picked != null) setState(() => _selectedDate = picked);
-                },
-                child: InputDecorator(
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _amountController,
                   decoration: InputDecoration(
-                    labelText: 'date_label'.tr(),
-                    prefixIcon: const Icon(Icons.calendar_today),
+                    labelText: 'amount_label'.tr(),
+                    prefixIcon: const Icon(Icons.attach_money),
                     border: const OutlineInputBorder(),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(DateFormat('dd/MM/yyyy', context.locale.toString()).format(_selectedDate)),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    CurrencyInputFormatter(),
+                  ],
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'amount_required'.tr();
+                    final a = _parseAmount(v.trim());
+                    if (a == null || a <= 0) return 'amount_invalid'.tr();
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saving ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                const SizedBox(height: 16),
+                categoriesAsync.when(
+                  data: (list) {
+                    return DropdownButtonFormField<int>(
+                      value: _selectedCategoryId,
+                      decoration: InputDecoration(
+                        labelText: 'category_label'.tr(),
+                        prefixIcon: const Icon(Icons.category),
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: list
+                          .where((c) => c.type == _selectedType)
+                          .map(
+                            (c) => DropdownMenuItem<int>(
+                              value: c.id,
+                              child: Text(c.name),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedCategoryId = v),
+                      validator: (v) =>
+                          v == null ? 'category_required'.tr() : null,
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => Text('error_loading_categories'.tr()),
                 ),
-                child: _saving
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                const SizedBox(height: 16),
+                ref
+                    .watch(accountsProvider)
+                    .when(
+                      data: (list) {
+                        if (_selectedAccountId == null && list.isNotEmpty) {
+                          _selectedAccountId = list.first.id;
+                        }
+                        return DropdownButtonFormField<int>(
+                          value: _selectedAccountId,
+                          decoration: InputDecoration(
+                            labelText: 'account_label'.tr(),
+                            prefixIcon: const Icon(Icons.account_balance_wallet),
+                            border: const OutlineInputBorder(),
+                          ),
+                          items: list
+                              .map(
+                                (a) => DropdownMenuItem<int>(
+                                  value: a.id,
+                                  child: Text(
+                                    '${a.name} (${NumberFormat('#,###', context.locale.toString()).format(a.balance)}đ)',
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedAccountId = v),
+                          validator: (v) =>
+                              v == null ? 'account_required'.tr() : null,
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => Text('error_loading_accounts'.tr()),
+                    ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _noteController,
+                  decoration: InputDecoration(
+                    labelText: 'note_label'.tr(),
+                    prefixIcon: const Icon(Icons.note),
+                    border: const OutlineInputBorder(),
+                    alignLabelWithHint: true,
+                  ),
+                  maxLines: 3,
+                  maxLength: 500,
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton.icon(
+                      onPressed: (_imagePath == null && _existingImageUrl == null)
+                          ? _pickImage
+                          : () {
+                              setState(() {
+                                _imagePath = null;
+                                _imageFile = null;
+                                _existingImageUrl = null;
+                              });
+                            },
+                      icon: Icon(
+                        (_imagePath != null || _existingImageUrl != null)
+                            ? Icons.cancel
+                            : Icons.add_photo_alternate,
+                      ),
+                      label: Text(
+                        (_imagePath != null || _existingImageUrl != null)
+                            ? 'remove_image'.tr()
+                            : 'attach_image'.tr(),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _latitude == null ? _pickLocation : null,
+                      icon: Icon(
+                        _latitude != null
+                            ? Icons.location_on
+                            : Icons.location_off,
+                      ),
+                      label: Text(
+                        _latitude != null ? 'location_added'.tr() : 'add_location'.tr(),
+                      ),
+                    ),
+                  ],
+                ),
+                if (_latitude != null && _longitude != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.place,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
-                      )
-                    : Text(
-                        'save_note'.tr(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            _locationName ??
+                                '${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (_resolvingLocation) const SizedBox(width: 8),
+                        if (_resolvingLocation)
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
+                  ),
+                if (_imagePath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: const EdgeInsets.all(8),
+                            child: InteractiveViewer(
+                              panEnabled: true,
+                              minScale: 0.5,
+                              maxScale: 4.0,
+                              child: kIsWeb
+                                  ? Image.network(_imagePath!)
+                                  : Image.file(File(_imagePath!)),
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: kIsWeb
+                            ? Image.network(
+                                _imagePath!,
+                                height: 150,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                File(_imagePath!),
+                                height: 150,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ),
+                  )
+                else if (_existingImageUrl != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: const EdgeInsets.all(8),
+                            child: InteractiveViewer(
+                              panEnabled: true,
+                              minScale: 0.5,
+                              maxScale: 4.0,
+                              child: Image.network(
+                                '${ApiConstants.baseUrl}$_existingImageUrl',
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          '${ApiConstants.baseUrl}$_existingImageUrl',
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
                         ),
                       ),
-              ),
-              const SizedBox(height: 24),
-            ],
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                      locale: context.locale,
+                    );
+                    if (picked != null) setState(() => _selectedDate = picked);
+                  },
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'date_label'.tr(),
+                      prefixIcon: const Icon(Icons.calendar_today),
+                      border: const OutlineInputBorder(),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(DateFormat('dd/MM/yyyy', context.locale.toString()).format(_selectedDate)),
+                        const Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _saving ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _saving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'save_note'.tr(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
 }
