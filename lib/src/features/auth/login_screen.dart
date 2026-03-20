@@ -83,6 +83,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
     try {
       final googleSignIn = GoogleSignIn();
+      // Ensure any previous session is cleared, forcing account selection on iOS
+      await googleSignIn.signOut();
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       
       if (googleUser == null) {

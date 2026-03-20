@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/features/dashboard/providers/dashboard_providers.dart';
 
 const String _keyUserId = 'user_id';
 const String _keyDisplayName = 'display_name';
@@ -57,6 +58,14 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
         UserProfileData(displayName: name, avatarUrl: avatar);
 
     FinanceApiClient.setUserId(id);
+
+    ref.invalidate(accountsProvider);
+    ref.invalidate(categoriesProvider);
+    ref.invalidate(categoriesWithRefreshProvider);
+    ref.invalidate(entriesProvider);
+    ref.invalidate(entriesWithRefreshProvider);
+    ref.invalidate(monthlyIncomeProvider);
+
     state = AsyncValue.data(id);
   }
 
@@ -88,6 +97,14 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
     ref.read(userProfileProvider.notifier).state = UserProfileData();
     
     FinanceApiClient.setUserId(null);
+
+    ref.invalidate(accountsProvider);
+    ref.invalidate(categoriesProvider);
+    ref.invalidate(categoriesWithRefreshProvider);
+    ref.invalidate(entriesProvider);
+    ref.invalidate(entriesWithRefreshProvider);
+    ref.invalidate(monthlyIncomeProvider);
+
     state = const AsyncValue.data(null);
   }
 }
