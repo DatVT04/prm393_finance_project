@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'providers/finance_providers.dart';
 import 'widgets/add_entry_modal.dart';
@@ -19,6 +20,9 @@ class TransactionScreen extends ConsumerStatefulWidget {
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   String _dateFilter = 'all';
   DateTime? _customDate;
+  int? _selectedCategoryId;
+  String? _selectedCategoryName;
+  String _searchQuery = '';
 
   void _openAddEntry() async {
     final created = await showModalBottomSheet<FinancialEntryModel>(
@@ -100,6 +104,23 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     return list;
   }
 
+  List<FinancialEntryModel> _filterByCategory(List<FinancialEntryModel> list) {
+    if (_selectedCategoryId == null) return list;
+    return list.where((e) => e.categoryId == _selectedCategoryId).toList();
+  }
+
+  List<FinancialEntryModel> _filterBySearch(List<FinancialEntryModel> list) {
+    final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return list;
+
+    return list.where((e) {
+      final note = (e.note ?? '').toLowerCase();
+      final category = (e.categoryName ?? '').toLowerCase();
+      final tagsMentions = [...e.tags, ...e.mentions].join(' ').toLowerCase();
+      return note.contains(q) || category.contains(q) || tagsMentions.contains(q);
+    }).toList();
+  }
+
   Future<void> _pickCustomDate() async {
     final now = DateTime.now();
     final initial = _customDate ?? now;
@@ -119,74 +140,21 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filterTag = ref.watch(filterTagProvider);
-    final entriesAsync = ref.watch(entriesFilteredProvider(filterTag));
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final categories = categoriesAsync.valueOrNull ?? const <CategoryModel>[];
+    final entriesAsync = ref.watch(entriesWithRefreshProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('transactions_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          if (filterTag != null && filterTag.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Chip(
-                label: Text('#$filterTag'),
-                onDeleted: () {
-                  ref.read(filterTagProvider.notifier).state = null;
-                },
-              ),
-            ),
-          IconButton(
-            onPressed: () {
-              final controller = TextEditingController(text: filterTag ?? '');
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: Text('filter_by_tag'.tr()),
-                  content: TextField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      hintText: 'enter_tag_hint'.tr(),
-                      prefixText: '#',
-                    ),
-                    onSubmitted: (v) {
-                      final t = v.trim();
-                      ref.read(filterTagProvider.notifier).state =
-                          t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        ref.read(filterTagProvider.notifier).state = null;
-                        Navigator.pop(ctx);
-                      },
-                      child: Text('remove_filter'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        final t = controller.text.trim();
-                        ref.read(filterTagProvider.notifier).state =
-                            t.isEmpty ? null : (t.startsWith('#') ? t.substring(1) : t);
-                        Navigator.pop(ctx);
-                      },
-                      child: Text('apply'.tr()),
-                    ),
-                  ],
-                ),
-              );
-            },
-            icon: const Icon(Icons.filter_list),
-            color: Colors.black87,
-          ),
-        ],
       ),
       body: entriesAsync.when(
         data: (list) {
           var displayList = _filterByDate(list);
+          displayList = _filterByCategory(displayList);
+          displayList = _filterBySearch(displayList);
           final grouped = _groupByDate(displayList);
           final sortedKeys = grouped.keys.toList()
             ..sort((a, b) {
@@ -222,6 +190,60 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   ),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: Text('all'.tr()),
+                        selected: _selectedCategoryId == null,
+                        onSelected: (_) {
+                          setState(() {
+                            _selectedCategoryId = null;
+                            _selectedCategoryName = null;
+                          });
+                        },
+                      ),
+                      ...categories.map(
+                        (c) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(c.name),
+                            selected: _selectedCategoryId == c.id,
+                            onSelected: (_) {
+                              setState(() {
+                                _selectedCategoryId = c.id;
+                                _selectedCategoryName = c.name;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: TextField(
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    hintText: 'Search by note / category / tag / mention...',
+                    suffixIcon: _searchQuery.trim().isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => setState(() => _searchQuery = ''),
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
               const Divider(height: 1),
               Expanded(
                 child: displayList.isEmpty
@@ -243,7 +265,11 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             ),
                             const SizedBox(height: 24),
                             Text(
-                               filterTag != null ? '${'no_entries_with_tag'.tr()} #$filterTag' : 'no_entries_yet'.tr(),
+                              _searchQuery.trim().isNotEmpty
+                                  ? 'Không có ghi chú phù hợp.'
+                                  : (_selectedCategoryName != null
+                                      ? 'Không có ghi chú thuộc danh mục: $_selectedCategoryName'
+                                      : 'no_entries_yet'.tr()),
                               style: Theme.of(context).textTheme.titleLarge,
                               textAlign: TextAlign.center,
                             ),

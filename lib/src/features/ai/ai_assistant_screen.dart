@@ -150,7 +150,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       refreshEntries(ref);
       refreshAccounts(ref);
       ref.invalidate(entriesWithRefreshProvider);
-      ref.invalidate(entriesFilteredProvider);
     }
   }
 

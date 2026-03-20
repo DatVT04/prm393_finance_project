@@ -71,22 +71,37 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              entriesAsync.when(
-                data: (all) {
-                  final list = _filterByPeriod(all);
-                  if (list.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('no_data_to_export'.tr())),
-                    );
-                    return;
-                  }
-                  if (value == 'excel') ExportService.exportToExcel(list);
-                  if (value == 'pdf') ExportService.exportToPdf(list);
-                },
-                loading: () {},
-                error: (_, __) {},
-              );
+            onSelected: (value) async {
+              final all = entriesAsync.valueOrNull;
+              if (all == null) return;
+
+              final list = _filterByPeriod(all);
+              if (list.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('no_data_to_export'.tr())),
+                );
+                return;
+              }
+
+              try {
+                if (value == 'excel') {
+                  await ExportService.exportToExcel(list);
+                }
+                if (value == 'pdf') {
+                  await ExportService.exportToPdf(list);
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Export thành công')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Export error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             itemBuilder: (ctx) => [
               PopupMenuItem(value: 'excel', child: Text('export_excel'.tr())),

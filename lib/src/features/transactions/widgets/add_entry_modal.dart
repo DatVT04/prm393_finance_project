@@ -50,12 +50,8 @@ class CurrencyInputFormatter extends TextInputFormatter {
     if (text.isEmpty) return newValue.copyWith(text: '');
 
     double value = double.parse(text);
-    final formatter = NumberFormat('#,###', newValue.text.isEmpty ? 'vi_VN' : null); // Simple workaround or use a better way to get locale here if possible
-    // Actually, inside a formatter it's hard to get context.
-    // Let's use a standard format or just digits.
-    // Ideally we should pass the locale to the formatter.
-    // For now, let's stick to 'vi_VN' or a neutral one.
-    String newText = NumberFormat('#,###').format(value);
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    final newText = formatter.format(value);
 
     return newValue.copyWith(
       text: newText,
@@ -475,13 +471,12 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   labelText: 'amount_label'.tr(),
                   prefixIcon: const Icon(Icons.attach_money),
                   border: const OutlineInputBorder(),
-                  helperText: 'amount_hint'.tr(),
                 ),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.ktr]')),
+                  FilteringTextInputFormatter.digitsOnly,
                   CurrencyInputFormatter(),
                 ],
-                keyboardType: TextInputType.text,
+                keyboardType: TextInputType.number,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty)
                     return 'amount_required'.tr();
