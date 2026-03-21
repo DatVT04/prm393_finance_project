@@ -230,5 +230,14 @@
     "Giáo dục": "教育",
     "Gửi xe": "駐車場",
     "Nạp tiền": "チャージ・入金",
-    "Khác": "その他"
+    "Khác": "その他",
+    "budgets": "予算",
+    "add_budget_title": "予算の設定",
+    "edit_budget_title": "予算の編集",
+    "delete_budget_confirm": "予算を削除",
+    "delete_budget_body": "この予算を削除してもよろしいですか？",
+    "budget_management": "予算管理",
+    "no_budget_set": "今月の予算は設定されていません",
+    "set_budget_now": "今すぐ設定",
+    "month_label": "対象月"
 }

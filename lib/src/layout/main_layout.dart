@@ -6,6 +6,7 @@ import '../features/transactions/transaction_screen.dart';
 import '../features/reports/report_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/ai/ai_assistant_screen.dart';
+import '../features/budgets/screens/budget_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class MainLayout extends StatefulWidget {
@@ -24,6 +25,7 @@ class _MainLayoutState extends State<MainLayout> {
         DashboardScreen(onViewAllEntries: _goToTransactions),
         const TransactionScreen(),
         const ReportScreen(),
+        const BudgetScreen(),
         const SettingsScreen(),
         const AiAssistantScreen(),
       ];
@@ -47,6 +49,10 @@ class _MainLayoutState extends State<MainLayout> {
         label: 'transactions'.tr(),
       ),
       NavigationDestination(icon: const Icon(Icons.bar_chart), label: 'reports'.tr()),
+      NavigationDestination(
+        icon: const Icon(Icons.assignment_turned_in),
+        label: 'budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr(),
+      ),
       NavigationDestination(icon: const Icon(Icons.settings), label: 'settings'.tr()),
       NavigationDestination(icon: const Icon(Icons.auto_awesome), label: 'ai_assistant'.tr()),
     ];
@@ -63,6 +69,10 @@ class _MainLayoutState extends State<MainLayout> {
       NavigationRailDestination(
         icon: const Icon(Icons.bar_chart),
         label: Text('reports'.tr()),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.assignment_turned_in),
+        label: Text('budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr()),
       ),
       NavigationRailDestination(
         icon: const Icon(Icons.settings),

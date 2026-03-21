@@ -230,5 +230,14 @@
   "Giáo dục": "Giáo dục",
   "Gửi xe": "Gửi xe",
   "Nạp tiền": "Nạp tiền",
-  "Khác": "Khác"
+  "Khác": "Khác",
+  "budgets": "Ngân sách",
+  "add_budget_title": "Thiết lập ngân sách",
+  "edit_budget_title": "Sửa ngân sách",
+  "delete_budget_confirm": "Xác nhận xóa",
+  "delete_budget_body": "Bạn chắc chắn muốn xóa hạn mức này?",
+  "budget_management": "Quản lý Ngân sách",
+  "no_budget_set": "Bạn chưa đặt ngân sách cho tháng này",
+  "set_budget_now": "Thiết lập ngay",
+  "month_label": "Tháng áp dụng"
 }

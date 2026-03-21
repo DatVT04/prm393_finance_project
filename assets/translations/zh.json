@@ -230,5 +230,14 @@
     "Giáo dục": "教育",
     "Gửi xe": "停车",
     "Nạp tiền": "充值/存款",
-    "Khác": "其他"
+    "Khác": "其他",
+    "budgets": "预算",
+    "add_budget_title": "设置预算",
+    "edit_budget_title": "编辑预算",
+    "delete_budget_confirm": "删除预算",
+    "delete_budget_body": "确定要删除此预算限制吗？",
+    "budget_management": "预算管理",
+    "no_budget_set": "本月尚未设置预算",
+    "set_budget_now": "立即设置",
+    "month_label": "适用月份"
 }

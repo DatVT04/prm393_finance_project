@@ -230,5 +230,14 @@
     "Giáo dục": "교육",
     "Gửi xe": "주차",
     "Nạp tiền": "충전/입금",
-    "Khác": "기타"
+    "Khác": "기타",
+    "budgets": "예산",
+    "add_budget_title": "예산 설정",
+    "edit_budget_title": "예산 수정",
+    "delete_budget_confirm": "예산 삭제",
+    "delete_budget_body": "이 예산을 삭제하시겠습니까?",
+    "budget_management": "예산 관리",
+    "no_budget_set": "이번 달 예산이 설정되지 않았습니다",
+    "set_budget_now": "지금 설정하기",
+    "month_label": "적용 월"
 }
