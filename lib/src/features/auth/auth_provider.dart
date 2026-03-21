@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/features/dashboard/providers/dashboard_providers.dart';
+import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart';
 
 const String _keyUserId = 'user_id';
 const String _keyDisplayName = 'display_name';
@@ -93,6 +94,8 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
     await prefs.remove(_keyUserId);
     await prefs.remove(_keyDisplayName);
     await prefs.remove(_keyAvatarUrl);
+    
+    await clearAiChat();
     
     ref.read(userProfileProvider.notifier).state = UserProfileData();
     
