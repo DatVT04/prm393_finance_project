@@ -1,6 +1,7 @@
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
+import 'package:prm393_finance_project/src/core/models/budget_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 
@@ -294,4 +295,22 @@ class FakeFinanceApiClient implements FinanceApiClient {
       conversationId: conversationId ?? 'fake-conv-id',
     );
   }
+
+  @override
+  Future<List<BudgetModel>> getBudgets() async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAiHistory() async {
+    return [];
+  }
+
+  @override
+  Future<BudgetModel> upsertBudget(BudgetModel budget) async {
+    return budget;
+  }
+
+  @override
+  Future<void> deleteBudget(int id) async {}
 }
