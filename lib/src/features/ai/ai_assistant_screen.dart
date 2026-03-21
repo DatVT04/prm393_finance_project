@@ -46,6 +46,31 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   }
 
   Future<void> _loadSavedChat() async {
+    try {
+      final history = await ref.read(apiClientProvider).getAiHistory();
+      if (history.isNotEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _messages.clear();
+          for (final m in history) {
+            final roleStr = m['role'] as String? ?? 'USER';
+            final text = m['content'] as String? ?? '';
+            final createdAt = m['createdAt'] != null ? DateTime.tryParse(m['createdAt'] as String) : null;
+            _conversationId = m['conversationId'] as String?;
+            if (roleStr == 'USER') {
+              _messages.add(_ChatMessage.user(text, timestamp: createdAt));
+            } else {
+              _messages.add(_ChatMessage.assistant(text, timestamp: createdAt));
+            }
+          }
+          _chatLoaded = true;
+        });
+        return;
+      }
+    } catch (e) {
+      if (kDebugMode) print('Failed to load AI history from API: $e');
+    }
+
     final (convId, list) = await loadAiChat();
     if (!mounted) return;
     setState(() {
@@ -54,10 +79,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       for (final m in list) {
         final r = m['r'] as int?;
         final t = m['t'] as String? ?? '';
+        final ts = m['ts'] != null ? DateTime.tryParse(m['ts'] as String) : null;
         if (r == 0) {
-          _messages.add(_ChatMessage.user(t));
+          _messages.add(_ChatMessage.user(t, timestamp: ts));
         } else {
-          _messages.add(_ChatMessage.assistant(t));
+          _messages.add(_ChatMessage.assistant(t, timestamp: ts));
         }
       }
       _chatLoaded = true;
@@ -69,6 +95,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         .map((m) => {
               'r': m.role == _ChatRole.user ? 0 : 1,
               't': m.text,
+              'ts': m.timestamp.toIso8601String(),
             })
         .toList();
     await saveAiChat(_conversationId, list);
@@ -465,6 +492,7 @@ class _ChatMessage {
   final bool pending;
   final String? imagePath;
   final String? base64Image;
+  final DateTime timestamp;
 
   _ChatMessage({
     required this.role,
@@ -472,13 +500,14 @@ class _ChatMessage {
     this.pending = false,
     this.imagePath,
     this.base64Image,
-  });
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
-  factory _ChatMessage.user(String text, {String? imagePath, String? base64Image}) =>
-      _ChatMessage(role: _ChatRole.user, text: text, imagePath: imagePath, base64Image: base64Image);
+  factory _ChatMessage.user(String text, {String? imagePath, String? base64Image, DateTime? timestamp}) =>
+      _ChatMessage(role: _ChatRole.user, text: text, imagePath: imagePath, base64Image: base64Image, timestamp: timestamp);
 
-  factory _ChatMessage.assistant(String text, {bool pending = false}) =>
-      _ChatMessage(role: _ChatRole.assistant, text: text, pending: pending);
+  factory _ChatMessage.assistant(String text, {bool pending = false, DateTime? timestamp}) =>
+      _ChatMessage(role: _ChatRole.assistant, text: text, pending: pending, timestamp: timestamp);
 }
 
 class _ChatBubble extends StatelessWidget {
@@ -572,6 +601,14 @@ class _ChatBubble extends StatelessWidget {
                 color: textColor,
                 fontSize: 14,
                 height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              DateFormat('HH:mm').format(message.timestamp),
+              style: TextStyle(
+                color: (isUser ? Colors.white70 : theme.textTheme.bodySmall?.color)?.withOpacity(0.6),
+                fontSize: 10,
               ),
             ),
           ],

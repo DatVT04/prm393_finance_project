@@ -431,6 +431,16 @@ class FinanceApiClient {
     return list.map((e) => BudgetModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  Future<List<Map<String, dynamic>>> getAiHistory() async {
+    final res = await http.get(
+      Uri.parse('$_base/api/ai/history'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to load AI history');
+    final list = jsonDecode(res.body) as List;
+    return list.cast<Map<String, dynamic>>();
+  }
+
   Future<BudgetModel> upsertBudget(BudgetModel budget) async {
     final res = await http.post(
       Uri.parse('$_base/api/budgets'),

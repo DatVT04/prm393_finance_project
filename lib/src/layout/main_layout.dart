@@ -24,8 +24,8 @@ class _MainLayoutState extends State<MainLayout> {
   List<Widget> get _screens => [
         DashboardScreen(onViewAllEntries: _goToTransactions),
         const TransactionScreen(),
-        const ReportScreen(),
         const BudgetScreen(),
+        const ReportScreen(),
         const SettingsScreen(),
         const AiAssistantScreen(),
       ];
@@ -48,11 +48,11 @@ class _MainLayoutState extends State<MainLayout> {
         icon: const Icon(Icons.account_balance_wallet),
         label: 'transactions'.tr(),
       ),
-      NavigationDestination(icon: const Icon(Icons.bar_chart), label: 'reports'.tr()),
       NavigationDestination(
         icon: const Icon(Icons.assignment_turned_in),
         label: 'budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr(),
       ),
+      NavigationDestination(icon: const Icon(Icons.bar_chart), label: 'reports'.tr()),
       NavigationDestination(icon: const Icon(Icons.settings), label: 'settings'.tr()),
       NavigationDestination(icon: const Icon(Icons.auto_awesome), label: 'ai_assistant'.tr()),
     ];
@@ -67,12 +67,12 @@ class _MainLayoutState extends State<MainLayout> {
         label: Text('transactions'.tr()),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.bar_chart),
-        label: Text('reports'.tr()),
-      ),
-      NavigationRailDestination(
         icon: const Icon(Icons.assignment_turned_in),
         label: Text('budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr()),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.bar_chart),
+        label: Text('reports'.tr()),
       ),
       NavigationRailDestination(
         icon: const Icon(Icons.settings),

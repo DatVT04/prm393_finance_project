@@ -26,9 +26,12 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(
-      text: widget.budgetToEdit?.amount.toInt().toString() ?? '',
-    );
+    String initialText = '';
+    if (widget.budgetToEdit != null) {
+      final formatter = NumberFormat('#,###', 'vi_VN');
+      initialText = formatter.format(widget.budgetToEdit!.amount).replaceAll(',', '.');
+    }
+    _amountController = TextEditingController(text: initialText);
     _categoryId = widget.budgetToEdit?.categoryId;
     _selectedMonth = widget.budgetToEdit?.startDate ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
   }
@@ -42,7 +45,8 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _categoryId == null) return;
 
-    final amount = double.tryParse(_amountController.text) ?? 0;
+    final cleanAmount = _amountController.text.replaceAll('.', '');
+    final amount = double.tryParse(cleanAmount) ?? 0;
     final start = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
     final end = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
 
@@ -90,9 +94,36 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
-                decoration: InputDecoration(labelText: 'amount_label'.tr(), suffixText: 'đ'),
+                decoration: InputDecoration(
+                  labelText: 'amount_label'.tr(),
+                  suffixText: 'đ',
+                  hintText: '0',
+                ),
                 keyboardType: TextInputType.number,
-                validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Số tiền không hợp lệ' : null,
+                onChanged: (value) {
+                  if (value.isEmpty) return;
+                  // Remove any non-digits
+                  final cleanValue = value.replaceAll(RegExp(r'[^0-9]'), '');
+                  if (cleanValue.isEmpty) {
+                    _amountController.text = '';
+                    return;
+                  }
+                  final formatter = NumberFormat('#,###', 'vi_VN');
+                  final formatted = formatter.format(int.parse(cleanValue)).replaceAll(',', '.');
+                  
+                  if (_amountController.text != formatted) {
+                    _amountController.value = TextEditingValue(
+                      text: formatted,
+                      selection: TextSelection.collapsed(offset: formatted.length),
+                    );
+                  }
+                },
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Vui lòng nhập số tiền';
+                  final cleanValue = v.replaceAll('.', '');
+                  if ((double.tryParse(cleanValue) ?? 0) <= 0) return 'Số tiền không hợp lệ';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               ListTile(
