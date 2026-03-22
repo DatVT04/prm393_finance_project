@@ -139,8 +139,17 @@ class _MainLayoutState extends State<MainLayout> {
         // Mobile Layout: Bottom Navigation Bar
         if (width < AppConstants.mobileBreakpoint) {
           final size = MediaQuery.of(context).size;
-          // Initial position (bottom right)
-          _fabPosition ??= Offset(size.width - 80, size.height - 180);
+
+          // Clamp position to current screen size (handles orientation change & keyboard)
+          if (_fabPosition == null) {
+            _fabPosition = Offset(size.width - 80, size.height - 180);
+          } else {
+            // Adjust position if it's now outside screen bounds
+            _fabPosition = Offset(
+              _fabPosition!.dx.clamp(16.0, size.width - 76.0),
+              _fabPosition!.dy.clamp(80.0, size.height - 150.0),
+            );
+          }
 
           return Stack(
             children: [
