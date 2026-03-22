@@ -12,6 +12,7 @@ import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dar
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/features/budgets/providers/budget_providers.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
   const AiAssistantScreen({super.key});
@@ -176,6 +177,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     if (res.refreshRequired || (res.intent.toUpperCase() == 'INSERT' && (res.createdCount ?? 0) > 0)) {
       refreshEntries(ref);
       refreshAccounts(ref);
+      refreshBudgets(ref); // Refresh planning data
       ref.invalidate(entriesWithRefreshProvider);
     }
   }

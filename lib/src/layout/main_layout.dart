@@ -32,7 +32,7 @@ class _MainLayoutState extends State<MainLayout> {
   List<Widget> get _screens => [
         DashboardScreen(onViewAllEntries: _goToTransactions),
         const TransactionScreen(),
-        const BudgetScreen(),
+        const PlanningScreen(),
         const ReportScreen(),
         const SettingsScreen(),
         const AiAssistantScreen(),
@@ -97,8 +97,8 @@ class _MainLayoutState extends State<MainLayout> {
         label: 'transactions'.tr(),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.assignment_turned_in),
-        label: 'budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr(),
+        icon: const Icon(Icons.event_note),
+        label: 'planning'.tr(),
       ),
       NavigationDestination(icon: const Icon(Icons.bar_chart), label: 'reports'.tr()),
       NavigationDestination(icon: const Icon(Icons.settings), label: 'settings'.tr()),
@@ -114,8 +114,8 @@ class _MainLayoutState extends State<MainLayout> {
         label: Text('transactions'.tr()),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.assignment_turned_in),
-        label: Text('budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr()),
+        icon: const Icon(Icons.event_note),
+        label: Text('planning'.tr()),
       ),
       NavigationRailDestination(
         icon: const Icon(Icons.bar_chart),
