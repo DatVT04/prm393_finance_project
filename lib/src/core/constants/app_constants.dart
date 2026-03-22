@@ -7,7 +7,7 @@ class AppConstants {
   // Breakpoints for responsive design
   static const double mobileBreakpoint = 600;
   //static const double tabletBreakpoint = 900;
- // static const double desktopBreakpoint = 1200;
+  static const double desktopBreakpoint = 1200;
 
   // Navigation
   static const int dashboardIndex = 0;
