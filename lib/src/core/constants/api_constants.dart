@@ -1,5 +1,10 @@
 class ApiConstants {
-  static const String baseUrl = 'https://finance-backend-4m21.onrender.com';
+
+
+
+  static const String baseUrl = 'http://192.168.1.9:8080';
+
+
 
   static const String categoriesPath = '/api/categories';
   static const String entriesPath = '/api/entries';

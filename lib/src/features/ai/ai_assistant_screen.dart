@@ -10,8 +10,10 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:prm393_finance_project/src/core/models/ai_assistant_response.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
+import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/features/budgets/providers/budget_providers.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
   const AiAssistantScreen({super.key});
@@ -58,7 +60,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             final createdAt = m['createdAt'] != null ? DateTime.tryParse(m['createdAt'] as String) : null;
             _conversationId = m['conversationId'] as String?;
             if (roleStr == 'USER') {
-              _messages.add(_ChatMessage.user(text, timestamp: createdAt));
+              final imageUrl = m['imageUrl'] as String?;
+              _messages.add(_ChatMessage.user(text, timestamp: createdAt, imageUrl: imageUrl));
             } else {
               _messages.add(_ChatMessage.assistant(text, timestamp: createdAt));
             }
@@ -81,7 +84,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         final t = m['t'] as String? ?? '';
         final ts = m['ts'] != null ? DateTime.tryParse(m['ts'] as String) : null;
         if (r == 0) {
-          _messages.add(_ChatMessage.user(t, timestamp: ts));
+          final iu = m['iu'] as String?;
+          _messages.add(_ChatMessage.user(t, timestamp: ts, imageUrl: iu));
         } else {
           _messages.add(_ChatMessage.assistant(t, timestamp: ts));
         }
@@ -96,6 +100,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               'r': m.role == _ChatRole.user ? 0 : 1,
               't': m.text,
               'ts': m.timestamp.toIso8601String(),
+              if (m.imageUrl != null) 'iu': m.imageUrl,
             })
         .toList();
     await saveAiChat(_conversationId, list);
@@ -176,6 +181,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     if (res.refreshRequired || (res.intent.toUpperCase() == 'INSERT' && (res.createdCount ?? 0) > 0)) {
       refreshEntries(ref);
       refreshAccounts(ref);
+      refreshBudgets(ref); // Refresh planning data
       ref.invalidate(entriesWithRefreshProvider);
     }
   }
@@ -470,6 +476,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     );
 
     if (confirmed != true) return;
+    
+    // Clear both remote and local history
+    try {
+      await ref.read(apiClientProvider).clearAiHistory();
+    } catch (e) {
+      if (kDebugMode) print('Failed to clear remote AI history: $e');
+    }
+    
     await clearAiChat();
     setState(() {
       _conversationId = null;
@@ -492,6 +506,7 @@ class _ChatMessage {
   final bool pending;
   final String? imagePath;
   final String? base64Image;
+  final String? imageUrl;
   final DateTime timestamp;
 
   _ChatMessage({
@@ -500,11 +515,12 @@ class _ChatMessage {
     this.pending = false,
     this.imagePath,
     this.base64Image,
+    this.imageUrl,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
-  factory _ChatMessage.user(String text, {String? imagePath, String? base64Image, DateTime? timestamp}) =>
-      _ChatMessage(role: _ChatRole.user, text: text, imagePath: imagePath, base64Image: base64Image, timestamp: timestamp);
+  factory _ChatMessage.user(String text, {String? imagePath, String? base64Image, String? imageUrl, DateTime? timestamp}) =>
+      _ChatMessage(role: _ChatRole.user, text: text, imagePath: imagePath, base64Image: base64Image, imageUrl: imageUrl, timestamp: timestamp);
 
   factory _ChatMessage.assistant(String text, {bool pending = false, DateTime? timestamp}) =>
       _ChatMessage(role: _ChatRole.assistant, text: text, pending: pending, timestamp: timestamp);
@@ -523,6 +539,11 @@ class _ChatBubble extends StatelessWidget {
     final bubbleColor = isUser ? theme.colorScheme.primary : theme.cardColor;
     final textColor = isUser ? Colors.white : theme.textTheme.bodyLarge?.color;
     final borderColor = isUser ? Colors.transparent : theme.dividerColor;
+
+    String? displayImageUrl = message.imageUrl;
+    if (displayImageUrl != null && displayImageUrl.startsWith('/')) {
+      displayImageUrl = '${ApiConstants.baseUrl}$displayImageUrl';
+    }
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -544,7 +565,7 @@ class _ChatBubble extends StatelessWidget {
           crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (message.imagePath != null)
+            if (message.imagePath != null || message.base64Image != null || displayImageUrl != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: GestureDetector(
@@ -562,7 +583,9 @@ class _ChatBubble extends StatelessWidget {
                               maxScale: 4.0,
                               child: message.base64Image != null
                                   ? Image.memory(base64Decode(message.base64Image!))
-                                  : Image.file(io.File(message.imagePath!)),
+                                  : (displayImageUrl != null
+                                      ? Image.network(displayImageUrl)
+                                      : Image.file(io.File(message.imagePath!))),
                             ),
                             Positioned(
                               top: 40,
@@ -586,12 +609,25 @@ class _ChatBubble extends StatelessWidget {
                             height: 200,
                             fit: BoxFit.cover,
                           )
-                        : Image.file(
-                            io.File(message.imagePath!),
-                            width: 200,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
+                        : (displayImageUrl != null
+                            ? Image.network(
+                                displayImageUrl,
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 200,
+                                  height: 200,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                                ),
+                              )
+                            : Image.file(
+                                io.File(message.imagePath!),
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.cover,
+                              )),
                   ),
                 ),
               ),

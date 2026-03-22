@@ -32,7 +32,7 @@ class _MainLayoutState extends State<MainLayout> {
   List<Widget> get _screens => [
         DashboardScreen(onViewAllEntries: _goToTransactions),
         const TransactionScreen(),
-        const BudgetScreen(),
+        const PlanningScreen(),
         const ReportScreen(),
         const SettingsScreen(),
         const AiAssistantScreen(),
@@ -97,8 +97,8 @@ class _MainLayoutState extends State<MainLayout> {
         label: 'transactions'.tr(),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.assignment_turned_in),
-        label: 'budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr(),
+        icon: const Icon(Icons.event_note),
+        label: 'planning'.tr(),
       ),
       NavigationDestination(icon: const Icon(Icons.bar_chart), label: 'reports'.tr()),
       NavigationDestination(icon: const Icon(Icons.settings), label: 'settings'.tr()),
@@ -114,8 +114,8 @@ class _MainLayoutState extends State<MainLayout> {
         label: Text('transactions'.tr()),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.assignment_turned_in),
-        label: Text('budgets'.tr() == 'budgets' ? 'Ngân sách' : 'budgets'.tr()),
+        icon: const Icon(Icons.event_note),
+        label: Text('planning'.tr()),
       ),
       NavigationRailDestination(
         icon: const Icon(Icons.bar_chart),
@@ -139,8 +139,17 @@ class _MainLayoutState extends State<MainLayout> {
         // Mobile Layout: Bottom Navigation Bar
         if (width < AppConstants.mobileBreakpoint) {
           final size = MediaQuery.of(context).size;
-          // Initial position (bottom right)
-          _fabPosition ??= Offset(size.width - 80, size.height - 180);
+
+          // Clamp position to current screen size (handles orientation change & keyboard)
+          if (_fabPosition == null) {
+            _fabPosition = Offset(size.width - 80, size.height - 180);
+          } else {
+            // Adjust position if it's now outside screen bounds
+            _fabPosition = Offset(
+              _fabPosition!.dx.clamp(16.0, size.width - 76.0),
+              _fabPosition!.dy.clamp(80.0, size.height - 150.0),
+            );
+          }
 
           return Stack(
             children: [
