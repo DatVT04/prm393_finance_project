@@ -441,6 +441,16 @@ class FinanceApiClient {
     return list.cast<Map<String, dynamic>>();
   }
 
+  Future<void> clearAiHistory() async {
+    final res = await http.delete(
+      Uri.parse('$_base/api/ai/history'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 204 && res.statusCode != 200) {
+      throw Exception('Failed to clear AI history: ${res.statusCode}');
+    }
+  }
+
   Future<BudgetModel> upsertBudget(BudgetModel budget) async {
     final res = await http.post(
       Uri.parse('$_base/api/budgets'),

@@ -476,6 +476,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     );
 
     if (confirmed != true) return;
+    
+    // Clear both remote and local history
+    try {
+      await ref.read(apiClientProvider).clearAiHistory();
+    } catch (e) {
+      if (kDebugMode) print('Failed to clear remote AI history: $e');
+    }
+    
     await clearAiChat();
     setState(() {
       _conversationId = null;
