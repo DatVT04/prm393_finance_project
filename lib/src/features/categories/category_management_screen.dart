@@ -4,7 +4,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'add_category_modal.dart';
 
@@ -22,19 +24,19 @@ class _CategoryManagementScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa danh mục'),
+        title: Text('delete_category_title'.tr()),
         content: Text(
-          'Bạn có chắc muốn xóa danh mục "${category.name}"? Các ghi chú đang dùng danh mục này có thể bị ảnh hưởng.',
+          'delete_category_msg'.tr(args: [category.name]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Hủy'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Xóa'),
+            child: Text('delete'.tr()),
           ),
         ],
       ),
@@ -43,14 +45,17 @@ class _CategoryManagementScreenState
     try {
       await ref.read(apiClientProvider).deleteCategory(category.id);
       refreshCategories(ref);
+      refreshEntries(ref);
+      ref.invalidate(categoriesProvider);
+      ref.invalidate(entriesProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã xóa danh mục'), backgroundColor: Colors.green),
+        SnackBar(content: Text('category_deleted_msg'.tr()), backgroundColor: Colors.green),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('$e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -71,22 +76,28 @@ class _CategoryManagementScreenState
       if (existing != null) {
         await client.updateCategory(existing.id, result);
         refreshCategories(ref);
+        refreshEntries(ref);
+        ref.invalidate(categoriesProvider);
+        ref.invalidate(entriesProvider);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã cập nhật danh mục'), backgroundColor: Colors.green),
+          SnackBar(content: Text('category_updated_msg'.tr()), backgroundColor: Colors.green),
         );
       } else {
         await client.createCategory(result);
         refreshCategories(ref);
+        refreshEntries(ref);
+        ref.invalidate(categoriesProvider);
+        ref.invalidate(entriesProvider);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã thêm danh mục'), backgroundColor: Colors.green),
+          SnackBar(content: Text('category_added_msg'.tr()), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('$e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -97,7 +108,7 @@ class _CategoryManagementScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý danh mục'),
+        title: Text('category_management_title'.tr()),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -112,12 +123,12 @@ class _CategoryManagementScreenState
                   Icon(Icons.category_outlined, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
-                    'Chưa có danh mục nào',
+                    'no_categories_msg'.tr(),
                     style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Nhấn nút (+) để thêm',
+                    'add_first_category_hint'.tr(),
                     style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                 ],
@@ -140,8 +151,13 @@ class _CategoryManagementScreenState
                     vertical: 8,
                   ),
                   leading: CircleAvatar(
-                    backgroundColor: _parseColor(c.colorHex).withOpacity(0.2),
-                    child: _buildIcon(c),
+                    backgroundColor: IconUtils.getColor(c.colorHex).withOpacity(0.2),
+                    child: IconUtils.buildIcon(
+                      c.iconName,
+                      categoryName: c.name,
+                      color: IconUtils.getColor(c.colorHex),
+                      size: 20,
+                    ),
                   ),
                   title: Text(
                     c.name,
@@ -151,28 +167,30 @@ class _CategoryManagementScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        c.type == 'INCOME' ? 'Thu nhập' : 'Chi tiêu',
+                        c.type == 'INCOME' ? 'income_short'.tr() : 'expense_short'.tr(),
                         style: TextStyle(
                           color: c.type == 'INCOME' ? Colors.green : Colors.orange,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (c.sortOrder != null) Text('Thứ tự: ${c.sortOrder}'),
+                      if (c.sortOrder != null) Text('${'sort_order_label'.tr()}: ${c.sortOrder}'),
                     ],
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => _openEditSheet(c),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete_outline, color: Colors.red[700]),
-                        onPressed: () => _deleteCategory(c),
-                      ),
-                    ],
-                  ),
+                  trailing: (c.isFixed || c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'khác (thu nhập)')
+                      ? null
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () => _openEditSheet(c),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, color: Colors.red[700]),
+                              onPressed: () => _deleteCategory(c),
+                            ),
+                          ],
+                        ),
                 ),
               );
             },
@@ -185,8 +203,8 @@ class _CategoryManagementScreenState
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
               const SizedBox(height: 16),
-              const Text(
-                'Không tải được danh mục.\nKiểm tra backend đã chạy.',
+              Text(
+                '${'error_loading_data'.tr()}.\n${'check_spam_msg'.tr()}', // Alternative for "Check backend"
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -203,88 +221,4 @@ class _CategoryManagementScreenState
     );
   }
 
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return Colors.teal;
-    final h = hex.startsWith('#') ? hex : '#$hex';
-    if (h.length != 7) return Colors.teal;
-    final r = int.tryParse(h.substring(1, 3), radix: 16);
-    final g = int.tryParse(h.substring(3, 5), radix: 16);
-    final b = int.tryParse(h.substring(5, 7), radix: 16);
-    if (r == null || g == null || b == null) return Colors.teal;
-    return Color.fromARGB(255, r, g, b);
-  }
-
-  Widget _buildIcon(CategoryModel category) {
-    final color = _parseColor(category.colorHex);
-    final name = category.iconName;
-    if (name == null || name.isEmpty) {
-      return Icon(Icons.category, color: color);
-    }
-    IconData icon;
-    switch (name) {
-      case 'utensils':
-        icon = FontAwesomeIcons.utensils;
-        break;
-      case 'cartShopping':
-        icon = FontAwesomeIcons.cartShopping;
-        break;
-      case 'moneyBillWave':
-        icon = FontAwesomeIcons.moneyBillWave;
-        break;
-      case 'sackDollar':
-        icon = FontAwesomeIcons.sackDollar;
-        break;
-      case 'piggyBank':
-        icon = FontAwesomeIcons.piggyBank;
-        break;
-      case 'wallet':
-        icon = FontAwesomeIcons.wallet;
-        break;
-      case 'film':
-        icon = FontAwesomeIcons.film;
-        break;
-      case 'gamepad':
-        icon = FontAwesomeIcons.gamepad;
-        break;
-      case 'heartbeat':
-        icon = FontAwesomeIcons.heartPulse;
-        break;
-      case 'hospital':
-        icon = FontAwesomeIcons.hospital;
-        break;
-      case 'stethoscope':
-        icon = FontAwesomeIcons.stethoscope;
-        break;
-      case 'graduationCap':
-        icon = FontAwesomeIcons.graduationCap;
-        break;
-      case 'bus':
-        icon = FontAwesomeIcons.bus;
-        break;
-      case 'car':
-        icon = FontAwesomeIcons.car;
-        break;
-      case 'motorcycle':
-        icon = FontAwesomeIcons.motorcycle;
-        break;
-      case 'house':
-        icon = FontAwesomeIcons.house;
-        break;
-      case 'lightbulb':
-        icon = FontAwesomeIcons.lightbulb;
-        break;
-      case 'gift':
-        icon = FontAwesomeIcons.gift;
-        break;
-      case 'plane':
-        icon = FontAwesomeIcons.plane;
-        break;
-      case 'coffee':
-        icon = FontAwesomeIcons.mugSaucer;
-        break;
-      default:
-        icon = Icons.category;
-    }
-    return FaIcon(icon, color: color, size: 20);
-  }
 }

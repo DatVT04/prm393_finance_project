@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import '../widgets/add_account_modal.dart';
 
@@ -103,10 +104,15 @@ class AccountListScreen extends ConsumerWidget {
                         leading: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            color: IconUtils.getColor(account.colorHex).withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.primary),
+                          child: IconUtils.buildIcon(
+                            account.iconName,
+                            categoryName: account.name, // using categoryName as generic fallback for name
+                            color: IconUtils.getColor(account.colorHex),
+                            size: 24,
+                          ),
                         ),
                         title: Text(
                           account.name,

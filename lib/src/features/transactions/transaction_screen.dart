@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
-import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'providers/finance_providers.dart';
 import 'widgets/add_entry_modal.dart';
 import 'widgets/ai_quick_entry_sheet.dart';
@@ -139,7 +139,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categoriesAsync = ref.watch(categoriesProvider);
+    final categoriesAsync = ref.watch(categoriesWithRefreshProvider);
     final categories = categoriesAsync.valueOrNull ?? const <CategoryModel>[];
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
 
@@ -149,7 +149,14 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: entriesAsync.when(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          refreshEntries(ref);
+          refreshCategories(ref);
+          ref.invalidate(entriesProvider);
+          ref.invalidate(categoriesProvider);
+        },
+        child: entriesAsync.when(
         data: (list) {
           var displayList = _filterByDate(list);
           displayList = _filterByCategory(displayList);
@@ -200,7 +207,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                         child: categoriesAsync.when(
                           data: (list) {
                             return DropdownButtonFormField<int?>(
-                              value: _selectedCategoryId,
+                              value: (list.any((c) => c.id == _selectedCategoryId)) ? _selectedCategoryId : null,
                               decoration: InputDecoration(
                                 labelText: 'category_label'.tr(),
                                 prefixIcon: const Icon(Icons.filter_list),
@@ -356,11 +363,12 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           ),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'ai',
+    ),
+    floatingActionButton: Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        FloatingActionButton.small(
+          heroTag: 'ai',
             onPressed: _openAiQuickEntry,
             child: const Icon(Icons.mic),
           ),
@@ -462,10 +470,15 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getCategoryColor(e.categoryName ?? '').withOpacity(0.1),
+                color: IconUtils.getColor(e.categoryColorHex).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(_getCategoryIcon(e.categoryName ?? ''), color: _getCategoryColor(e.categoryName ?? ''), size: 20),
+              child: IconUtils.buildIcon(
+                e.categoryIconName,
+                categoryName: e.categoryName,
+                color: IconUtils.getColor(e.categoryColorHex),
+                size: 20,
+              ),
             ),
             title: Text(
               e.categoryName ?? 'other'.tr(),
@@ -493,49 +506,4 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'Ăn uống':
-        return Icons.restaurant;
-      case 'Xăng xe':
-        return Icons.local_gas_station;
-      case 'Mua sắm':
-        return Icons.shopping_bag;
-      case 'Giải trí':
-        return Icons.confirmation_number;
-      case 'Y tế':
-        return Icons.medical_services;
-      case 'Giáo dục':
-        return Icons.school;
-      case 'Gửi xe':
-        return Icons.local_parking;
-      case 'Nạp tiền':
-        return Icons.account_balance_wallet;
-      default:
-        return Icons.category;
-    }
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Ăn uống':
-        return Colors.orange;
-      case 'Xăng xe':
-        return Colors.blue;
-      case 'Mua sắm':
-        return Colors.purple;
-      case 'Giải trí':
-        return Colors.pink;
-      case 'Y tế':
-        return Colors.red;
-      case 'Giáo dục':
-        return Colors.indigo;
-      case 'Gửi xe':
-        return Colors.brown;
-      case 'Nạp tiền':
-        return Colors.green;
-      default:
-        return Colors.teal;
-    }
-  }
 }

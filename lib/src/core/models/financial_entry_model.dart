@@ -16,6 +16,14 @@ class FinancialEntryModel {
   final String? source;
   final DateTime? createdAt;
 
+  // New styling fields from backend
+  final String? categoryIconName;
+  final String? categoryColorHex;
+  final String? accountIconName;
+  final String? accountColorHex;
+  final String? toAccountIconName;
+  final String? toAccountColorHex;
+
   FinancialEntryModel({
     required this.id,
     required this.amount,
@@ -33,6 +41,12 @@ class FinancialEntryModel {
     this.toAccountId,
     this.source,
     this.createdAt,
+    this.categoryIconName,
+    this.categoryColorHex,
+    this.accountIconName,
+    this.accountColorHex,
+    this.toAccountIconName,
+    this.toAccountColorHex,
   });
 
   factory FinancialEntryModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +69,12 @@ class FinancialEntryModel {
       toAccountId: json['toAccountId'] as int?,
       source: json['source'] as String?,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'] as String) : null,
+      categoryIconName: json['categoryIconName'] as String?,
+      categoryColorHex: json['categoryColorHex'] as String?,
+      accountIconName: json['accountIconName'] as String?,
+      accountColorHex: json['accountColorHex'] as String?,
+      toAccountIconName: json['toAccountIconName'] as String?,
+      toAccountColorHex: json['toAccountColorHex'] as String?,
     );
   }
 

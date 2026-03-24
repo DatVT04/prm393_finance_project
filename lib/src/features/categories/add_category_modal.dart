@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AddCategoryModal extends StatefulWidget {
   const AddCategoryModal({super.key, this.existing});
@@ -63,7 +64,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     super.initState();
     _nameController = TextEditingController(text: widget.existing?.name ?? '');
     _selectedIconName = widget.existing?.iconName;
-    _selectedColor = _parseColor(widget.existing?.colorHex) ?? _colorOptions.first;
+    _selectedColor = IconUtils.getColor(widget.existing?.colorHex, defaultColor: _colorOptions.first);
     _selectedType = widget.existing?.type ?? 'EXPENSE';
   }
 
@@ -73,31 +74,6 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     super.dispose();
   }
 
-  Color? _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return null;
-    final h = hex.startsWith('#') ? hex : '#$hex';
-    if (h.length != 7) return null;
-    final r = int.tryParse(h.substring(1, 3), radix: 16);
-    final g = int.tryParse(h.substring(3, 5), radix: 16);
-    final b = int.tryParse(h.substring(5, 7), radix: 16);
-    if (r == null || g == null || b == null) return null;
-    return Color.fromARGB(255, r, g, b);
-  }
-
-  String _colorToHex(Color color) {
-    return '#${color.red.toRadixString(16).padLeft(2, '0')}${color.green.toRadixString(16).padLeft(2, '0')}${color.blue.toRadixString(16).padLeft(2, '0')}';
-  }
-
-  IconData _iconFromName(String? name) {
-    if (name == null || name.isEmpty) {
-      return FontAwesomeIcons.shapes;
-    }
-    final match = _iconOptions.firstWhere(
-      (e) => e.$1 == name,
-      orElse: () => ('shapes', FontAwesomeIcons.shapes),
-    );
-    return match.$2;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +94,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  existing != null ? 'Sửa danh mục' : 'Thêm danh mục',
+                  existing != null ? 'edit_category'.tr() : 'add_entry_title'.tr(), // Using existing keys
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -127,7 +103,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
                   radius: 22,
                   backgroundColor: _selectedColor.withOpacity(0.15),
                   child: Icon(
-                    _iconFromName(_selectedIconName),
+                    IconUtils.getIconData(_selectedIconName),
                     color: _selectedColor,
                   ),
                 ),
@@ -136,9 +112,9 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
             const SizedBox(height: 20),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Tên danh mục *',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: '${'category_label'.tr()} *',
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
@@ -150,16 +126,16 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
             ),
             const SizedBox(height: 8),
             SegmentedButton<String>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: 'EXPENSE',
-                  label: Text('Chi tiêu'),
-                  icon: Icon(Icons.remove_circle_outline),
+                  label: Text('expense_short'.tr()),
+                  icon: const Icon(Icons.remove_circle_outline),
                 ),
                 ButtonSegment(
                   value: 'INCOME',
-                  label: Text('Thu nhập'),
-                  icon: Icon(Icons.add_circle_outline),
+                  label: Text('income_short'.tr()),
+                  icon: const Icon(Icons.add_circle_outline),
                 ),
               ],
               selected: {_selectedType},
@@ -171,7 +147,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Chọn biểu tượng',
+              'select_icon'.tr(),
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -222,7 +198,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Chọn màu sắc',
+              'select_color'.tr(),
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -281,7 +257,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Hủy'),
+                    child: Text('cancel'.tr()),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -297,7 +273,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
                       backgroundColor: _selectedColor,
                       foregroundColor: Colors.white,
                     ),
-                    child: Text(existing != null ? 'Lưu' : 'Thêm'),
+                    child: Text(existing != null ? 'save'.tr() : 'add_transaction'.tr().split(' ')[0]), 
                   ),
                 ),
               ],
@@ -313,7 +289,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập tên danh mục')),
+        SnackBar(content: Text('category_required'.tr())),
       );
       return;
     }
@@ -324,7 +300,7 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
       name: name,
       type: _selectedType,
       iconName: _selectedIconName,
-      colorHex: _colorToHex(_selectedColor),
+      colorHex: IconUtils.colorToHex(_selectedColor),
       sortOrder: existing?.sortOrder,
     );
     Navigator.of(context).pop(category);

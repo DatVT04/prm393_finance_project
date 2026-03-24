@@ -256,5 +256,9 @@
     "achieved": "已达成!",
     "progress": "进度",
     "over_budget": "预算超支",
-    "over_target": "目标超支"
+    "over_target": "目标超支",
+    "deleted_label": "已删除",
+    "category_already_exists": "分类名称已存在",
+    "select_icon": "选择图标",
+    "select_color": "选择颜色"
 }

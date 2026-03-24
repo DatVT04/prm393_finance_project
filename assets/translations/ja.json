@@ -257,5 +257,8 @@
     "progress": "進捗",
     "over_budget": "予算超過",
     "over_target": "目標超過",
-    "deleted_label": "削除済み"
+    "deleted_label": "削除済み",
+    "category_already_exists": "カテゴリ名は既に存在します",
+    "select_icon": "アイコンを選択",
+    "select_color": "カラーを選択"
 }

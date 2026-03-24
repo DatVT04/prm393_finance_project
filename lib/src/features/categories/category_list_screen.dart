@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 
@@ -62,7 +63,9 @@ class CategoryListScreen extends ConsumerWidget {
                 final color = _parseColor(c.colorHex);
                 final icon = _iconFromName(c.iconName);
                 return GestureDetector(
-                  onTap: () => _openEdit(context, ref, c),
+                  onTap: (c.isFixed || c.name.toLowerCase() == 'khác')
+                      ? null
+                      : () => _openEdit(context, ref, c),
                   child: Hero(
                     tag: 'category_${c.id}',
                     child: Material(
@@ -83,17 +86,19 @@ class CategoryListScreen extends ConsumerWidget {
                                 CircleAvatar(
                                   radius: 20,
                                   backgroundColor: color.withOpacity(0.2),
-                                  child: FaIcon(
-                                    icon,
+                                  child: IconUtils.buildIcon(
+                                    c.iconName,
+                                    categoryName: c.name,
                                     color: color,
                                     size: 20,
                                   ),
                                 ),
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  icon: const Icon(Icons.more_vert),
-                                  onPressed: () => _showActionsBottomSheet(context, ref, c),
-                                ),
+                                if (!(c.isFixed || c.name.toLowerCase() == 'khác'))
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    icon: const Icon(Icons.more_vert),
+                                    onPressed: () => _showActionsBottomSheet(context, ref, c),
+                                  ),
                               ],
                             ),
                             const Spacer(),
@@ -251,10 +256,12 @@ class CategoryListScreen extends ConsumerWidget {
         );
       }
       refreshCategories(ref);
+      refreshEntries(ref);
+      refreshAccounts(ref);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lỗi: $e'),
+          content: Text('$e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -291,6 +298,8 @@ class CategoryListScreen extends ConsumerWidget {
     try {
       await ref.read(apiClientProvider).deleteCategory(category.id);
       refreshCategories(ref);
+      refreshEntries(ref);
+      refreshAccounts(ref);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -302,7 +311,7 @@ class CategoryListScreen extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lỗi: $e'),
+          content: Text('$e'),
           backgroundColor: Colors.red,
         ),
       );

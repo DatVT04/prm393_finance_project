@@ -1,24 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
 
 class CategoryBreakdownList extends StatelessWidget {
   const CategoryBreakdownList({super.key, this.data = const {}});
 
   final Map<String, double> data;
-
-  static final _icons = <String, IconData>{
-    'Ăn uống': Icons.restaurant,
-    'Xăng xe': Icons.local_gas_station,
-    'Mua sắm': Icons.shopping_bag,
-    'Giải trí': Icons.confirmation_number,
-    'Y tế': Icons.medical_services,
-    'Giáo dục': Icons.school,
-    'Gửi xe': Icons.local_parking,
-    'Nạp tiền': Icons.account_balance_wallet,
-    'Khác': Icons.category,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +35,6 @@ class CategoryBreakdownList extends StatelessWidget {
             final e = entries[index];
             final percent = total > 0 ? e.value / total : 0.0;
             final color = CategoryColors.get(e.key);
-            final icon = _icons[e.key] ?? Icons.category;
             final amountStr = '${(e.value).toStringAsFixed(0).replaceAllMapped(
                   RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                   (m) => '${m[1]},',
@@ -60,7 +47,12 @@ class CategoryBreakdownList extends StatelessWidget {
                     color: color.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: color, size: 20),
+                  child: IconUtils.buildIcon(
+                    null,
+                    categoryName: e.key,
+                    color: color,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

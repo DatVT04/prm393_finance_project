@@ -484,15 +484,28 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 const SizedBox(height: 16),
                 categoriesAsync.when(
                   data: (list) {
+                    final items = list
+                        .where((c) => c.type == _selectedType || c.id == _selectedCategoryId)
+                        .toList();
+
+                    if (_selectedCategoryId == null && items.isNotEmpty) {
+                      _selectedCategoryId = items.first.id;
+                    }
+
+                    final selectedValue = items.any((c) => c.id == _selectedCategoryId) 
+                        ? _selectedCategoryId 
+                        : (items.isEmpty 
+                            ? (list.any((c) => c.id == _selectedCategoryId) ? _selectedCategoryId : null) 
+                            : items.first.id);
+
                     return DropdownButtonFormField<int>(
-                      value: _selectedCategoryId,
+                      value: selectedValue,
                       decoration: InputDecoration(
                         labelText: 'category_label'.tr(),
                         prefixIcon: const Icon(Icons.category),
                         border: const OutlineInputBorder(),
                       ),
-                      items: list
-                          .where((c) => c.type == _selectedType)
+                      items: items
                           .map(
                             (c) => DropdownMenuItem<int>(
                               value: c.id,
@@ -527,7 +540,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                         }
 
                         return DropdownButtonFormField<int>(
-                          value: _selectedAccountId,
+                          value: dropdownItems.any((a) => a.id == _selectedAccountId) ? _selectedAccountId : (dropdownItems.isNotEmpty ? dropdownItems.first.id : null),
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: 'account_label'.tr(),

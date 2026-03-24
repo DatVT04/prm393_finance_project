@@ -17,8 +17,14 @@ class FinanceApiClient {
   FinanceApiClient._();
 
   static int? _userId;
+  static String _language = 'vi';
+
   static void setUserId(int? id) {
     _userId = id;
+  }
+
+  static void setLanguage(String lang) {
+    _language = lang;
   }
 
   String _errorMessage(String body) {
@@ -41,6 +47,7 @@ class FinanceApiClient {
   /// Headers for requests that are scoped by user (accounts, entries).
   Map<String, String> get _userHeaders => {
     'Content-Type': 'application/json',
+    'Accept-Language': _language,
     if (_userId != null) 'X-User-Id': _userId.toString(),
   };
 
@@ -188,7 +195,7 @@ class FinanceApiClient {
 
   Future<List<CategoryModel>> getCategories() async {
     final res = await http.get(
-      Uri.parse('$_base${ApiConstants.categoriesPath}'),
+      Uri.parse('$_base${ApiConstants.categoriesPath}?t=${DateTime.now().millisecondsSinceEpoch}'),
     );
     if (res.statusCode != 200)
       throw Exception('Failed to load categories: ${res.statusCode}');
@@ -205,11 +212,7 @@ class FinanceApiClient {
       body: jsonEncode(category.toCreateJson()),
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw AppException(
-        res.body.isNotEmpty
-            ? res.body
-            : 'Failed to create category: ${res.statusCode}',
-      );
+      throw AppException(_errorMessage(res.body));
     }
     return CategoryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -221,11 +224,7 @@ class FinanceApiClient {
       body: jsonEncode(category.toCreateJson()),
     );
     if (res.statusCode != 200) {
-      throw Exception(
-        res.body.isNotEmpty
-            ? res.body
-            : 'Failed to update category: ${res.statusCode}',
-      );
+      throw AppException(_errorMessage(res.body));
     }
     return CategoryModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -234,8 +233,9 @@ class FinanceApiClient {
     final res = await http.delete(
       Uri.parse('$_base${ApiConstants.categoriesPath}/$id'),
     );
-    if (res.statusCode != 204)
-      throw Exception('Failed to delete category: ${res.statusCode}');
+    if (res.statusCode != 204 && res.statusCode != 200) {
+      throw AppException(_errorMessage(res.body));
+    }
   }
 
   Future<List<AccountModel>> getAccounts({bool includeDeleted = false}) async {
@@ -253,27 +253,44 @@ class FinanceApiClient {
         .toList();
   }
 
-  Future<AccountModel> createAccount(String name, double balance) async {
+  Future<AccountModel> createAccount(
+    String name,
+    double balance, {
+    String? iconName,
+    String? colorHex,
+  }) async {
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.accountsPath}'),
       headers: _userHeaders,
-      body: jsonEncode({'name': name, 'balance': balance}),
+      body: jsonEncode({
+        'name': name,
+        'balance': balance,
+        if (iconName != null) 'iconName': iconName,
+        if (colorHex != null) 'colorHex': colorHex,
+      }),
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
       throw AppException(_errorMessage(res.body));
     }
     return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
-
+ 
   Future<AccountModel> updateAccount(
     int id,
     String name,
-    double balance,
-  ) async {
+    double balance, {
+    String? iconName,
+    String? colorHex,
+  }) async {
     final res = await http.put(
       Uri.parse('$_base${ApiConstants.accountsPath}/$id'),
       headers: _userHeaders,
-      body: jsonEncode({'name': name, 'balance': balance}),
+      body: jsonEncode({
+        'name': name,
+        'balance': balance,
+        if (iconName != null) 'iconName': iconName,
+        if (colorHex != null) 'colorHex': colorHex,
+      }),
     );
     if (res.statusCode != 200) {
       throw AppException(_errorMessage(res.body));
@@ -300,6 +317,7 @@ class FinanceApiClient {
   }) async {
     var uri = Uri.parse('$_base${ApiConstants.entriesPath}');
     final q = <String, String>{};
+    q['t'] = DateTime.now().millisecondsSinceEpoch.toString();
     if (from != null) q['from'] = _dateStr(from);
     if (to != null) q['to'] = _dateStr(to);
     if (tag != null && tag.isNotEmpty) q['tag'] = tag;

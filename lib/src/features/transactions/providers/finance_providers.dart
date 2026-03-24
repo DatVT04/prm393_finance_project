@@ -7,18 +7,15 @@ import 'package:prm393_finance_project/src/core/network/finance_api_client.dart'
 
 final apiClientProvider = Provider<FinanceApiClient>((ref) => FinanceApiClient());
 
-final categoriesProvider = FutureProvider<List<CategoryModel>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  return client.getCategories();
-});
-
 final categoriesRefreshProvider = StateProvider<int>((ref) => 0);
 
-final categoriesWithRefreshProvider = FutureProvider<List<CategoryModel>>((ref) async {
+final categoriesProvider = FutureProvider<List<CategoryModel>>((ref) async {
   ref.watch(categoriesRefreshProvider);
   final client = ref.watch(apiClientProvider);
   return client.getCategories();
 });
+
+final categoriesWithRefreshProvider = categoriesProvider;
 
 void refreshCategories(dynamic ref) {
   ref.read(categoriesRefreshProvider.notifier).update((int v) => v + 1);
@@ -40,20 +37,17 @@ void refreshAccounts(dynamic ref) {
   ref.invalidate(allAccountsProvider);
 }
 
+final entriesRefreshProvider = StateProvider<int>((ref) => 0);
+
 final entriesProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {
+  ref.watch(entriesRefreshProvider);
   final client = ref.watch(apiClientProvider);
   return client.getEntries();
 });
 
-final entriesRefreshProvider = StateProvider<int>((ref) => 0);
+final entriesWithRefreshProvider = entriesProvider;
 
 /// Use this to refetch entries (e.g. after add/delete). Increment to trigger refresh.
 void refreshEntries(dynamic ref) {
   ref.read(entriesRefreshProvider.notifier).update((int v) => v + 1);
 }
-
-final entriesWithRefreshProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {
-  ref.watch(entriesRefreshProvider);
-  final client = ref.watch(apiClientProvider);
-  return client.getEntries();
-});

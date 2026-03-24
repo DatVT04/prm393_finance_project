@@ -9,6 +9,7 @@ import 'src/features/auth/login_screen.dart';
 import 'src/layout/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'src/core/network/finance_api_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +42,8 @@ class FinanceApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Access context.locale to ensure this widget rebuilds on locale change
-    final _ = context.locale;
+    final currentLocale = context.locale.languageCode;
+    FinanceApiClient.setLanguage(currentLocale);
 
     final appState = context.watch<AppState>();
     final userIdAsync = ref.watch(currentUserIdProvider);

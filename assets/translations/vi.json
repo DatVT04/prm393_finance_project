@@ -257,5 +257,8 @@
   "progress": "Tiến độ",
   "over_budget": "Vượt ngân sách",
   "over_target": "Vượt mục tiêu",
-  "deleted_label": "đã xóa"
+  "deleted_label": "đã xóa",
+  "category_already_exists": "Tên danh mục đã tồn tại",
+  "select_icon": "Chọn biểu tượng",
+  "select_color": "Chọn màu sắc"
 }

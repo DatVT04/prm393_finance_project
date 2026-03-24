@@ -256,5 +256,9 @@
     "achieved": "달성!",
     "progress": "진척도",
     "over_budget": "예산 초과",
-    "over_target": "목표 초과"
+    "over_target": "목표 초과",
+    "deleted_label": "삭제됨",
+    "category_already_exists": "카테고리 이름이 이미 존재합니다",
+    "select_icon": "아이콘 선택",
+    "select_color": "색상 선택"
 }

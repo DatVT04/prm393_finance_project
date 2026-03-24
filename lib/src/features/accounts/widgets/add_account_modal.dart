@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 
 class AddAccountModal extends ConsumerStatefulWidget {
@@ -42,6 +43,39 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
   final _balanceController = TextEditingController();
   bool _saving = false;
 
+  String? _selectedIconName;
+  String? _selectedColorHex;
+
+  final List<Map<String, dynamic>> _icons = [
+    {'name': 'account_balance_wallet', 'icon': Icons.account_balance_wallet},
+    {'name': 'account_balance', 'icon': Icons.account_balance},
+    {'name': 'credit_card', 'icon': Icons.credit_card},
+    {'name': 'savings', 'icon': Icons.savings},
+    {'name': 'payments', 'icon': Icons.payments},
+    {'name': 'wallet', 'icon': Icons.wallet},
+    {'name': 'money', 'icon': Icons.money},
+    {'name': 'attach_money', 'icon': Icons.attach_money},
+  ];
+
+  final List<String> _colors = [
+    '#F44336', // Red
+    '#E91E63', // Pink
+    '#9C27B0', // Purple
+    '#673AB7', // Deep Purple
+    '#3F51B5', // Indigo
+    '#2196F3', // Blue
+    '#03A9F4', // Light Blue
+    '#00BCD4', // Cyan
+    '#009688', // Teal
+    '#4CAF50', // Green
+    '#8BC34A', // Light Green
+    '#CDDC39', // Lime
+    '#FFEB3B', // Yellow
+    '#FFC107', // Amber
+    '#FF9800', // Orange
+    '#FF5722', // Deep Orange
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +83,11 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
     if (a != null) {
       _nameController.text = a.name;
       _balanceController.text = NumberFormat('#,###', 'vi_VN').format(a.balance);
+      _selectedIconName = a.iconName;
+      _selectedColorHex = a.colorHex;
+    } else {
+      _selectedIconName = 'account_balance_wallet';
+      _selectedColorHex = '#2196F3';
     }
   }
 
@@ -70,9 +109,20 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
       final editing = widget.accountToEdit;
 
       if (editing != null) {
-        await ref.read(apiClientProvider).updateAccount(editing.id, name, balance);
+        await ref.read(apiClientProvider).updateAccount(
+          editing.id,
+          name,
+          balance,
+          iconName: _selectedIconName,
+          colorHex: _selectedColorHex,
+        );
       } else {
-        await ref.read(apiClientProvider).createAccount(name, balance);
+        await ref.read(apiClientProvider).createAccount(
+          name,
+          balance,
+          iconName: _selectedIconName,
+          colorHex: _selectedColorHex,
+        );
       }
 
       if (!mounted) return;
@@ -94,7 +144,13 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final color = IconUtils.getColor(_selectedColorHex);
+    
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
         left: 24,
@@ -103,59 +159,124 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
       ),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.accountToEdit != null ? 'Sửa tài khoản' : 'Thêm tài khoản mới',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Tên ví / Tài khoản',
-                hintText: 'Ví dụ: Ví tiền mặt, Ngân hàng VCB...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.label_outline),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.accountToEdit != null ? 'Sửa tài khoản' : 'Thêm tài khoản mới',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              validator: (v) => v == null || v.trim().isEmpty ? 'Vui lòng nhập tên' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _balanceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Số dư ban đầu',
-                hintText: '0',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Tên ví / Tài khoản',
+                  hintText: 'Ví dụ: Ví tiền mặt, Ngân hàng VCB...',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.label_outline),
+                ),
+                validator: (v) => v == null || v.trim().isEmpty ? 'Vui lòng nhập tên' : null,
               ),
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                CurrencyInputFormatter(),
-              ],
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return null;
-                // No need to check double.tryParse here because digitsOnly + formatter ensures format
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _saving ? null : _submit,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _balanceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Số dư ban đầu',
+                  hintText: '0',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  CurrencyInputFormatter(),
+                ],
               ),
-              child: _saving
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Text(widget.accountToEdit != null ? 'Cập nhật' : 'Lưu tài khoản'),
-            ),
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 24),
+              const Text('Chọn Icon', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 50,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _icons.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final item = _icons[index];
+                    final isSelected = _selectedIconName == item['name'];
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedIconName = item['name']),
+                      child: Container(
+                        width: 50,
+                        decoration: BoxDecoration(
+                          color: isSelected ? color.withOpacity(0.2) : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isSelected ? color : Colors.transparent,
+                          ),
+                        ),
+                        child: Icon(
+                          item['icon'],
+                          color: isSelected ? color : Colors.grey,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text('Chọn Màu sắc', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: _colors.map((hex) {
+                  final isSelected = _selectedColorHex == hex;
+                  final itemColor = IconUtils.getColor(hex);
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedColorHex = hex),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: itemColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? Colors.black : Colors.transparent,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          if (isSelected)
+                            BoxShadow(
+                              color: itemColor.withOpacity(0.4),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                        ],
+                      ),
+                      child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 32),
+              FilledButton(
+                onPressed: _saving ? null : _submit,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: color,
+                ),
+                child: _saving
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(widget.accountToEdit != null ? 'Cập nhật' : 'Lưu tài khoản'),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );

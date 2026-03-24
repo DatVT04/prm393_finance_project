@@ -5,6 +5,7 @@ class CategoryModel {
   final String? iconName;
   final String? colorHex;
   final int? sortOrder;
+  final bool isFixed;
 
   CategoryModel({
     required this.id,
@@ -13,6 +14,7 @@ class CategoryModel {
     this.iconName,
     this.colorHex,
     this.sortOrder,
+    this.isFixed = false,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class CategoryModel {
       iconName: json['iconName'] as String?,
       colorHex: json['colorHex'] as String?,
       sortOrder: json['sortOrder'] as int?,
+      isFixed: json['fixed'] as bool? ?? false,
     );
   }
 

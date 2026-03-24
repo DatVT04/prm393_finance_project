@@ -257,5 +257,8 @@
   "progress": "Progress",
   "over_budget": "Over budget",
   "over_target": "Over target",
-  "deleted_label": "deleted"
+  "deleted_label": "deleted",
+  "category_already_exists": "Category name already exists",
+  "select_icon": "Select Icon",
+  "select_color": "Select Color"
 }
