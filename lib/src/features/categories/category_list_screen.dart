@@ -111,16 +111,6 @@ class CategoryListScreen extends ConsumerWidget {
                                 fontSize: 15,
                               ),
                             ),
-                            if (c.sortOrder != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                '${'sort_order_label'.tr()}: ${c.sortOrder}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ),

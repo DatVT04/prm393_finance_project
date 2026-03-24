@@ -313,14 +313,12 @@ class FinanceApiClient {
   Future<List<FinancialEntryModel>> getEntries({
     DateTime? from,
     DateTime? to,
-    String? tag,
   }) async {
     var uri = Uri.parse('$_base${ApiConstants.entriesPath}');
     final q = <String, String>{};
     q['t'] = DateTime.now().millisecondsSinceEpoch.toString();
     if (from != null) q['from'] = _dateStr(from);
     if (to != null) q['to'] = _dateStr(to);
-    if (tag != null && tag.isNotEmpty) q['tag'] = tag;
     if (q.isNotEmpty) uri = uri.replace(queryParameters: q);
 
     final res = await http.get(uri, headers: _userHeaders);

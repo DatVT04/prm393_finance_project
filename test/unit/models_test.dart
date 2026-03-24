@@ -24,27 +24,11 @@ void main() {
       expect(m.categoryName, 'Ăn uống');
       expect(m.type, 'EXPENSE');
       expect(m.accountId, 1);
-      expect(m.tags, isEmpty);
       expect(m.transactionDate.year, 2025);
       expect(m.transactionDate.month, 3);
       expect(m.transactionDate.day, 15);
     });
 
-    test('fromJson handles tags and mentions as list', () {
-      final json = {
-        'id': 2,
-        'amount': 50.5,
-        'categoryId': 2,
-        'transactionDate': '2025-01-01T12:00:00.000',
-        'type': 'INCOME',
-        'accountId': 1,
-        'tags': ['#food', '#lunch'],
-        'mentions': ['@friend'],
-      };
-      final m = FinancialEntryModel.fromJson(json);
-      expect(m.tags, ['#food', '#lunch']);
-      expect(m.mentions, ['@friend']);
-    });
 
     test('toCreateJson produces valid API payload', () {
       final m = FinancialEntryModel(
@@ -55,7 +39,6 @@ void main() {
         type: 'EXPENSE',
         accountId: 1,
         note: 'Note',
-        tags: ['tag1'],
       );
       final json = m.toCreateJson();
       expect(json['amount'], 100000);
@@ -63,7 +46,6 @@ void main() {
       expect(json['accountId'], 1);
       expect(json['type'], 'EXPENSE');
       expect(json['note'], 'Note');
-      expect(json['tags'], ['tag1']);
       expect(json['transactionDate'], '2025-03-15');
     });
   });
@@ -101,14 +83,12 @@ void main() {
         'name': 'Ăn uống',
         'iconName': 'restaurant',
         'colorHex': '#FF0000',
-        'sortOrder': 1,
       };
       final m = CategoryModel.fromJson(json);
       expect(m.id, 1);
       expect(m.name, 'Ăn uống');
       expect(m.iconName, 'restaurant');
       expect(m.colorHex, '#FF0000');
-      expect(m.sortOrder, 1);
     });
 
     test('fromJson uses empty string when name is null', () {

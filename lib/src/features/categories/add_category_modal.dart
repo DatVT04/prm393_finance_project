@@ -301,7 +301,6 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
       type: _selectedType,
       iconName: _selectedIconName,
       colorHex: IconUtils.colorToHex(_selectedColor),
-      sortOrder: existing?.sortOrder,
     );
     Navigator.of(context).pop(category);
   }

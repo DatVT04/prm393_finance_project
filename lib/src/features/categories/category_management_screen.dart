@@ -173,7 +173,6 @@ class _CategoryManagementScreenState
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (c.sortOrder != null) Text('${'sort_order_label'.tr()}: ${c.sortOrder}'),
                     ],
                   ),
                   trailing: (c.isFixed || c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'khác (thu nhập)')

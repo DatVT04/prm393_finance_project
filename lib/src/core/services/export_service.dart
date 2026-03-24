@@ -25,7 +25,6 @@ class ExportService {
       TextCellValue('Danh mục'),
       TextCellValue('Số tiền'),
       TextCellValue('Ghi chú'),
-      TextCellValue('Tags'),
       TextCellValue('Nguồn'),
     ]);
     for (final e in entries) {
@@ -34,7 +33,6 @@ class ExportService {
         TextCellValue(e.categoryName ?? ''),
         IntCellValue(e.amount.toInt()),
         TextCellValue(e.note ?? ''),
-        TextCellValue(e.tags.join(', ')),
         TextCellValue(e.source ?? ''),
       ]);
     }

@@ -173,7 +173,6 @@
     "category_management_title": "카테고리 관리",
     "no_categories_msg": "카테고리가 없습니다",
     "add_first_category_hint": "(+)를 눌러 첫 카테고리를 추가하세요",
-    "sort_order_label": "정렬 순서",
     "category_updated_msg": "카테고리가 업데이트되었습니다",
     "category_added_msg": "카테고리가 추가되었습니다",
     "delete_category_title": "카테고리 삭제",

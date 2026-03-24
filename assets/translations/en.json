@@ -173,7 +173,6 @@
   "category_management_title": "Manage Categories",
   "no_categories_msg": "No categories yet",
   "add_first_category_hint": "Tap (+) to add first category",
-  "sort_order_label": "Sort Order",
   "category_updated_msg": "Category updated successfully",
   "category_added_msg": "Category added successfully",
   "delete_category_title": "Delete Category",

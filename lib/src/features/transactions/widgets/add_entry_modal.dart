@@ -323,8 +323,6 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       noteWithMeta += (noteWithMeta.isEmpty ? '' : '\n') + '📍 $locationText';
     }
 
-    const tags = <String>[];
-    const mentions = <String>[];
 
     final entry = FinancialEntryModel(
       id: 0,
@@ -334,8 +332,6 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       accountId: _selectedAccountId!,
       type: _selectedType,
       transactionDate: _selectedDate,
-      tags: tags,
-      mentions: mentions,
       imageUrl: _imagePath == null ? _existingImageUrl : null,
       latitude: _latitude,
       longitude: _longitude,

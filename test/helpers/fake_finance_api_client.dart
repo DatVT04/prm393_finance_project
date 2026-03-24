@@ -26,7 +26,6 @@ class FakeFinanceApiClient implements FinanceApiClient {
                type: 'EXPENSE',
                accountId: 1,
                note: 'Bữa trưa',
-               tags: ['#food'],
              ),
              FinancialEntryModel(
                id: 2,
@@ -53,21 +52,18 @@ class FakeFinanceApiClient implements FinanceApiClient {
                name: 'Ăn uống',
                iconName: 'restaurant',
                colorHex: '#FF5722',
-               sortOrder: 1,
              ),
              CategoryModel(
                id: 2,
                name: 'Lương',
                iconName: 'work',
                colorHex: '#4CAF50',
-               sortOrder: 2,
              ),
              CategoryModel(
                id: 3,
                name: 'Di chuyển',
                iconName: 'directions_car',
                colorHex: '#2196F3',
-               sortOrder: 3,
              ),
            ];
 
@@ -75,11 +71,7 @@ class FakeFinanceApiClient implements FinanceApiClient {
   Future<List<FinancialEntryModel>> getEntries({
     DateTime? from,
     DateTime? to,
-    String? tag,
   }) async {
-    if (tag != null && tag.isNotEmpty) {
-      return fakeEntries.where((e) => (e.tags ?? const []).contains(tag)).toList();
-    }
     return fakeEntries;
   }
 
@@ -100,7 +92,6 @@ class FakeFinanceApiClient implements FinanceApiClient {
       type: entry.type,
       accountId: entry.accountId,
       note: entry.note,
-      tags: entry.tags,
     );
     fakeEntries.add(newEntry);
     return newEntry;
@@ -122,7 +113,6 @@ class FakeFinanceApiClient implements FinanceApiClient {
       type: entry.type,
       accountId: entry.accountId,
       note: entry.note,
-      tags: entry.tags,
     );
     fakeEntries[idx] = updated;
     return updated;
@@ -169,7 +159,6 @@ class FakeFinanceApiClient implements FinanceApiClient {
       name: category.name,
       iconName: category.iconName,
       colorHex: category.colorHex,
-      sortOrder: category.sortOrder,
     );
     fakeCategories.add(created);
     return created;
@@ -184,7 +173,6 @@ class FakeFinanceApiClient implements FinanceApiClient {
       name: category.name,
       iconName: category.iconName,
       colorHex: category.colorHex,
-      sortOrder: category.sortOrder,
     );
     fakeCategories[idx] = updated;
     return updated;

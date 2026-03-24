@@ -4,7 +4,6 @@ class CategoryModel {
   final String? type; // INCOME, EXPENSE, TRANSFER
   final String? iconName;
   final String? colorHex;
-  final int? sortOrder;
   final bool isFixed;
 
   CategoryModel({
@@ -13,7 +12,6 @@ class CategoryModel {
     this.type,
     this.iconName,
     this.colorHex,
-    this.sortOrder,
     this.isFixed = false,
   });
 
@@ -24,7 +22,6 @@ class CategoryModel {
       type: json['type'] as String?,
       iconName: json['iconName'] as String?,
       colorHex: json['colorHex'] as String?,
-      sortOrder: json['sortOrder'] as int?,
       isFixed: json['fixed'] as bool? ?? false,
     );
   }
@@ -35,7 +32,6 @@ class CategoryModel {
       if (type != null) 'type': type,
       if (iconName != null && iconName!.isNotEmpty) 'iconName': iconName,
       if (colorHex != null && colorHex!.isNotEmpty) 'colorHex': colorHex,
-      if (sortOrder != null) 'sortOrder': sortOrder,
     };
   }
 }
