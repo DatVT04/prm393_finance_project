@@ -159,7 +159,7 @@ class AccountListScreen extends ConsumerWidget {
       builder: (ctx) => const AddAccountModal(),
     );
     if (result == true) {
-      ref.invalidate(accountsProvider);
+      refreshAccounts(ref);
     }
   }
 
@@ -173,7 +173,7 @@ class AccountListScreen extends ConsumerWidget {
       builder: (ctx) => AddAccountModal(accountToEdit: account),
     );
     if (result == true) {
-      ref.invalidate(accountsProvider);
+      refreshAccounts(ref);
     }
   }
 
@@ -202,7 +202,7 @@ class AccountListScreen extends ConsumerWidget {
     try {
       await ref.read(apiClientProvider).deleteAccount(account.id);
       if (!context.mounted) return;
-      ref.invalidate(accountsProvider);
+      refreshAccounts(ref);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('account_deleted_msg'.tr()),
@@ -213,8 +213,10 @@ class AccountListScreen extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Theme.of(context).colorScheme.error,
+          content: Text(e.toString()),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }

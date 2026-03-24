@@ -60,7 +60,7 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
 
     FinanceApiClient.setUserId(id);
 
-    ref.invalidate(accountsProvider);
+    refreshAccounts(ref);
     ref.invalidate(categoriesProvider);
     ref.invalidate(categoriesWithRefreshProvider);
     ref.invalidate(entriesProvider);
@@ -101,7 +101,7 @@ class CurrentUserIdNotifier extends AsyncNotifier<int?> {
     
     FinanceApiClient.setUserId(null);
 
-    ref.invalidate(accountsProvider);
+    refreshAccounts(ref);
     ref.invalidate(categoriesProvider);
     ref.invalidate(categoriesWithRefreshProvider);
     ref.invalidate(entriesProvider);

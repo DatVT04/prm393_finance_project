@@ -55,7 +55,7 @@
   "customer": "Customer",
   "today_summary": "Today's Summary",
   "no_entries_today": "No entries today",
-  "add_entry_hint": "Tap (+) or (★) to add quickly",
+  "add_entry_hint": "Tap (+) to add quickly",
   "today_flow": "Today's Flow",
   "notes_count": "Notes count",
   "recent_details": "Recent Details",
@@ -63,6 +63,7 @@
   "error_loading_today": "Unable to load today's data",
   "recent_entries": "Recent Entries",
   "view_all": "View All",
+  "search_hint": "Search by note / category...",
   "no_entries_hint": "No entries. Add from Transactions tab.",
   "error_loading_data": "Unable to load data",
   "error": "Error",
@@ -210,7 +211,7 @@
   "no_accounts_msg": "You don't have any accounts yet",
   "add_account_now": "Add account now",
   "delete_account_title": "Delete wallet / account?",
-  "delete_account_msg": "Are you sure you want to delete \"{}\"? It can only be deleted if it has no transactions.",
+  "delete_account_msg": "Are you sure you want to delete \"{}\"? Its balance will be reset to 0 and it will be marked as deleted.",
   "account_deleted_msg": "Account deleted",
   "edit": "Edit",
   "delete": "Delete",
@@ -255,5 +256,6 @@
   "achieved": "Achieved!",
   "progress": "Progress",
   "over_budget": "Over budget",
-  "over_target": "Over target"
+  "over_target": "Over target",
+  "deleted_label": "deleted"
 }

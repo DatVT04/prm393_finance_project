@@ -20,18 +20,24 @@ final categoriesWithRefreshProvider = FutureProvider<List<CategoryModel>>((ref) 
   return client.getCategories();
 });
 
-void refreshCategories(WidgetRef ref) {
-  ref.read(categoriesRefreshProvider.notifier).update((v) => v + 1);
+void refreshCategories(dynamic ref) {
+  ref.read(categoriesRefreshProvider.notifier).update((int v) => v + 1);
 }
 
 final accountsProvider = FutureProvider<List<AccountModel>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  return client.getAccounts();
+  return client.getAccounts(includeDeleted: false);
+});
+
+final allAccountsProvider = FutureProvider<List<AccountModel>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  return client.getAccounts(includeDeleted: true);
 });
 
 /// Invalidate accounts để refetch số dư (sau khi nạp tiền / chi tiêu).
-void refreshAccounts(WidgetRef ref) {
+void refreshAccounts(dynamic ref) {
   ref.invalidate(accountsProvider);
+  ref.invalidate(allAccountsProvider);
 }
 
 final entriesProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {
@@ -42,8 +48,8 @@ final entriesProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {
 final entriesRefreshProvider = StateProvider<int>((ref) => 0);
 
 /// Use this to refetch entries (e.g. after add/delete). Increment to trigger refresh.
-void refreshEntries(WidgetRef ref) {
-  ref.read(entriesRefreshProvider.notifier).update((v) => v + 1);
+void refreshEntries(dynamic ref) {
+  ref.read(entriesRefreshProvider.notifier).update((int v) => v + 1);
 }
 
 final entriesWithRefreshProvider = FutureProvider<List<FinancialEntryModel>>((ref) async {

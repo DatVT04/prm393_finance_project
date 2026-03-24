@@ -246,7 +246,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
-                      hintText: 'search_hint'.tr() == 'search_hint' ? 'Search by note / category...' : 'search_hint'.tr(),
+                      hintText: 'search_hint'.tr(),
                       suffixIcon: _searchQuery.trim().isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear),

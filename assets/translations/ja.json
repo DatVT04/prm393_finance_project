@@ -55,7 +55,7 @@
     "customer": "お客様",
     "today_summary": "本日の概要",
     "no_entries_today": "本日の記録はありません",
-    "add_entry_hint": "(+) または (★) をタップして素早く追加",
+    "add_entry_hint": "(+) をタップして素早く追加",
     "today_flow": "本日の収支",
     "notes_count": "メモ数",
     "recent_details": "最近の詳細",
@@ -63,6 +63,7 @@
     "error_loading_today": "本日のデータを読み込めません",
     "recent_entries": "最近の記録",
     "view_all": "すべて表示",
+    "search_hint": "メモ / カテゴリで検索...",
     "no_entries_hint": "記録がありません。「取引」タブから追加してください。",
     "error_loading_data": "データを読み込めません",
     "error": "エラー",
@@ -210,7 +211,7 @@
     "no_accounts_msg": "口座が登録されていません",
     "add_account_now": "今すぐ口座を追加",
     "delete_account_title": "ウォレット/口座を削除しますか？",
-    "delete_account_msg": "「{}」を削除しますか？取引がない場合のみ削除可能です。",
+    "delete_account_msg": "本当に \"{}\" を削除しますか？残高は0になり、削除済みとしてマークされます。",
     "account_deleted_msg": "口座を削除しました",
     "edit": "編集",
     "delete": "削除",
@@ -255,5 +256,6 @@
     "achieved": "達成！",
     "progress": "進捗",
     "over_budget": "予算超過",
-    "over_target": "目標超過"
+    "over_target": "目標超過",
+    "deleted_label": "削除済み"
 }

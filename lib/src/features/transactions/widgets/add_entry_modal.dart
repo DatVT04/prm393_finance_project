@@ -511,25 +511,36 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                 ),
                 const SizedBox(height: 16),
                 ref
-                    .watch(accountsProvider)
+                    .watch(allAccountsProvider)
                     .when(
                       data: (list) {
-                        if (_selectedAccountId == null && list.isNotEmpty) {
-                          _selectedAccountId = list.first.id;
+                        // Rule 2 & 5: When creating new, only show active wallets.
+                        // Rule 4: When editing, only show active wallets + the current one if it's deleted.
+                        final dropdownItems = list.where((a) {
+                          if (!a.isDeleted) return true;
+                          // Rule 4: The deleted wallet should appear only as the currently selected value.
+                          return a.id == _selectedAccountId;
+                        }).toList();
+
+                        if (_selectedAccountId == null && dropdownItems.isNotEmpty) {
+                          _selectedAccountId = dropdownItems.first.id;
                         }
+
                         return DropdownButtonFormField<int>(
                           value: _selectedAccountId,
+                          isExpanded: true,
                           decoration: InputDecoration(
                             labelText: 'account_label'.tr(),
                             prefixIcon: const Icon(Icons.account_balance_wallet),
                             border: const OutlineInputBorder(),
                           ),
-                          items: list
+                          items: dropdownItems
                               .map(
                                 (a) => DropdownMenuItem<int>(
                                   value: a.id,
                                   child: Text(
-                                    '${a.name} (${NumberFormat('#,###', context.locale.toString()).format(a.balance)}đ)',
+                                    '${a.name}${a.isDeleted ? " (${'deleted_label'.tr()})" : ""} (${NumberFormat('#,###', context.locale.toString()).format(a.balance)}đ)',
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               )

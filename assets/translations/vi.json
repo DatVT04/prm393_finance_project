@@ -55,7 +55,7 @@
   "customer": "Khách hàng",
   "today_summary": "Tổng quan hôm nay",
   "no_entries_today": "Hôm nay bạn chưa ghi chi tiêu nào",
-  "add_entry_hint": "Nhấn nút (+) hoặc (★) để thêm nhanh.",
+  "add_entry_hint": "Nhấn nút (+) để thêm nhanh.",
   "today_flow": "Dòng tiền hôm nay",
   "notes_count": "Số ghi chú",
   "recent_details": "Chi tiết gần nhất",
@@ -63,6 +63,7 @@
   "error_loading_today": "Không tải được dữ liệu hôm nay",
   "recent_entries": "Ghi chú gần đây",
   "view_all": "Xem tất cả",
+  "search_hint": "Tìm kiếm theo ghi chú / danh mục...",
   "no_entries_hint": "Chưa có ghi chú. Thêm từ tab Ghi chú.",
   "error_loading_data": "Không tải được dữ liệu",
   "error": "Lỗi",
@@ -210,7 +211,7 @@
   "no_accounts_msg": "Bạn chưa có tài khoản nào",
   "add_account_now": "Thêm tài khoản ngay",
   "delete_account_title": "Xóa ví / tài khoản?",
-  "delete_account_msg": "Bạn có chắc muốn xóa \"{}\"? Chỉ xóa được khi ví không còn giao dịch nào.",
+  "delete_account_msg": "Bạn có chắc muốn xóa \"{}\"? Số dư sẽ được đưa về 0 và ví này sẽ được đánh dấu là đã xóa.",
   "account_deleted_msg": "Đã xóa tài khoản",
   "edit": "Sửa",
   "delete": "Xóa",
@@ -255,5 +256,6 @@
   "achieved": "Đã đạt!",
   "progress": "Tiến độ",
   "over_budget": "Vượt ngân sách",
-  "over_target": "Vượt mục tiêu"
+  "over_target": "Vượt mục tiêu",
+  "deleted_label": "đã xóa"
 }

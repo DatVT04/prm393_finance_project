@@ -4,6 +4,7 @@ class AccountModel {
   final double balance;
   final String? iconName;
   final String? colorHex;
+  final bool isDeleted;
 
   AccountModel({
     required this.id,
@@ -11,6 +12,7 @@ class AccountModel {
     required this.balance,
     this.iconName,
     this.colorHex,
+    this.isDeleted = false,
   });
 
   factory AccountModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class AccountModel {
       balance: (json['balance'] as num).toDouble(),
       iconName: json['iconName'] as String?,
       colorHex: json['colorHex'] as String?,
+      isDeleted: json['isDeleted'] as bool? ?? false,
     );
   }
 
@@ -29,6 +32,7 @@ class AccountModel {
       'balance': balance,
       'iconName': iconName,
       'colorHex': colorHex,
+      'isDeleted': isDeleted,
     };
   }
 }

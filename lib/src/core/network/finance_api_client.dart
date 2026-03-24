@@ -8,6 +8,7 @@ import '../models/ai_assistant_response.dart';
 import '../models/category_model.dart';
 import '../models/financial_entry_model.dart';
 import '../models/budget_model.dart';
+import '../error/app_exception.dart';
 
 class FinanceApiClient {
   static final FinanceApiClient _instance = FinanceApiClient._();
@@ -50,14 +51,14 @@ class FinanceApiClient {
       body: jsonEncode({'email': email.trim(), 'password': password}),
     );
     if (res.statusCode == 401) {
-      throw Exception('Email hoặc mật khẩu không đúng');
+      throw AppException('Email hoặc mật khẩu không đúng');
     }
     if (res.statusCode == 403) {
       final body = jsonDecode(res.body);
-      throw Exception(body['message'] ?? 'Tài khoản chưa được kích hoạt');
+      throw AppException(body['message'] ?? 'Tài khoản chưa được kích hoạt');
     }
     if (res.statusCode != 200) {
-      throw Exception('Đăng nhập thất bại: ${res.statusCode}');
+      throw AppException('Đăng nhập thất bại: ${res.statusCode}');
     }
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
@@ -67,7 +68,7 @@ class FinanceApiClient {
       Uri.parse('$_base${ApiConstants.authPath}/verify-account?email=$email&code=$code'),
     );
     if (res.statusCode != 200) {
-      throw Exception(_errorMessage(res.body));
+      throw AppException(_errorMessage(res.body));
     }
   }
 
@@ -76,7 +77,7 @@ class FinanceApiClient {
       Uri.parse('$_base${ApiConstants.authPath}/resend-verification-code?email=$email'),
     );
     if (res.statusCode != 200) {
-      throw Exception(_errorMessage(res.body));
+      throw AppException(_errorMessage(res.body));
     }
   }
 
@@ -90,7 +91,7 @@ class FinanceApiClient {
       }),
     );
     if (res.statusCode != 200) {
-      throw Exception(_errorMessage(res.body));
+      throw AppException(_errorMessage(res.body));
     }
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
@@ -105,7 +106,7 @@ class FinanceApiClient {
       }),
     );
     if (res.statusCode != 200) {
-      throw Exception(res.body.isNotEmpty ? res.body : 'Đổi mật khẩu thất bại: ${res.statusCode}');
+      throw AppException(res.body.isNotEmpty ? res.body : 'Đổi mật khẩu thất bại: ${res.statusCode}');
     }
   }
 
@@ -118,7 +119,7 @@ class FinanceApiClient {
       }),
     );
     if (res.statusCode != 200) {
-      throw Exception(_errorMessage(res.body));
+      throw AppException(_errorMessage(res.body));
     }
   }
 
@@ -140,7 +141,7 @@ class FinanceApiClient {
       Uri.parse('$_base${ApiConstants.authPath}/forgot-password?email=$email'),
     );
     if (res.statusCode != 200) {
-      throw Exception(_errorMessage(res.body));
+      throw AppException(_errorMessage(res.body));
     }
   }
 
@@ -154,7 +155,7 @@ class FinanceApiClient {
       }),
     );
     if (res.statusCode != 200) {
-      throw Exception(_errorMessage(res.body));
+      throw AppException(_errorMessage(res.body));
     }
   }
 
@@ -204,7 +205,7 @@ class FinanceApiClient {
       body: jsonEncode(category.toCreateJson()),
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception(
+      throw AppException(
         res.body.isNotEmpty
             ? res.body
             : 'Failed to create category: ${res.statusCode}',
@@ -237,9 +238,11 @@ class FinanceApiClient {
       throw Exception('Failed to delete category: ${res.statusCode}');
   }
 
-  Future<List<AccountModel>> getAccounts() async {
+  Future<List<AccountModel>> getAccounts({bool includeDeleted = false}) async {
+    final uri = Uri.parse('$_base${ApiConstants.accountsPath}')
+        .replace(queryParameters: {'includeDeleted': includeDeleted.toString()});
     final res = await http.get(
-      Uri.parse('$_base${ApiConstants.accountsPath}'),
+      uri,
       headers: _userHeaders,
     );
     if (res.statusCode != 200)
@@ -257,11 +260,7 @@ class FinanceApiClient {
       body: jsonEncode({'name': name, 'balance': balance}),
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception(
-        res.body.isNotEmpty
-            ? res.body
-            : 'Failed to create account: ${res.statusCode}',
-      );
+      throw AppException(_errorMessage(res.body));
     }
     return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -277,11 +276,7 @@ class FinanceApiClient {
       body: jsonEncode({'name': name, 'balance': balance}),
     );
     if (res.statusCode != 200) {
-      throw Exception(
-        res.body.isNotEmpty
-            ? res.body
-            : 'Failed to update account: ${res.statusCode}',
-      );
+      throw AppException(_errorMessage(res.body));
     }
     return AccountModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
