@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/core/constants/app_constants.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -40,18 +41,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         _isLoading = false;
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('verification_code_sent'.tr())),
+      ToastNotification.show(
+        context,
+        'verification_code_sent'.tr(),
+        status: ToastStatus.info,
       );
     } catch (e) {
       setState(() => _isLoading = false);
       if (!mounted) return;
       final msg = e.toString().replaceFirst('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+      ToastNotification.show(
+        context,
+        msg,
+        status: ToastStatus.error,
       );
     }
   }
@@ -65,19 +67,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         _newPasswordController.text,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('reset_pass_success'.tr()),
-          backgroundColor: Colors.green,
-        ),
+      ToastNotification.show(
+        context,
+        'reset_pass_success'.tr(),
+        status: ToastStatus.success,
       );
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _isLoading = false);
       if (!mounted) return;
       final msg = e.toString().replaceFirst('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red),
+      ToastNotification.show(
+        context,
+        msg,
+        status: ToastStatus.error,
       );
     }
   }

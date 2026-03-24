@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class AddAccountModal extends ConsumerStatefulWidget {
   /// Nếu có thì đang sửa; null thì thêm mới.
@@ -129,13 +130,10 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      ToastNotification.show(
+        context,
+        e.toString(),
+        status: ToastStatus.error,
       );
     } finally {
       if (mounted) setState(() => _saving = false);

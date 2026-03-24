@@ -6,6 +6,7 @@ import 'package:prm393_finance_project/src/core/state/app_state.dart';
 
 import 'package:prm393_finance_project/src/features/auth/verification_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -66,11 +67,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade700,
-        ),
+      ToastNotification.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        status: ToastStatus.error,
       );
     }
   }

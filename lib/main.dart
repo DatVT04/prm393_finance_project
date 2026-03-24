@@ -10,6 +10,7 @@ import 'src/layout/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'src/core/network/finance_api_client.dart';
+import 'src/shared/widgets/toast_notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,8 @@ class FinanceApp extends ConsumerWidget {
         error: (_, __) => const LoginScreen(),
         data: (userId) => userId != null ? MainLayout() : const LoginScreen(),
       ),
+
+      builder: (context, child) => ToastHost(child: child ?? const SizedBox.shrink()),
 
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

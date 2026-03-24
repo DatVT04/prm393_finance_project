@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 import '../../../core/models/budget_model.dart';
 import '../../../core/models/category_model.dart';
@@ -59,8 +60,11 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
         refreshBudgets(ref);
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('${'error'.tr()}: $e')));
+        ToastNotification.show(
+          context,
+          '${'error'.tr()}: $e',
+          status: ToastStatus.error,
+        );
       }
     }
   }

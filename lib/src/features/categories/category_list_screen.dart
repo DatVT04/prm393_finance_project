@@ -7,6 +7,7 @@ import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 import 'add_category_modal.dart';
 
@@ -230,30 +231,27 @@ class CategoryListScreen extends ConsumerWidget {
       final client = ref.read(apiClientProvider);
       if (existing != null) {
         await client.updateCategory(existing.id, result);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('category_updated_msg'.tr()),
-            backgroundColor: Colors.green,
-          ),
+        ToastNotification.show(
+          context,
+          'category_updated_msg'.tr(),
+          status: ToastStatus.success,
         );
       } else {
         await client.createCategory(result);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('category_added_msg'.tr()),
-            backgroundColor: Colors.green,
-          ),
+        ToastNotification.show(
+          context,
+          'category_added_msg'.tr(),
+          status: ToastStatus.success,
         );
       }
       refreshCategories(ref);
       refreshEntries(ref);
       refreshAccounts(ref);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$e'),
-          backgroundColor: Colors.red,
-        ),
+      ToastNotification.show(
+        context,
+        '$e',
+        status: ToastStatus.error,
       );
     }
   }
@@ -291,19 +289,17 @@ class CategoryListScreen extends ConsumerWidget {
       refreshEntries(ref);
       refreshAccounts(ref);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('category_deleted_msg'.tr()),
-          backgroundColor: Colors.green,
-        ),
+      ToastNotification.show(
+        context,
+        'category_deleted_msg'.tr(),
+        status: ToastStatus.success,
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$e'),
-          backgroundColor: Colors.red,
-        ),
+      ToastNotification.show(
+        context,
+        '$e',
+        status: ToastStatus.error,
       );
     }
   }
@@ -343,4 +339,3 @@ class CategoryListScreen extends ConsumerWidget {
     );
   }
 }
-

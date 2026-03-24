@@ -13,6 +13,7 @@ import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 import '../providers/finance_providers.dart';
 
 /// Optional prefill from AI Quick Entry (OCR, voice, clipboard).
@@ -221,8 +222,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       _resolvingLocation = false;
     });
     if (showError && name == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('location_name_unavailable'.tr())),
+      ToastNotification.show(
+        context,
+        'location_name_unavailable'.tr(),
+        status: ToastStatus.warning,
       );
     }
   }
@@ -231,9 +234,11 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     final ok = await Geolocator.isLocationServiceEnabled();
     if (!ok) {
       if (mounted) {
-        ScaffoldMessenger.of(
+        ToastNotification.show(
           context,
-        ).showSnackBar(SnackBar(content: Text('enable_location_msg'.tr())));
+          'enable_location_msg'.tr(),
+          status: ToastStatus.warning,
+        );
       }
       return;
     }
@@ -249,9 +254,11 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       await _resolveLocationName(pos.latitude, pos.longitude);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
+        ToastNotification.show(
           context,
-        ).showSnackBar(SnackBar(content: Text('${'error_getting_location'.tr()}: $e')));
+          '${'error_getting_location'.tr()}: $e',
+          status: ToastStatus.error,
+        );
       }
     }
   }
@@ -289,23 +296,29 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
     }
 
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(
+      ToastNotification.show(
         context,
-      ).showSnackBar(SnackBar(content: Text('category_required'.tr())));
+        'category_required'.tr(),
+        status: ToastStatus.warning,
+      );
       return;
     }
     if (_selectedAccountId == null) {
-      ScaffoldMessenger.of(
+      ToastNotification.show(
         context,
-      ).showSnackBar(SnackBar(content: Text('account_required'.tr())));
+        'account_required'.tr(),
+        status: ToastStatus.warning,
+      );
       return;
     }
 
     final amount = _parseAmount(_amountController.text.trim());
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(
+      ToastNotification.show(
         context,
-      ).showSnackBar(SnackBar(content: Text('amount_invalid'.tr())));
+        'amount_invalid'.tr(),
+        status: ToastStatus.warning,
+      );
       return;
     }
 
@@ -360,11 +373,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       refreshEntries(ref);
       refreshAccounts(ref);
       Navigator.of(context).pop(result);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('entry_saved_msg'.tr()),
-          backgroundColor: Colors.green,
-        ),
+      ToastNotification.show(
+        context,
+        'entry_saved_msg'.tr(),
+        status: ToastStatus.success,
       );
     } catch (e) {
       if (!mounted) return;
@@ -386,8 +398,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
         );
         // Không đóng modal, user có thể đổi ví ngay trên form và lưu lại
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $msg'), backgroundColor: Colors.red),
+        ToastNotification.show(
+          context,
+          'Lỗi: $msg',
+          status: ToastStatus.error,
         );
       }
     } finally {

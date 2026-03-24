@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/services/export_service.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 import '../transactions/providers/finance_providers.dart';
 import 'widgets/category_breakdown_list.dart';
 import 'widgets/expenses_pie_chart.dart';
@@ -76,8 +77,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
               final list = _filterByPeriod(all);
               if (list.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('no_data_to_export'.tr())),
+                ToastNotification.show(
+                  context,
+                  'no_data_to_export'.tr(),
+                  status: ToastStatus.warning,
                 );
                 return;
               }
@@ -95,15 +98,16 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   await ExportService.exportToPdf(list, sharePositionOrigin: position);
                 }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Export thành công')),
+                ToastNotification.show(
+                  context,
+                  'Export thành công',
+                  status: ToastStatus.success,
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Export error: $e'),
-                    backgroundColor: Colors.red,
-                  ),
+                ToastNotification.show(
+                  context,
+                  'Export error: $e',
+                  status: ToastStatus.error,
                 );
               }
             },

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   final String email;
@@ -32,19 +33,20 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
             _codeController.text.trim().toUpperCase(),
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('activation_success'.tr()),
-          backgroundColor: Colors.green,
-        ),
+      ToastNotification.show(
+        context,
+        'activation_success'.tr(),
+        status: ToastStatus.success,
       );
       Navigator.of(context).pop(true); // Return true to indicate success
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
       final msg = e.toString().replaceFirst('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red),
+      ToastNotification.show(
+        context,
+        msg,
+        status: ToastStatus.error,
       );
     }
   }
@@ -55,15 +57,19 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       await ref.read(apiClientProvider).resendVerificationCode(widget.email);
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('verification_code_sent'.tr())),
+      ToastNotification.show(
+        context,
+        'verification_code_sent'.tr(),
+        status: ToastStatus.info,
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
       final msg = e.toString().replaceFirst('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red),
+      ToastNotification.show(
+        context,
+        msg,
+        status: ToastStatus.error,
       );
     }
   }

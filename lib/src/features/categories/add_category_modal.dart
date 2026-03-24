@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class AddCategoryModal extends StatefulWidget {
@@ -288,8 +289,10 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
   void _onSubmit() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('category_required'.tr())),
+      ToastNotification.show(
+        context,
+        'category_required'.tr(),
+        status: ToastStatus.warning,
       );
       return;
     }
@@ -305,4 +308,3 @@ class _AddCategoryModalState extends State<AddCategoryModal> {
     Navigator.of(context).pop(category);
   }
 }
-

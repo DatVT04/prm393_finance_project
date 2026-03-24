@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' hide ChangeNotifierProvider;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -50,13 +51,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final url = await ref.read(apiClientProvider).uploadAvatar(bytes, x.name);
       await ref.read(currentUserIdProvider.notifier).updateAvatar(url);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('avatar_updated_msg'.tr())),
+      ToastNotification.show(
+        context,
+        'avatar_updated_msg'.tr(),
+        status: ToastStatus.success,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
+      ToastNotification.show(
+        context,
+        'Lỗi: $e',
+        status: ToastStatus.error,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -92,11 +97,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     : () async {
                         final newName = controller.text.trim();
                         if (newName.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('display_name_required'.tr()),
-                              backgroundColor: Colors.red,
-                            ),
+                          ToastNotification.show(
+                            context,
+                            'display_name_required'.tr(),
+                            status: ToastStatus.warning,
                           );
                           return;
                         }
@@ -106,20 +110,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           await ref.read(currentUserIdProvider.notifier).updateDisplayName(newName);
                           if (!mounted) return;
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('name_updated_msg'.tr()),
-                              backgroundColor: Colors.green,
-                            ),
+                          ToastNotification.show(
+                            context,
+                            'name_updated_msg'.tr(),
+                            status: ToastStatus.success,
                           );
                         } catch (e) {
                           if (!mounted) return;
                           setState(() => isSaving = false);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Lỗi: $e'),
-                              backgroundColor: Colors.red,
-                            ),
+                          ToastNotification.show(
+                            context,
+                            'Lỗi: $e',
+                            status: ToastStatus.error,
                           );
                         }
                       },
@@ -410,18 +412,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     .updatePassword(oldPassCtrl.text, newPassCtrl.text);
                 if (!mounted) return;
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('pass_updated_msg'.tr()),
-                    backgroundColor: Colors.green,
-                  ),
+                ToastNotification.show(
+                  context,
+                  'pass_updated_msg'.tr(),
+                  status: ToastStatus.success,
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Lỗi: $e'),
-                    backgroundColor: theme.colorScheme.error,
-                  ),
+                ToastNotification.show(
+                  context,
+                  'Lỗi: $e',
+                  status: ToastStatus.error,
                 );
               }
             },

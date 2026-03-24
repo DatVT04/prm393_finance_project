@@ -13,6 +13,7 @@ import 'package:prm393_finance_project/src/features/auth/forgot_password_screen.
 import 'package:prm393_finance_project/src/features/auth/verification_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/layout/main_layout.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -70,11 +71,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: Colors.red.shade700,
-        ),
+      ToastNotification.show(
+        context,
+        errorMsg,
+        status: ToastStatus.error,
       );
     }
   }
@@ -114,11 +114,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Google Login Error: \${e.toString()}'),
-          backgroundColor: Colors.red.shade700,
-        ),
+      ToastNotification.show(
+        context,
+        'Google Login Error: \${e.toString()}',
+        status: ToastStatus.error,
       );
     }
   }

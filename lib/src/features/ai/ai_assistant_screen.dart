@@ -14,6 +14,7 @@ import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/features/budgets/providers/budget_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
   const AiAssistantScreen({super.key});
@@ -210,11 +211,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     );
     if (!mounted) return;
     if (!available) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('mic_permission_error'.tr()),
-          backgroundColor: Colors.red,
-        ),
+      ToastNotification.show(
+        context,
+        'mic_permission_error'.tr(),
+        status: ToastStatus.error,
       );
       return;
     }
@@ -247,9 +247,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     } catch (_) {}
     if (!mounted) return;
     if (accounts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('select_wallet_hint'.tr())),
-      );
+      ToastNotification.show(context, 'select_wallet_hint'.tr());
       return;
     }
 
@@ -491,8 +489,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       _pendingMessageForAccount = null;
     });
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('new_chat_started'.tr())),
+      ToastNotification.show(
+        context,
+        'new_chat_started'.tr(),
+        status: ToastStatus.success,
       );
     }
   }

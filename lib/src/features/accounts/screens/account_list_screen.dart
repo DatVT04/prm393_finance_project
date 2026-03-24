@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 import '../widgets/add_account_modal.dart';
 
 class AccountListScreen extends ConsumerWidget {
@@ -209,21 +210,17 @@ class AccountListScreen extends ConsumerWidget {
       await ref.read(apiClientProvider).deleteAccount(account.id);
       if (!context.mounted) return;
       refreshAccounts(ref);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('account_deleted_msg'.tr()),
-          backgroundColor: Colors.green,
-        ),
+      ToastNotification.show(
+        context,
+        'account_deleted_msg'.tr(),
+        status: ToastStatus.success,
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      ToastNotification.show(
+        context,
+        e.toString(),
+        status: ToastStatus.error,
       );
     }
   }
