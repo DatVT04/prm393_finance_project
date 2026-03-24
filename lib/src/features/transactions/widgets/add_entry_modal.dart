@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -204,11 +206,28 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   Future<String?> _reverseGeocode(double lat, double lon) async {
     try {
       final placemarks = await placemarkFromCoordinates(lat, lon);
-      if (placemarks.isEmpty) return null;
-      return _formatPlacemark(placemarks.first);
+      if (placemarks.isNotEmpty) {
+        final name = _formatPlacemark(placemarks.first);
+        if (name != null && name.isNotEmpty) return name;
+      }
     } catch (_) {
-      return null;
+      // Fallback
     }
+
+    try {
+      final url = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon');
+      final response = await http.get(url, headers: {'User-Agent': 'FinanceApp/1.0.0'});
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final displayName = data['display_name'];
+        if (displayName != null) {
+          return displayName as String;
+        }
+      }
+    } catch (_) {
+      // ignore
+    }
+    return null;
   }
 
   Future<void> _resolveLocationName(
