@@ -8,6 +8,7 @@ class FinancialEntryModel {
   final String? imageUrl;
   final double? latitude;
   final double? longitude;
+  final String? locationName;
   final String type; // INCOME, EXPENSE
   final int accountId;
   final String? source;
@@ -29,6 +30,7 @@ class FinancialEntryModel {
     this.imageUrl,
     this.latitude,
     this.longitude,
+    this.locationName,
     required this.type,
     required this.accountId,
     this.source,
@@ -50,6 +52,7 @@ class FinancialEntryModel {
       imageUrl: json['imageUrl'] as String?,
       latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
       longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      locationName: json['locationName'] as String?,
       type: json['type'] as String? ?? 'EXPENSE',
       accountId: json['accountId'] as int? ?? 1,
       source: json['source'] as String?,
@@ -72,6 +75,7 @@ class FinancialEntryModel {
       if (imageUrl != null && imageUrl!.isNotEmpty) 'imageUrl': imageUrl,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (locationName != null && locationName!.isNotEmpty) 'locationName': locationName,
       if (source != null && source!.isNotEmpty) 'source': source,
     };
   }

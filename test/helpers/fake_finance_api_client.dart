@@ -17,26 +17,28 @@ class FakeFinanceApiClient implements FinanceApiClient {
   }) : fakeEntries =
            entries ??
            [
-             FinancialEntryModel(
-               id: 1,
-               amount: 50000,
-               categoryId: 1,
-               categoryName: 'Ăn uống',
-               transactionDate: DateTime(2025, 3, 15),
-               type: 'EXPENSE',
-               accountId: 1,
-               note: 'Bữa trưa',
-             ),
-             FinancialEntryModel(
-               id: 2,
-               amount: 1000000,
-               categoryId: 2,
-               categoryName: 'Lương',
-               transactionDate: DateTime(2025, 3, 1),
-               type: 'INCOME',
-               accountId: 1,
-               note: 'Lương tháng 3',
-             ),
+            FinancialEntryModel(
+              id: 1,
+              amount: 50000,
+              categoryId: 1,
+              categoryName: 'Ăn uống',
+              transactionDate: DateTime(2025, 3, 15),
+              type: 'EXPENSE',
+              accountId: 1,
+              note: 'Bữa trưa',
+              locationName: 'Quán cơm gần nhà',
+            ),
+            FinancialEntryModel(
+              id: 2,
+              amount: 1000000,
+              categoryId: 2,
+              categoryName: 'Lương',
+              transactionDate: DateTime(2025, 3, 1),
+              type: 'INCOME',
+              accountId: 1,
+              note: 'Lương tháng 3',
+              locationName: 'Ngân hàng Vietcombank',
+            ),
            ],
        fakeAccounts =
            accounts ??
@@ -92,6 +94,7 @@ class FakeFinanceApiClient implements FinanceApiClient {
       type: entry.type,
       accountId: entry.accountId,
       note: entry.note,
+      locationName: entry.locationName,
     );
     fakeEntries.add(newEntry);
     return newEntry;
@@ -113,6 +116,7 @@ class FakeFinanceApiClient implements FinanceApiClient {
       type: entry.type,
       accountId: entry.accountId,
       note: entry.note,
+      locationName: entry.locationName,
     );
     fakeEntries[idx] = updated;
     return updated;

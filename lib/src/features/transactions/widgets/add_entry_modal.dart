@@ -129,9 +129,12 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       _existingImageUrl = e.imageUrl;
       _latitude = e.latitude;
       _longitude = e.longitude;
+      _locationName = e.locationName;
       if (_latitude != null && _longitude != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _resolveLocationName(_latitude!, _longitude!, showError: false);
+          if (_locationName == null) {
+            _resolveLocationName(_latitude!, _longitude!, showError: false);
+          }
         });
       }
     } else if (p != null) {
@@ -348,6 +351,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       imageUrl: _imagePath == null ? _existingImageUrl : null,
       latitude: _latitude,
       longitude: _longitude,
+      locationName: _locationName,
       source: widget.prefill?.source ?? 'MANUAL',
     );
 
@@ -616,7 +620,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                       ),
                     ),
                     TextButton.icon(
-                      onPressed: _latitude == null ? _pickLocation : null,
+                      onPressed: _pickLocation,
                       icon: Icon(
                         _latitude != null
                             ? Icons.location_on

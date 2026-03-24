@@ -15,6 +15,7 @@ void main() {
         'transactionDate': '2025-03-15T00:00:00.000',
         'type': 'EXPENSE',
         'accountId': 1,
+        'locationName': 'Phố đi bộ',
       };
       final m = FinancialEntryModel.fromJson(json);
       expect(m.id, 1);
@@ -27,6 +28,7 @@ void main() {
       expect(m.transactionDate.year, 2025);
       expect(m.transactionDate.month, 3);
       expect(m.transactionDate.day, 15);
+      expect(m.locationName, 'Phố đi bộ');
     });
 
 
@@ -39,6 +41,7 @@ void main() {
         type: 'EXPENSE',
         accountId: 1,
         note: 'Note',
+        locationName: 'Hoàn Kiếm',
       );
       final json = m.toCreateJson();
       expect(json['amount'], 100000);
@@ -47,6 +50,7 @@ void main() {
       expect(json['type'], 'EXPENSE');
       expect(json['note'], 'Note');
       expect(json['transactionDate'], '2025-03-15');
+      expect(json['locationName'], 'Hoàn Kiếm');
     });
   });
 
