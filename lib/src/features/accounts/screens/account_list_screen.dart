@@ -6,6 +6,7 @@ import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 import '../widgets/add_account_modal.dart';
 
 class AccountListScreen extends ConsumerWidget {
@@ -14,7 +15,6 @@ class AccountListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accountsAsync = ref.watch(accountsProvider);
-    final currency = NumberFormat('#,###', context.locale.toString());
 
     return Scaffold(
       appBar: AppBar(
@@ -33,7 +33,14 @@ class AccountListScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.account_balance_wallet_outlined, size: 64, color: Colors.grey[400]),
+                   Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.account_balance_wallet_outlined, size: 64, color: Colors.grey[400]),
+                  ),
                   const SizedBox(height: 16),
                   Text('no_accounts_msg'.tr()),
                   const SizedBox(height: 8),
@@ -81,7 +88,7 @@ class AccountListScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${currency.format(totalBalance)} đ',
+                      CurrencyFormatter.format(context, totalBalance),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -120,7 +127,7 @@ class AccountListScreen extends ConsumerWidget {
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         subtitle: Text(
-                          '${currency.format(account.balance)} đ',
+                          CurrencyFormatter.format(context, account.balance),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,

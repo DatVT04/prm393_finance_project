@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 import '../../transactions/providers/finance_providers.dart';
 import '../../transactions/widgets/add_entry_modal.dart';
 
@@ -17,7 +18,6 @@ class RecentTransactionsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
-    final nf = NumberFormat('#,###', context.locale.toString());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +65,6 @@ class RecentTransactionsList extends ConsumerWidget {
                 final e = recent[index];
                 final dateStr = DateFormat('dd/MM', context.locale.toString()).format(e.transactionDate);
                 final color = IconUtils.getColor(e.categoryColorHex, defaultColor: Colors.blue);
-                final icon = IconUtils.getIconData(e.categoryIconName);
                 return InkWell(
                   onTap: () async {
                     final updated = await showModalBottomSheet<FinancialEntryModel>(
@@ -121,7 +120,7 @@ class RecentTransactionsList extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          '${e.type == 'INCOME' ? '+' : '-'}${nf.format(e.amount)} đ',
+                          '${e.type == 'INCOME' ? '+' : '-'}${CurrencyFormatter.format(context, e.amount)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,

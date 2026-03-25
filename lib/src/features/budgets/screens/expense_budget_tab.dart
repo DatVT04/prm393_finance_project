@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 import '../../../core/models/budget_model.dart';
 import '../../../core/models/category_model.dart';
 import '../../../core/network/finance_api_client.dart';
 import '../../transactions/providers/finance_providers.dart';
+import '../../../core/utils/icon_utils.dart';
 import '../providers/budget_providers.dart';
 import '../widgets/add_budget_dialog.dart';
 
@@ -115,7 +117,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
                       final spent = _getSpentAmount(b.categoryId, entries);
                       final cat =
                           cats.where((c) => c.id == b.categoryId).firstOrNull;
-                      return _buildBudgetCard(b, spent, cat?.name ?? 'Unknown');
+                      return _buildBudgetCard(b, spent, cat);
                     },
                   ),
                   loading: () =>
@@ -201,7 +203,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
     );
   }
 
-  Widget _buildBudgetCard(BudgetModel b, double spent, String catName) {
+  Widget _buildBudgetCard(BudgetModel b, double spent, CategoryModel? cat) {
     final double percent = (spent / b.amount).clamp(0.0, 1.0);
     final bool isOver = spent > b.amount;
     final color =
@@ -219,19 +221,40 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(catName,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Row(
+                    children: [
+                      if (cat != null) ...[
+                        IconUtils.buildIcon(
+                          cat.iconName,
+                          categoryName: cat.name,
+                          color: IconUtils.getColor(cat.colorHex),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        child: Text(
+                          cat?.displayName.tr() ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Row(
                   children: [
                     IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 20),
-                        onPressed: () => _addOrEdit(b)),
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      onPressed: () => _addOrEdit(b),
+                    ),
                     IconButton(
-                        icon: const Icon(Icons.delete_outline,
-                            size: 20, color: Colors.red),
-                        onPressed: () => _delete(b)),
+                      icon: const Icon(Icons.delete_outline,
+                          size: 20, color: Colors.red),
+                      onPressed: () => _delete(b),
+                    ),
                   ],
                 ),
               ],
@@ -249,7 +272,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${NumberFormat("#,###").format(spent)} / ${NumberFormat("#,###").format(b.amount)} đ',
+                  '${CurrencyFormatter.format(context, spent)} / ${CurrencyFormatter.format(context, b.amount)}',
                   style: TextStyle(fontWeight: FontWeight.bold, color: color),
                 ),
                 Text(
@@ -262,7 +285,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  '⚠️ ${'over_budget'.tr()} ${NumberFormat("#,###").format(spent - b.amount)} đ',
+                  '⚠️ ${'over_budget'.tr()} ${CurrencyFormatter.format(context, spent - b.amount)}',
                   style: const TextStyle(
                       color: Colors.red,
                       fontSize: 13,

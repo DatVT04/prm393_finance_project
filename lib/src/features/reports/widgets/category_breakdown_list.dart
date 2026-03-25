@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 import '../models/category_report_data.dart';
 
 class CategoryBreakdownList extends StatelessWidget {
@@ -40,11 +41,7 @@ class CategoryBreakdownList extends StatelessWidget {
             final percent = total > 0 ? e.totalAmount / total : 0.0;
             final color = IconUtils.getColor(e.colorHex);
             
-            final amountStr = NumberFormat.currency(
-              locale: 'vi_VN',
-              symbol: 'đ',
-              decimalDigits: 0,
-            ).format(e.totalAmount);
+            final amountStr = CurrencyFormatter.format(context, e.totalAmount);
 
             return Row(
               children: [

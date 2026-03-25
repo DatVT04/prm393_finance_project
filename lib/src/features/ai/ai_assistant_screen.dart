@@ -15,6 +15,7 @@ import 'package:prm393_finance_project/src/features/ai/ai_chat_persistence.dart'
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/features/budgets/providers/budget_providers.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
   const AiAssistantScreen({super.key});
@@ -251,7 +252,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       return;
     }
 
-    final nf = NumberFormat('#,###', context.locale.toString());
     final selected = await showModalBottomSheet<AccountModel>(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
@@ -268,7 +268,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             leading: Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.primary),
             title: Text(account.name, style: Theme.of(context).textTheme.titleMedium),
             subtitle: Text(
-              '${'balance_label'.tr()}: ${nf.format(account.balance)} đ',
+              '${'balance_label'.tr()}: ${CurrencyFormatter.format(context, account.balance)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             onTap: () => Navigator.of(ctx).pop(account),

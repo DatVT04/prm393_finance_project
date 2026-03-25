@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/features/dashboard/providers/dashboard_providers.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 class TotalBalanceCard extends ConsumerWidget {
   const TotalBalanceCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = NumberFormat('#,###', context.locale.toString());
-
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
     final accountsAsync = ref.watch(accountsProvider);
 
@@ -50,8 +48,7 @@ class TotalBalanceCard extends ConsumerWidget {
     final balance = totalBalance;
 
     String formatMoney(double value) {
-      final rounded = value.round();
-      return '${currency.format(rounded)} đ';
+      return CurrencyFormatter.format(context, value);
     }
 
     return Container(

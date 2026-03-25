@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
@@ -65,9 +66,12 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
   }
 
   String _formatMoney(double v) {
-    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}tr';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}k';
-    return v.toInt().toString();
+    if (context.locale.languageCode == 'vi') {
+      if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}tr';
+      if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}k';
+      return v.toInt().toString();
+    }
+    return CurrencyFormatter.format(context, v);
   }
 
   void _openAddModal(AddEntryInput prefill, {DateTime? initialDate}) {
@@ -103,7 +107,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
     if (!available) {
       ToastNotification.show(
         context,
-        'Không thể truy cập micro. Hãy cấp quyền ghi âm (Microphone) cho ứng dụng.',
+        'mic_permission_error'.tr(),
         status: ToastStatus.error,
       );
       return;
@@ -116,7 +120,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 3),
       partialResults: true,
-      localeId: 'vi_VN',
+      localeId: context.locale.languageCode == 'vi' ? 'vi_VN' : 'en_US',
     );
   }
 
@@ -231,7 +235,7 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
                             },
                             controlAffinity: ListTileControlAffinity.leading,
                             title: Text(
-                              '${_formatMoney(e.amount)} đ',
+                              CurrencyFormatter.format(context, e.amount),
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             subtitle: Column(
@@ -367,8 +371,6 @@ class _AiQuickEntrySheetState extends ConsumerState<AiQuickEntrySheet> {
             ),
             const SizedBox(height: 16),
           ],
-          // Chỉ còn nhập nhanh bằng giọng nói / văn bản + clipboard,
-          // bỏ hoàn toàn chức năng chụp hóa đơn OCR.
           const SizedBox(height: 12),
           TextField(
             controller: _textController,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
+import 'package:prm393_finance_project/src/core/models/schedule_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 
 final apiClientProvider = Provider<FinanceApiClient>((ref) => FinanceApiClient());
@@ -50,4 +51,16 @@ final entriesWithRefreshProvider = entriesProvider;
 /// Use this to refetch entries (e.g. after add/delete). Increment to trigger refresh.
 void refreshEntries(dynamic ref) {
   ref.read(entriesRefreshProvider.notifier).update((int v) => v + 1);
+}
+
+final schedulesRefreshProvider = StateProvider<int>((ref) => 0);
+
+final schedulesProvider = FutureProvider<List<ScheduleModel>>((ref) async {
+  ref.watch(schedulesRefreshProvider);
+  final client = ref.watch(apiClientProvider);
+  return client.getSchedules();
+});
+
+void refreshSchedules(dynamic ref) {
+  ref.read(schedulesRefreshProvider.notifier).update((int v) => v + 1);
 }

@@ -17,6 +17,7 @@ import 'package:prm393_finance_project/src/core/models/financial_entry_model.dar
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 import '../providers/finance_providers.dart';
 
 /// Optional prefill from AI Quick Entry (OCR, voice, clipboard).
@@ -36,6 +37,9 @@ class AddEntryInput {
 }
 
 class CurrencyInputFormatter extends TextInputFormatter {
+  final String locale;
+  CurrencyInputFormatter({required this.locale});
+
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
@@ -45,15 +49,11 @@ class CurrencyInputFormatter extends TextInputFormatter {
       return newValue.copyWith(text: '');
     }
 
-    // Only allow digits and handle specific suffixes 'k', 'tr' if needed,
-    // but typically thousand separators are for pure numbers.
-    // Here we'll handle pure numbers. If they type k/tr, we might want to let it pass or format after.
-    // Let's stick to standard numeric formatting first.
     String text = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (text.isEmpty) return newValue.copyWith(text: '');
 
     double value = double.parse(text);
-    final formatter = NumberFormat('#,###', 'vi_VN');
+    final formatter = NumberFormat('#,###', locale);
     final newText = formatter.format(value);
 
     return newValue.copyWith(
@@ -159,8 +159,6 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   }
 
   String _formatAmount(double v) {
-    // If it's a "clean" number, we can still use k/tr for initial display if we want,
-    // but for the controller with formatter, we should probably use the dotted format.
     final formatter = NumberFormat('#,###', context.locale.toString());
     return formatter.format(v);
   }
@@ -313,8 +311,10 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   }
 
   double? _parseAmount(String s) {
-    s = s.trim().replaceAll('.', '').replaceAll(',', '.').replaceAll(' ', '');
-    // If it ends with k or tr after removing dots
+    final locale = context.locale.toString();
+    final groupSeparator = NumberFormat('#,###', locale).symbols.GROUP_SEP;
+    s = s.trim().replaceAll(groupSeparator, '').replaceAll(',', '.').replaceAll(' ', '');
+    // If it ends with k or tr after removing separators
     if (s.endsWith('k')) {
       final n = double.tryParse(s.substring(0, s.length - 1));
       return n != null ? n * 1000 : null;
@@ -463,6 +463,8 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesWithRefreshProvider);
     final theme = Theme.of(context);
+    final locale = context.locale.toString();
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
@@ -526,11 +528,12 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   decoration: InputDecoration(
                     labelText: 'amount_label'.tr(),
                     prefixIcon: const Icon(Icons.attach_money),
+                    suffixText: CurrencyFormatter.getSymbol(context),
                     border: const OutlineInputBorder(),
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
-                    CurrencyInputFormatter(),
+                    CurrencyInputFormatter(locale: locale),
                   ],
                   keyboardType: TextInputType.number,
                   validator: (v) {
@@ -631,7 +634,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                                 (a) => DropdownMenuItem<int>(
                                   value: a.id,
                                   child: Text(
-                                    '${a.name}${a.isDeleted ? " (${'deleted_label'.tr()})" : ""} (${NumberFormat('#,###', context.locale.toString()).format(a.balance)}đ)',
+                                    '${a.name}${a.isDeleted ? " (${'deleted_label'.tr()})" : ""} (${CurrencyFormatter.format(context, a.balance)})',
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -863,5 +866,4 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       ),
     );
   }
-
 }

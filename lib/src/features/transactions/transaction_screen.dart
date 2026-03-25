@@ -6,10 +6,13 @@ import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 import 'providers/finance_providers.dart';
 import 'widgets/add_entry_modal.dart';
 import 'widgets/ai_quick_entry_sheet.dart';
+
+import 'package:prm393_finance_project/src/features/schedules/screens/scheduler_screen.dart';
 
 class TransactionScreen extends ConsumerStatefulWidget {
   const TransactionScreen({super.key});
@@ -153,6 +156,45 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         title: Text('transactions_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0, top: 8, bottom: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SchedulerScreen()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.event_repeat,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'scheduler_title'.tr(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -345,7 +387,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                             fontSize: 14),
                                       ),
                                       Text(
-                                        '${dailyNet >= 0 ? '+' : '-'}${NumberFormat("#,###", context.locale.toString()).format(dailyNet.abs())} đ',
+                                        '${dailyNet >= 0 ? '+' : '-'}${CurrencyFormatter.format(context, dailyNet.abs())}',
                                         style: TextStyle(
                                             color: dailyNet >= 0 ? Colors.green[700] : Colors.red[700],
                                             fontWeight: FontWeight.bold,
@@ -509,7 +551,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   )
                 : null,
             trailing: Text(
-              '${e.type == 'INCOME' ? '+' : '-'}${NumberFormat("#,###", context.locale.toString()).format(e.amount)} đ',
+              '${e.type == 'INCOME' ? '+' : '-'}${CurrencyFormatter.format(context, e.amount)}',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

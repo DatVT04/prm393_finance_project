@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,18 +7,12 @@ import 'package:prm393_finance_project/src/core/models/account_model.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
-
-class AddAccountModal extends ConsumerStatefulWidget {
-  /// Nếu có thì đang sửa; null thì thêm mới.
-  final AccountModel? accountToEdit;
-
-  const AddAccountModal({super.key, this.accountToEdit});
-
-  @override
-  ConsumerState<AddAccountModal> createState() => _AddAccountModalState();
-}
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
+  final String locale;
+  CurrencyInputFormatter({required this.locale});
+
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
@@ -28,7 +23,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
     if (text.isEmpty) return newValue.copyWith(text: '');
     
     double value = double.parse(text);
-    final formatter = NumberFormat('#,###', 'vi_VN');
+    final formatter = NumberFormat('#,###', locale);
     String newText = formatter.format(value);
 
     return newValue.copyWith(
@@ -36,6 +31,16 @@ class CurrencyInputFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: newText.length),
     );
   }
+}
+
+class AddAccountModal extends ConsumerStatefulWidget {
+  /// Nếu có thì đang sửa; null thì thêm mới.
+  final AccountModel? accountToEdit;
+
+  const AddAccountModal({super.key, this.accountToEdit});
+
+  @override
+  ConsumerState<AddAccountModal> createState() => _AddAccountModalState();
 }
 
 class _AddAccountModalState extends ConsumerState<AddAccountModal> {
@@ -80,16 +85,20 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
   @override
   void initState() {
     super.initState();
-    final a = widget.accountToEdit;
-    if (a != null) {
-      _nameController.text = a.name;
-      _balanceController.text = NumberFormat('#,###', 'vi_VN').format(a.balance);
-      _selectedIconName = a.iconName;
-      _selectedColorHex = a.colorHex;
-    } else {
-      _selectedIconName = 'account_balance_wallet';
-      _selectedColorHex = '#2196F3';
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final a = widget.accountToEdit;
+      final locale = context.locale.toString();
+      if (a != null) {
+        _nameController.text = a.name;
+        _balanceController.text = NumberFormat('#,###', locale).format(a.balance);
+        _selectedIconName = a.iconName;
+        _selectedColorHex = a.colorHex;
+      } else {
+        _selectedIconName = 'account_balance_wallet';
+        _selectedColorHex = '#2196F3';
+      }
+      setState(() {});
+    });
   }
 
   @override
@@ -104,8 +113,16 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
 
     setState(() => _saving = true);
     try {
+      final locale = context.locale.toString();
+      final groupSeparator = NumberFormat('#,###', locale).symbols.GROUP_SEP;
+      final decimalSeparator = NumberFormat('#,###', locale).symbols.DECIMAL_SEP;
+      
       final name = _nameController.text.trim();
-      final balanceStr = _balanceController.text.trim().replaceAll(' ', '').replaceAll('.', '').replaceAll(',', '.');
+      final balanceStr = _balanceController.text.trim()
+          .replaceAll(' ', '')
+          .replaceAll(groupSeparator, '')
+          .replaceAll(decimalSeparator, '.');
+          
       final balance = double.tryParse(balanceStr) ?? 0.0;
       final editing = widget.accountToEdit;
 
@@ -143,11 +160,12 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
   @override
   Widget build(BuildContext context) {
     final color = IconUtils.getColor(_selectedColorHex);
+    final locale = context.locale.toString();
     
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -163,38 +181,39 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                widget.accountToEdit != null ? 'Sửa tài khoản' : 'Thêm tài khoản mới',
+                widget.accountToEdit != null ? 'edit_account_title'.tr() : 'add_account_title'.tr(),
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Tên ví / Tài khoản',
-                  hintText: 'Ví dụ: Ví tiền mặt, Ngân hàng VCB...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.label_outline),
+                decoration: InputDecoration(
+                  labelText: 'account_name_label'.tr(),
+                  hintText: 'account_name_hint'.tr(),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.label_outline),
                 ),
-                validator: (v) => v == null || v.trim().isEmpty ? 'Vui lòng nhập tên' : null,
+                validator: (v) => v == null || v.trim().isEmpty ? 'name_required'.tr() : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _balanceController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Số dư ban đầu',
+                decoration: InputDecoration(
+                  labelText: 'initial_balance_label'.tr(),
                   hintText: '0',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+                  suffixText: CurrencyFormatter.getSymbol(context),
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
-                  CurrencyInputFormatter(),
+                  CurrencyInputFormatter(locale: locale),
                 ],
               ),
               const SizedBox(height: 24),
-              const Text('Chọn Icon', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('choose_icon'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 50,
@@ -226,7 +245,7 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text('Chọn Màu sắc', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('choose_color'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
@@ -270,7 +289,7 @@ class _AddAccountModalState extends ConsumerState<AddAccountModal> {
                 ),
                 child: _saving
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(widget.accountToEdit != null ? 'Cập nhật' : 'Lưu tài khoản'),
+                    : Text(widget.accountToEdit != null ? 'update'.tr() : 'save_account'.tr()),
               ),
               const SizedBox(height: 24),
             ],

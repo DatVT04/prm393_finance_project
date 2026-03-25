@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 import '../../../core/models/budget_model.dart';
 import '../../../core/models/category_model.dart';
 import '../../../core/network/finance_api_client.dart';
 import '../../transactions/providers/finance_providers.dart';
+import '../../../core/utils/icon_utils.dart';
 import '../providers/budget_providers.dart';
 import '../widgets/add_budget_dialog.dart';
 
@@ -116,8 +118,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
                       final earned = _getEarnedAmount(b.categoryId, entries);
                       final cat =
                           cats.where((c) => c.id == b.categoryId).firstOrNull;
-                      return _buildTargetCard(
-                          b, earned, cat?.name ?? 'Unknown');
+                      return _buildTargetCard(b, earned, cat);
                     },
                   ),
                   loading: () =>
@@ -204,7 +205,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
     );
   }
 
-  Widget _buildTargetCard(BudgetModel b, double earned, String catName) {
+  Widget _buildTargetCard(BudgetModel b, double earned, CategoryModel? cat) {
     final double percent = (earned / b.amount).clamp(0.0, 1.0);
     final bool achieved = earned >= b.amount;
     final color = achieved
@@ -223,9 +224,28 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(catName,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Row(
+                    children: [
+                      if (cat != null) ...[
+                        IconUtils.buildIcon(
+                          cat.iconName,
+                          categoryName: cat.name,
+                          color: IconUtils.getColor(cat.colorHex),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        child: Text(
+                          cat?.displayName.tr() ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Row(
                   children: [
@@ -253,7 +273,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${NumberFormat("#,###").format(earned)} / ${NumberFormat("#,###").format(b.amount)} đ',
+                  '${CurrencyFormatter.format(context, earned)} / ${CurrencyFormatter.format(context, b.amount)}',
                   style: TextStyle(fontWeight: FontWeight.bold, color: color),
                 ),
                 Text(
@@ -266,7 +286,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  '🎉 ${'achieved'.tr()} ${'over_target'.tr()} ${NumberFormat("#,###").format(earned - b.amount)} đ',
+                  '🎉 ${'achieved'.tr()} ${'over_target'.tr()} ${CurrencyFormatter.format(context, earned - b.amount)}',
                   style: const TextStyle(
                       color: Colors.green,
                       fontSize: 13,

@@ -8,6 +8,7 @@ import '../models/ai_assistant_response.dart';
 import '../models/category_model.dart';
 import '../models/financial_entry_model.dart';
 import '../models/budget_model.dart';
+import '../models/schedule_model.dart';
 import '../error/app_exception.dart';
 
 class FinanceApiClient {
@@ -478,6 +479,62 @@ class FinanceApiClient {
       headers: _userHeaders,
     );
     if (res.statusCode != 200) throw Exception('Failed to delete budget');
+  }
+
+  Future<List<ScheduleModel>> getSchedules() async {
+    if (_userId == null) throw Exception('User not logged in');
+    final res = await http.get(
+      Uri.parse('$_base/api/schedules/user/$_userId'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to load schedules: ${res.statusCode}');
+    final list = jsonDecode(res.body) as List;
+    return list.map((e) => ScheduleModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<ScheduleModel> createSchedule(ScheduleModel schedule) async {
+    final s = schedule.copyWith(userId: _userId);
+    final res = await http.post(
+      Uri.parse('$_base/api/schedules'),
+      headers: _userHeaders,
+      body: jsonEncode(s.toJson()),
+    );
+    if (res.statusCode != 200 && res.statusCode != 201) throw Exception('Failed to create schedule');
+    return ScheduleModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<ScheduleModel> updateSchedule(int id, ScheduleModel schedule) async {
+    final res = await http.put(
+      Uri.parse('$_base/api/schedules/$id'),
+      headers: _userHeaders,
+      body: jsonEncode(schedule.toJson()),
+    );
+    if (res.statusCode != 200) throw Exception('Failed to update schedule');
+    return ScheduleModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<void> disableSchedule(int id) async {
+    final res = await http.patch(
+      Uri.parse('$_base/api/schedules/$id/disable'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to disable schedule');
+  }
+
+  Future<void> enableSchedule(int id) async {
+    final res = await http.patch(
+      Uri.parse('$_base/api/schedules/$id/enable'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) throw Exception('Failed to enable schedule');
+  }
+
+  Future<void> deleteSchedule(int id) async {
+    final res = await http.delete(
+      Uri.parse('$_base/api/schedules/$id'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 204 && res.statusCode != 200) throw Exception('Failed to delete schedule');
   }
 
   static String _dateStr(DateTime d) =>

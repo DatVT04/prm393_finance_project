@@ -8,6 +8,7 @@ import 'package:prm393_finance_project/src/core/constants/api_constants.dart';
 import 'package:prm393_finance_project/src/features/auth/auth_provider.dart';
 import 'package:prm393_finance_project/src/features/auth/login_screen.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
+import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 import '../../accounts/screens/account_list_screen.dart';
 
 class HomeAppBar extends ConsumerWidget {
@@ -33,7 +34,7 @@ class HomeAppBar extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 12),
+                   const SizedBox(height: 12),
                   const Icon(Icons.error_outline, color: Colors.redAccent, size: 32),
                   const SizedBox(height: 12),
                   Text(
@@ -61,7 +62,6 @@ class HomeAppBar extends ConsumerWidget {
                         .fold<double>(0, (s, e) => s + e.amount);
                     final net = income - expense;
                     final count = selectedEntries.length;
-                    final currency = NumberFormat('#,###', context.locale.toString());
 
                     if (count == 0) {
                       return Column(
@@ -166,7 +166,7 @@ class HomeAppBar extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    '${net >= 0 ? '+' : '-'}${currency.format(net.abs())} đ',
+                                    '${net >= 0 ? '+' : '-'}${CurrencyFormatter.format(context, net.abs())}',
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w600,
@@ -220,7 +220,7 @@ class HomeAppBar extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '${e.type == 'INCOME' ? '+' : '-'}${currency.format(e.amount)} đ',
+                                  '${e.type == 'INCOME' ? '+' : '-'}${CurrencyFormatter.format(context, e.amount)}',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
