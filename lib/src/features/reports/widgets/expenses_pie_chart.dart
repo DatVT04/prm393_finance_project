@@ -26,7 +26,7 @@ class _ExpensesPieChartState extends State<ExpensesPieChart> {
       );
     }
 
-    final total = entries.fold<double>(0, (s, e) => s + e.value);
+    final total = entries.fold<double>(0, (s, e) => s + e.value.totalAmount);
     return SizedBox(
       height: 220,
       child: Row(
