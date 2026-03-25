@@ -113,7 +113,7 @@ class CategoryListScreen extends ConsumerWidget {
                             ),
                             const Spacer(),
                             Text(
-                              c.name,
+                              (c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'other') ? c.name.tr() : c.name,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(

@@ -9,32 +9,7 @@ class ParsedQuickEntry {
 
 class NaturalLanguageParser {
   /// Keywords map to category name (must match backend categories).
-  static const Map<String, String> _categoryKeywords = {
-    'ăn': 'Ăn uống',
-    'phở': 'Ăn uống',
-    'cơm': 'Ăn uống',
-    'bún': 'Ăn uống',
-    'trà sữa': 'Ăn uống',
-    'cafe': 'Ăn uống',
-    'cà phê': 'Ăn uống',
-    'uống': 'Ăn uống',
-    'xăng': 'Xăng xe',
-    'đổ xăng': 'Xăng xe',
-    'gas': 'Xăng xe',
-    'mua': 'Mua sắm',
-    'sắm': 'Mua sắm',
-    'siêu thị': 'Mua sắm',
-    'giải trí': 'Giải trí',
-    'phim': 'Giải trí',
-    'game': 'Giải trí',
-    'y tế': 'Y tế',
-    'thuốc': 'Y tế',
-    'bệnh viện': 'Y tế',
-    'học': 'Giáo dục',
-    'sách': 'Giáo dục',
-    'gửi xe': 'Gửi xe',
-    'parking': 'Gửi xe',
-  };
+  static const Map<String, String> _categoryKeywords = {};
 
   /// Parse text like "Ăn phở 50k" or "Đổ xăng 100k sáng nay". Returns null if no amount found.
   static ParsedQuickEntry? parse(String text) {

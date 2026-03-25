@@ -69,13 +69,6 @@ class IconUtils {
 
   static IconData getIconByDisplayName(String name) {
     switch (name) {
-      case 'Ăn uống': return Icons.restaurant;
-      case 'Xăng xe': return Icons.directions_car;
-      case 'Mua sắm': return Icons.shopping_cart;
-      case 'Giải trí': return Icons.gamepad;
-      case 'Y tế': return Icons.medical_services;
-      case 'Giáo dục': return Icons.school;
-      case 'Gửi xe': return Icons.local_parking;
       case 'Nạp tiền':
       case 'Thu nhập': return Icons.add_circle_outline;
       case 'Khác': return Icons.category;

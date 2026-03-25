@@ -181,7 +181,7 @@ class _CategoryManagementScreenState
                     ),
                   ),
                   title: Text(
-                    c.name,
+                    (c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'other') ? c.name.tr() : c.name,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Column(

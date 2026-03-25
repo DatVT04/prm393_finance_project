@@ -575,7 +575,9 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                           .map(
                             (c) => DropdownMenuItem<int>(
                               value: c.id,
-                              child: Text(c.name),
+                              child: Text(
+                                (c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'other') ? c.name.tr() : c.name,
+                              ),
                             ),
                           )
                           .toList(),
