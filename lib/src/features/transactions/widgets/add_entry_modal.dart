@@ -545,7 +545,14 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   data: (list) {
                     final items = list
                         .where((c) => c.type == _selectedType || c.id == _selectedCategoryId)
-                        .toList();
+                        .toList()
+                      ..sort((a, b) {
+                        final aIsOther = a.name.toLowerCase().contains('khác');
+                        final bIsOther = b.name.toLowerCase().contains('khác');
+                        if (aIsOther && !bIsOther) return 1;
+                        if (!aIsOther && bIsOther) return -1;
+                        return a.name.compareTo(b.name);
+                      });
 
                     if (_selectedCategoryId == null && items.isNotEmpty) {
                       _selectedCategoryId = items.first.id;

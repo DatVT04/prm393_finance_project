@@ -49,10 +49,19 @@ class CategoryListScreen extends ConsumerWidget {
             );
           }
 
+          final sortedList = list.toList()
+            ..sort((a, b) {
+              final aIsOther = a.name.toLowerCase().contains('khác');
+              final bIsOther = b.name.toLowerCase().contains('khác');
+              if (aIsOther && !bIsOther) return -1;
+              if (!aIsOther && bIsOther) return 1;
+              return a.name.compareTo(b.name);
+            });
+
           return Padding(
             padding: const EdgeInsets.all(12),
             child: GridView.builder(
-              itemCount: list.length,
+              itemCount: sortedList.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
@@ -60,7 +69,7 @@ class CategoryListScreen extends ConsumerWidget {
                 childAspectRatio: 1.6,
               ),
               itemBuilder: (context, index) {
-                final c = list[index];
+                final c = sortedList[index];
                 final color = _parseColor(c.colorHex);
                 final icon = _iconFromName(c.iconName);
                 return GestureDetector(

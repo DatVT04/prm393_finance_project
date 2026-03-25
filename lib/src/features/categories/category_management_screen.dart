@@ -146,11 +146,21 @@ class _CategoryManagementScreenState
               ),
             );
           }
+
+          final sortedList = list.toList()
+            ..sort((a, b) {
+              final aIsOther = a.name.toLowerCase().contains('khác');
+              final bIsOther = b.name.toLowerCase().contains('khác');
+              if (aIsOther && !bIsOther) return -1;
+              if (!aIsOther && bIsOther) return 1;
+              return a.name.compareTo(b.name);
+            });
+
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: list.length,
+            itemCount: sortedList.length,
             itemBuilder: (context, index) {
-              final c = list[index];
+              final c = sortedList[index];
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(

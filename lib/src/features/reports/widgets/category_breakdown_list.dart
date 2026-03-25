@@ -62,7 +62,10 @@ class CategoryBreakdownList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(e.key.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text(
+                            (e.key.toLowerCase() == 'khác' || e.key.toLowerCase() == 'other') ? e.key.tr() : e.key, 
+                            style: const TextStyle(fontWeight: FontWeight.w600)
+                          ),
                           Text(amountStr, style: const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
