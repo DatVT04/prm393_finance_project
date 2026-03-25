@@ -10,6 +10,7 @@ class CategoryBreakdownList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.locale;
     final entries = data.entries.toList()
       ..sort((a, b) => b.value.totalAmount.compareTo(a.value.totalAmount));
     final total = entries.fold<double>(0, (s, e) => s + e.value.totalAmount);
@@ -23,35 +24,41 @@ class CategoryBreakdownList extends StatelessWidget {
       children: [
         Text(
           'spending_details'.tr(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: entries.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          separatorBuilder: (_, __) => Divider(height: 32, color: Colors.grey.shade100),
           itemBuilder: (context, index) {
             final e = entries[index].value;
             final percent = total > 0 ? e.totalAmount / total : 0.0;
             final color = IconUtils.getColor(e.colorHex);
-            final amountStr = '${(e.totalAmount).toStringAsFixed(0).replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                  (m) => '${m[1]},',
-                )} đ';
+            
+            final amountStr = NumberFormat.currency(
+              locale: 'vi_VN',
+              symbol: 'đ',
+              decimalDigits: 0,
+            ).format(e.totalAmount);
+
             return Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    shape: BoxShape.circle,
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: IconUtils.buildIcon(
                     e.iconName,
                     categoryName: e.name,
                     color: color,
-                    size: 20,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -63,18 +70,52 @@ class CategoryBreakdownList extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            e.displayName.tr(), 
-                            style: const TextStyle(fontWeight: FontWeight.w600)
+                            e.displayName.tr(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Color(0xFF2D3243),
+                            ),
                           ),
-                          Text(amountStr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            amountStr,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: percent,
-                        color: color,
-                        backgroundColor: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(4),
+                      const SizedBox(height: 10),
+                      Stack(
+                        children: [
+                          Container(
+                            height: 8,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: percent,
+                            child: Container(
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(4),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withOpacity(0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

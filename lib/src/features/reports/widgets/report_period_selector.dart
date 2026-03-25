@@ -13,6 +13,7 @@ class ReportPeriodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.locale;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(

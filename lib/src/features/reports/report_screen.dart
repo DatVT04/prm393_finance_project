@@ -23,6 +23,19 @@ class ReportScreen extends ConsumerStatefulWidget {
 class _ReportScreenState extends ConsumerState<ReportScreen> {
   String _selectedPeriod = 'month';
   String _selectedType = 'EXPENSE';
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedType == 'EXPENSE' ? 0 : 1);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   DateTime _rangeStart() {
     final now = DateTime.now();
@@ -76,18 +89,21 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch for locale changes to rebuild correctly
+    context.locale;
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('report_title'.tr()),
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) async {
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: 'export_excel'.tr(),
+            onPressed: () async {
               final all = entriesAsync.valueOrNull;
               if (all == null) return;
 
@@ -107,13 +123,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   : null;
 
               try {
-                if (value == 'excel') {
-                  await ExportService.exportToExcel(list, sharePositionOrigin: position);
-                }
-                if (value == 'pdf') {
-                  await ExportService.exportToPdf(list, sharePositionOrigin: position);
-                }
-
+                await ExportService.exportToExcel(list, sharePositionOrigin: position);
+                
                 ToastNotification.show(
                   context,
                   'Export thành công',
@@ -127,10 +138,6 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 );
               }
             },
-            itemBuilder: (ctx) => [
-              PopupMenuItem(value: 'excel', child: Text('export_excel'.tr())),
-              PopupMenuItem(value: 'pdf', child: Text('export_pdf'.tr())),
-            ],
           ),
         ],
       ),
@@ -142,37 +149,22 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
           
           final categoryTotals = _categoryTotals(list, _selectedType);
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ReportPeriodSelector(
-                  selectedPeriod: _selectedPeriod,
-                  onPeriodChanged: (period) => setState(() => _selectedPeriod = period),
-                ),
-                const SizedBox(height: 16),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(value: 'EXPENSE', label: Text('expense'.tr()), icon: const Icon(Icons.remove_circle_outline)),
-                    ButtonSegment(value: 'INCOME', label: Text('income'.tr()), icon: const Icon(Icons.add_circle_outline)),
+          return Column(
+            children: [
+              const SizedBox(height: 16),
+              _buildHeader(_selectedPeriod, _selectedType),
+              const SizedBox(height: 16),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: _onPageChanged,
+                  children: [
+                    _buildContent(all, 'EXPENSE'),
+                    _buildContent(all, 'INCOME'),
                   ],
-                  selected: {_selectedType},
-                  onSelectionChanged: (val) => setState(() => _selectedType = val.first),
                 ),
-                const SizedBox(height: 24),
-                ReportSummaryCard(income: totalIncome, expense: totalExpense),
-                const SizedBox(height: 24),
-                Text(
-                  _selectedType == 'EXPENSE' ? 'expense_analysis'.tr() : 'income_analysis'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                ExpensesPieChart(data: categoryTotals),
-                const SizedBox(height: 8),
-                CategoryBreakdownList(data: categoryTotals),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -187,6 +179,148 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _onTypeChanged(String type) {
+    if (_selectedType == type) return;
+    setState(() => _selectedType = type);
+    _pageController.animateToPage(
+      type == 'EXPENSE' ? 0 : 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onPageChanged(int index) {
+    final type = index == 0 ? 'EXPENSE' : 'INCOME';
+    if (_selectedType != type) {
+      setState(() => _selectedType = type);
+    }
+  }
+
+  Widget _buildHeader(String period, String type) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ReportPeriodSelector(
+            selectedPeriod: period,
+            onPeriodChanged: (p) => setState(() => _selectedPeriod = p),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<String>(
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                visualDensity: VisualDensity.comfortable,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              segments: [
+                ButtonSegment(
+                  value: 'EXPENSE',
+                  label: Text(
+                    'expense'.tr(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  icon: const Icon(Icons.remove_circle_outline, size: 18),
+                ),
+                ButtonSegment(
+                  value: 'INCOME',
+                  label: Text(
+                    'income'.tr(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                ),
+              ],
+              selected: {type},
+              onSelectionChanged: (val) => _onTypeChanged(val.first),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(List<FinancialEntryModel> all, String type) {
+    final list = _filterByPeriod(all);
+    final totalExpense = list.where((e) => e.type == 'EXPENSE').fold<double>(0, (s, e) => s + e.amount);
+    final totalIncome = list.where((e) => e.type == 'INCOME').fold<double>(0, (s, e) => s + e.amount);
+    final categoryTotals = _categoryTotals(list, type);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 800;
+        final horizontalPadding = isWide ? 32.0 : 16.0;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isWide)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              ReportSummaryCard(income: totalIncome, expense: totalExpense),
+                              const SizedBox(height: 32),
+                              _buildAnalysisSection(context, type, categoryTotals),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 40),
+                        Expanded(
+                          flex: 3,
+                          child: CategoryBreakdownList(data: categoryTotals),
+                        ),
+                      ],
+                    )
+                  else
+                    Column(
+                      children: [
+                        ReportSummaryCard(income: totalIncome, expense: totalExpense),
+                        const SizedBox(height: 32),
+                        _buildAnalysisSection(context, type, categoryTotals),
+                        const SizedBox(height: 32),
+                        CategoryBreakdownList(data: categoryTotals),
+                      ],
+                    ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnalysisSection(BuildContext context, String type, Map<String, CategoryReportData> categoryTotals) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          type == 'EXPENSE' ? 'expense_analysis'.tr() : 'income_analysis'.tr(),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+        ),
+        const SizedBox(height: 16),
+        ExpensesPieChart(data: categoryTotals),
+      ],
     );
   }
 }

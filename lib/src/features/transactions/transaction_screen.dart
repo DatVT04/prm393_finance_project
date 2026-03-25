@@ -205,7 +205,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Row(
                     children: [
                       Expanded(
@@ -271,7 +271,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     ),
                   ),
                 ),
-                const Divider(height: 1),
+
                 Expanded(
                   child: displayList.isEmpty
                       ? Center(

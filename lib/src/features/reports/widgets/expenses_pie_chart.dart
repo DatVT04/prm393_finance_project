@@ -28,75 +28,90 @@ class _ExpensesPieChartState extends State<ExpensesPieChart> {
     }
 
     final total = entries.fold<double>(0, (s, e) => s + e.value.totalAmount);
-    return SizedBox(
-      height: 220,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(width: 8),
-          Expanded(
-            child: PieChart(
-              PieChartData(
-                pieTouchData: PieTouchData(
-                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                    setState(() {
-                      if (!event.isInterestedForInteractions ||
-                          pieTouchResponse == null ||
-                          pieTouchResponse.touchedSection == null) {
-                        touchedIndex = -1;
-                        return;
-                      }
-                      touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                    });
-                  },
-                ),
-                borderData: FlBorderData(show: false),
-                sectionsSpace: 0,
-                centerSpaceRadius: 40,
-                sections: _buildSections(entries, total),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(
-                entries.length,
-                (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Indicator(
-                    color: IconUtils.getColor(entries[i].value.colorHex),
-                    text: entries[i].value.displayName.tr(),
-                    isSquare: true,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      height: 240,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmall = constraints.maxWidth < 400;
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 3,
+                child: PieChart(
+                  PieChartData(
+                    pieTouchData: PieTouchData(
+                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                        setState(() {
+                          if (!event.isInterestedForInteractions ||
+                              pieTouchResponse == null ||
+                              pieTouchResponse.touchedSection == null) {
+                            touchedIndex = -1;
+                            return;
+                          }
+                          touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                        });
+                      },
+                    ),
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 2,
+                    centerSpaceRadius: isSmall ? 35 : 45,
+                    sections: _buildSections(entries, total, isSmall),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
+              const SizedBox(width: 24),
+              Expanded(
+                flex: 2,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(
+                      entries.length,
+                      (i) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Indicator(
+                          color: IconUtils.getColor(entries[i].value.colorHex),
+                          text: entries[i].value.displayName.tr(),
+                          isSquare: false,
+                          size: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  List<PieChartSectionData> _buildSections(List<MapEntry<String, CategoryReportData>> entries, double total) {
-    const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+  List<PieChartSectionData> _buildSections(
+    List<MapEntry<String, CategoryReportData>> entries,
+    double total,
+    bool isSmall,
+  ) {
     return List.generate(entries.length, (i) {
       final isTouched = i == touchedIndex;
-      final value = total > 0 ? (entries[i].value.totalAmount / total * 100) : 0.0;
-      final radius = isTouched ? 60.0 : 50.0;
+      final valuePercent = total > 0 ? (entries[i].value.totalAmount / total * 100) : 0.0;
+      final radius = isTouched ? (isSmall ? 55.0 : 65.0) : (isSmall ? 45.0 : 55.0);
+      
       return PieChartSectionData(
         color: IconUtils.getColor(entries[i].value.colorHex),
         value: entries[i].value.totalAmount,
-        title: '${value.toStringAsFixed(0)}%',
+        title: valuePercent >= 5 ? '${valuePercent.toStringAsFixed(0)}%' : '',
         radius: radius,
         titleStyle: TextStyle(
-          fontSize: isTouched ? 18 : 12,
+          fontSize: isTouched ? 16 : 11,
           fontWeight: FontWeight.bold,
           color: Colors.white,
-          shadows: shadows,
+          shadows: const [Shadow(color: Colors.black26, blurRadius: 4)],
         ),
+        titlePositionPercentageOffset: 0.55,
       );
     });
   }

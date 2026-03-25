@@ -14,41 +14,52 @@ class ReportSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.grey.shade100),
+    context.locale;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildItem(
-                context,
-                icon: FontAwesomeIcons.arrowDown,
-                color: Colors.green,
-                label: 'total_income'.tr(),
-                amount: income,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildItem(
+                  context,
+                  icon: FontAwesomeIcons.circleArrowDown,
+                  color: const Color(0xFF2E7D32), // Success Green
+                  label: 'total_income'.tr(),
+                  amount: income,
+                ),
               ),
-            ),
-            Container(
-              width: 1,
-              height: 40,
-              color: Colors.grey.withOpacity(0.3),
-            ),
-            Expanded(
-              child: _buildItem(
-                context,
-                icon: FontAwesomeIcons.arrowUp,
-                color: Colors.red,
-                label: 'total_expense'.tr(),
-                amount: expense,
+              VerticalDivider(
+                width: 32,
+                thickness: 1,
+                color: Colors.grey.shade100,
+                indent: 8,
+                endIndent: 8,
               ),
-            ),
-          ],
+              Expanded(
+                child: _buildItem(
+                  context,
+                  icon: FontAwesomeIcons.circleArrowUp,
+                  color: const Color(0xFFD32F2F), // Error Red
+                  label: 'total_expense'.tr(),
+                  amount: expense,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -61,30 +72,42 @@ class ReportSummaryCard extends StatelessWidget {
     required String label,
     required double amount,
   }) {
-    // Simple formatter would be better, but for now simple string interpol
     // Ideally use intl NumberFormat
-    final formattedAmount = '${(amount / 1000000).toStringAsFixed(1)}tr';
+    final amountStr = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'đ',
+      decimalDigits: 0,
+    ).format(amount);
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 12, color: color),
-            const SizedBox(width: 4),
+            Icon(icon, size: 14, color: color.withOpacity(0.8)),
+            const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          formattedAmount,
-          style: TextStyle(
-            color: color,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        const SizedBox(height: 10),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            amountStr,
+            style: TextStyle(
+              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
           ),
         ),
       ],
