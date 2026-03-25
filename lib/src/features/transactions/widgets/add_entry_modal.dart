@@ -807,7 +807,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                       context: context,
                       initialDate: _selectedDate,
                       firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
+                      lastDate: DateTime.now(),
                       locale: context.locale,
                     );
                     if (picked != null) setState(() => _selectedDate = picked);

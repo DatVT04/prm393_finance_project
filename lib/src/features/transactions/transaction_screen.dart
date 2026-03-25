@@ -132,7 +132,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       context: context,
       initialDate: initial,
       firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 5),
+      lastDate: now,
     );
     if (selected != null) {
       setState(() {
