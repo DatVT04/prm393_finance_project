@@ -1,328 +1,201 @@
-## PRM393 Finance Project – Hướng dẫn Demo & Giới thiệu Tính năng
+## PRM393 Finance Project - DEMO GUIDE (Updated theo source code FE + BE)
 
-### 1. Mục tiêu & Nghiệp vụ của ứng dụng
+## 1) Mục tiêu demo
 
-- **Mục tiêu chính**: Giúp người dùng quản lý chi tiêu cá nhân một cách rõ ràng, nhanh, trực quan, hoạt động tốt trên nhiều nền tảng (Android, Web, Desktop).
-- **Đối tượng**: Sinh viên, người đi làm, bất kỳ ai muốn theo dõi thu/chi, số dư ví, và phân tích thói quen chi tiêu.
-- **Lý do nên dùng app**:
-  - Quản lý **nhiều ví / tài khoản** cùng lúc (tiền mặt, Momo, ngân hàng…).
-  - Ghi lại **mọi giao dịch thu/chi** theo danh mục, ví, ngày tháng, ghi chú, vị trí, ảnh kèm theo.
-  - Có **báo cáo, biểu đồ** để nhìn nhanh: chi theo danh mục, theo tháng, theo tag…
-  - Hỗ trợ **nhập nhanh bằng giọng nói** nhiều giao dịch trong một câu, tiết kiệm thời gian nhập.
-  - Có **AI Assistant** (text) để trả lời câu hỏi tài chính trong app.
-  - Dữ liệu lưu về backend (PostgreSQL + Spring Boot), có thể mở rộng thêm chức năng đồng bộ, auth…
-
-Khi demo với giảng viên, bạn có thể mở đầu:  
-“Đây là ứng dụng quản lý chi tiêu cá nhân, cho phép em theo dõi nhiều ví, phân loại chi tiêu, xem báo cáo và nhập nhanh giao dịch bằng giọng nói. Em sẽ demo lần lượt từng phần.”
+Mục tiêu buổi demo là chứng minh 4 điểm:
+- Hệ thống chạy full-stack thật: Flutter FE + Spring Boot BE + PostgreSQL.
+- App responsive thật trên 2 môi trường: Web/Desktop và Mobile.
+- Nghiệp vụ tài chính đầy đủ: auth, ví, danh mục, thu/chi, báo cáo, kế hoạch ngân sách.
+- Có AI assistant và parser thông minh (voice, clipboard, OCR).
 
 ---
 
-### 2. Kiến trúc tổng quan
+## 2) Tech stack thực tế của dự án
 
-- **Frontend**: Flutter (`PRM393_Finance_Project`)
-  - State management: **Riverpod**
-  - Thư mục chính: `lib/src`
-    - `core/` – models, theme, formatter, dịch vụ chung
-    - `features/` – từng màn chức năng (auth, accounts, categories, transactions, dashboard, reports, settings, ai)
-    - `shared/` – widget dùng chung
-- **Backend**: Spring Boot (`Finance_Backend`)
-  - DB: PostgreSQL
-  - Các API chính:
-    - `/api/auth` – login/register
-    - `/api/accounts` – ví/tài khoản
-    - `/api/categories` – danh mục
-    - `/api/entries` – giao dịch
-    - `/api/ai/assistant` – AI chat
+### Frontend (`prm393_finance_project`)
+- Flutter + Dart
+- State: `flutter_riverpod`
+- Chart: `fl_chart`
+- Network: `http`
+- Local persistence: `shared_preferences`
+- Voice: `speech_to_text`
+- OCR/photo input: `image_picker`
+- Export: `excel`, `pdf`, `share_plus`
+- i18n: `easy_localization`, `flutter_localizations`
 
-Khi demo, bạn có thể mở `PROJECT_STRUCTURE.md` để minh hoạ.
-
----
-
-### 3. Đăng ký, đăng nhập & phân quyền nhẹ
-
-**Màn hình liên quan**:
-- `lib/src/features/auth/login_screen.dart`
-- `lib/src/features/auth/register_screen.dart`
-- `Finance_Backend/src/main/java/com/example/finance_backend/controller/AuthController.java`
-
-**Luồng demo**:
-1. Mở app → nếu chưa login sẽ vào màn **Đăng nhập**.
-2. Chọn **Đăng ký**:
-   - Nhập email, password, tên hiển thị.
-   - Gửi request lên `/api/auth/register`.
-3. Đăng nhập:
-   - Backend trả về `userId`, frontend lưu tạm và set vào header `X-User-Id` cho các API tiếp theo.
-4. Giải thích:
-   - App không dùng JWT phức tạp, mà dùng `X-User-Id` để tách dữ liệu từng user (phù hợp phạm vi môn học).
+### Backend (`Finance_Backend`)
+- Spring Boot (Maven)
+- Spring Web MVC + Validation + JPA
+- PostgreSQL
+- Security/password encode
+- AI integration: `google-genai`
+- Email service: SendGrid
 
 ---
 
-### 4. Quản lý tài khoản / ví (Accounts)
+## 3) Kịch bản demo nhanh 10-12 phút
 
-**File quan trọng**:
-- Frontend:
-  - `lib/src/features/accounts/screens/account_list_screen.dart`
-  - `lib/src/features/accounts/widgets/add_account_modal.dart`
-  - `lib/src/core/models/account_model.dart`
-- Backend:
-  - `AccountController`, `AccountService`, `Account` entity
+## 3.1 Mở đầu (30-45 giây)
+Lời thoại gợi ý:
+"Đây là hệ thống quản lý tài chính cá nhân đa nền tảng. Nhóm em tập trung cả trải nghiệm người dùng và nền tảng kỹ thuật: responsive layout, business rule ở backend, và AI hỗ trợ nhập liệu/phân tích."
 
-**Chức năng & demo**:
-- **Xem danh sách ví**:
-  - Mở màn “Tài khoản / Ví”.
-  - Hiển thị tên ví, số dư hiện tại (định dạng tiền `vi_VN`).
-- **Thêm ví mới**:
-  - Bấm nút `+`, nhập tên ví (VD: “Tiền mặt”), số dư ban đầu.
-  - Gửi `POST /api/accounts`.
-- **Sửa / Xoá ví**:
-  - Sửa: bấm vào 1 ví, cập nhật tên/số dư → `PUT /api/accounts/{id}`.
-  - Xoá: nếu ví còn giao dịch, backend có rule **không cho xoá** (trả lỗi 409) để tránh mất dữ liệu.
+## 3.2 Demo responsive bắt buộc (1-2 phút)
+1. Mở app trên Web hoặc Desktop.
+2. Mở app song song trên Mobile/emulator.
+3. Chuyển tab giống nhau ở 2 bên để thầy thấy:
+   - Desktop/Web dùng side menu (`NavigationRail`).
+   - Mobile dùng bottom bar (`NavigationBar`) + FAB AI.
+4. Resize cửa sổ Web để thấy layout chuyển theo breakpoint.
 
-Nghiệp vụ: Người dùng có thể theo dõi **nhiều nguồn tiền** cùng lúc, mỗi giao dịch luôn gắn với một ví cụ thể.
+File giải thích: `lib/src/layout/main_layout.dart`
 
----
+## 3.3 Demo luồng nghiệp vụ chính (6-7 phút)
+1. Auth: register/login, verify account.
+2. Accounts: tạo ví, cập nhật số dư.
+3. Categories: tạo/sửa/xóa danh mục.
+4. Transactions: thêm/sửa/xóa giao dịch; filter theo thời gian/tag.
+5. Planning/Budget: đặt hạn mức chi tiêu hoặc mục tiêu thu nhập.
+6. Reports + Dashboard: xem tổng quan và biểu đồ.
+7. AI Assistant: hỏi tổng chi tháng này, xin gợi ý tiết kiệm.
 
-### 5. Quản lý danh mục thu/chi (Categories)
+## 3.4 Show sự chuyên nghiệp của team (1 phút)
+Mở:
+- `README.md`
+- `PROJECT_STRUCTURE.md`
 
-**File quan trọng**:
-- Model: `lib/src/core/models/category_model.dart`
-- Màn hình:
-  - `lib/src/features/categories/category_list_screen.dart`
-  - `lib/src/features/categories/add_category_modal.dart`
-  - Cũ: `category_management_screen.dart` (vẫn hoạt động, dùng chung modal mới)
-
-**Chức năng & demo**:
-- Vào **Cài đặt → Quản lý danh mục**:
-  - Hiển thị danh mục dạng **Grid 2 cột**:
-    - Tên danh mục (Ăn uống, Mua sắm…)
-    - Icon FontAwesome + màu nền đại diện.
-- **Thêm danh mục**:
-  - Bấm nút `+`:
-    - Nhập tên.
-    - Chọn **Icon** trong grid (FontAwesome).
-    - Chọn **Màu** trong dải màu.
-  - Lưu → call `/api/categories`.
-- **Sửa / Xoá danh mục**:
-  - Tap vào 1 danh mục để sửa → cùng modal.
-  - Bấm nút `⋮` → Xoá → xác nhận → call `DELETE /api/categories/{id}`.
-- Danh sách danh mục được dùng ở:
-  - Dropdown chọn danh mục trong màn **Thêm giao dịch**.
-  - Báo cáo chi tiêu theo danh mục.
-
-Nghiệp vụ: Giúp người dùng **tùy biến hoàn toàn** cách phân loại chi tiêu cho phù hợp với bản thân.
+Nhấn mạnh:
+- Có Git workflow/convention.
+- Có docs setup + cấu trúc rõ ràng.
+- Dễ chia task và maintain.
 
 ---
 
-### 6. Ghi chú chi tiêu (Transactions)
+## 4) Các file bắt buộc mở khi thuyết trình
 
-**File quan trọng**:
-- Frontend:
-  - `lib/src/features/transactions/transaction_screen.dart`
-  - `lib/src/features/transactions/widgets/add_entry_modal.dart`
-  - `lib/src/core/models/financial_entry_model.dart`
-- Backend:
-  - `FinancialEntryController`, `FinancialEntryService`, `FinancialEntry` entity
+## 4.1 `pubspec.yaml`
+Giải thích lý do chọn thư viện:
+- `flutter_riverpod`: state management chuẩn, dễ scale.
+- `fl_chart`: vẽ biểu đồ thống kê tài chính.
+- `http`: giao tiếp REST.
+- `shared_preferences`: lưu cấu hình nhỏ phía client.
+- `speech_to_text`, `image_picker`: nhập liệu nhanh bằng giọng nói/hình ảnh.
+- `excel`, `pdf`, `share_plus`: export báo cáo.
 
-**Chức năng & demo**:
+## 4.2 `lib/src/layout/main_layout.dart`
+Điểm cần nói:
+- `LayoutBuilder` là lõi responsive.
+- `width < mobileBreakpoint` -> mobile UI.
+- `else` -> web/desktop UI với `NavigationRail`.
+- Dùng `IndexedStack` để giữ state các tab.
+- FAB AI kéo thả và lưu vị trí bằng `SharedPreferences`.
 
-#### 6.1 Danh sách giao dịch
-- Mở màn **Ghi chú chi tiêu**:
-  - Header có **lọc theo tag** (`#tag`).
-  - Thanh chip lọc theo **Tất cả / Tháng này / Năm nay / Ngày cụ thể**.
-  - Danh sách nhóm theo **ngày**, mỗi ngày có tổng thu – chi (net).
+## 4.3 Docs
+- `README.md`
+- `PROJECT_STRUCTURE.md`
 
-#### 6.2 Thêm giao dịch thủ công
-- Bấm FAB `+`:
-  - Mở `AddEntryModal`:
-    - Chọn **Chi / Thu** (SegmentedButton).
-    - Nhập **Số tiền** (parser hỗ trợ `k`, `tr`).
-    - Chọn **Danh mục**.
-    - Chọn **Tài khoản / Ví**.
-    - Nhập **Ghi chú** (hỗ trợ `#tag` và `@mention`).
-    - Tuỳ chọn:
-      - Đính kèm ảnh (ví dụ ảnh hoá đơn).
-      - Thêm vị trí GPS.
-      - Chọn ngày giao dịch.
-  - Lưu → call `POST /api/entries` + upload ảnh nếu có.
-- Nghiệp vụ:
-  - Mỗi giao dịch luôn có:
-    - Số tiền, loại (INCOME/EXPENSE), danh mục, ví, ngày.
-  - Backend có rule kiểm tra **không cho chi vượt quá số dư ví**.
-
-#### 6.3 Sửa / Xoá giao dịch
-- Vuốt sang trái để **xoá** (Dismissible + confirm dialog).
-- Tap vào giao dịch để **sửa**:
-  - Mở lại `AddEntryModal` với `entryToEdit`.
-  - Sau khi lưu → call `PUT /api/entries/{id}`.
+Ý nghĩa:
+- Team có chuẩn hóa quy trình, không làm ad-hoc.
 
 ---
 
-### 7. Nhập nhanh bằng giọng nói (Voice Quick Entry)
+## 5) Luồng vận hành FE -> BE -> DB (nói ngắn, dễ hiểu)
 
-**File quan trọng**:
-- `lib/src/features/transactions/widgets/ai_quick_entry_sheet.dart`
-- `lib/src/core/services/natural_language_parser.dart`
+1. Người dùng thao tác UI ở Flutter.
+2. FE gọi `FinanceApiClient` (`lib/src/core/network/finance_api_client.dart`).
+3. Gửi request đến endpoint backend (`/api/auth`, `/api/entries`, `/api/ai/...`).
+4. Controller nhận request, service xử lý nghiệp vụ.
+5. Service đọc/ghi PostgreSQL.
+6. Backend trả JSON; FE parse model và cập nhật UI.
 
-**Mục tiêu**: Thêm giao dịch cực nhanh bằng giọng nói hoặc gõ câu tự nhiên.
-
-#### 7.1 Mở tính năng
-- Từ màn **Ghi chú chi tiêu**:
-  - FAB nhỏ icon **mic** → `_openAiQuickEntry()` → mở `AiQuickEntrySheet`.
-
-#### 7.2 Giao diện Nhập nhanh bằng giọng nói
-- Tiêu đề: **“Nhập nhanh bằng giọng nói”**.
-- Nếu clipboard có nội dung giống giao dịch → hiển thị gợi ý → bấm “Lưu” để tạo nhanh.
-- Ô TextField:
-  - Label: `Nói hoặc gõ: "Ăn phở 50k", "Đổ xăng 100k"`.
-  - Có nút **mic** để ghi âm bằng `speech_to_text`.
-- Nút **“Tạo ghi chú từ nội dung trên”**:
-  - Gọi `NaturalLanguageParser.parseMultiple(text)` để phân tích.
-
-#### 7.3 Parser nhiều giao dịch trong một câu
-
-Ví dụ bạn nói:  
-**“đi chơi hết 200k, mua sắm hết 300k, ăn cơm hết 50k”**
-
-- `NaturalLanguageParser.parseMultiple` sẽ:
-  - Tách câu theo `,` / `;` / xuống dòng.
-  - Nếu không có dấu câu, parser fallback tách theo **vị trí xuất hiện các số tiền**.
-  - Mỗi đoạn → một `ParsedQuickEntry`:
-    - `amount`: 200000, 300000, 50000
-    - `suggestedCategoryName`: dựa trên từ khoá (`đi chơi` → “Giải trí”, `mua sắm` → “Mua sắm”, `ăn cơm` → “Ăn uống”)
-    - `note`: nguyên câu con đó (rút gọn 200 ký tự nếu quá dài).
-  - Heuristic: nếu parser chỉ thấy **“100”** (không có `k`/`tr`) thì coi là **100k** (nhân 1000) để phù hợp văn nói.
-
-#### 7.4 Màn “Xem lại các giao dịch”
-- Nếu parser nhận được **>1 giao dịch**, app mở bottom sheet:
-  - Tiêu đề: `Xem lại các giao dịch`.
-  - Mô tả: `Đã nhận diện N giao dịch từ câu nói. Chọn những giao dịch bạn muốn lưu.`
-  - Mỗi dòng:
-    - Checkbox.
-    - Số tiền (định dạng `k`).
-    - Gợi ý danh mục (nếu có).
-    - Ghi chú (câu gốc).
-- User tick chọn các giao dịch muốn lưu → bấm **“Tiếp tục”**.
-
-#### 7.5 Tạo giao dịch thật từ danh sách đã chọn
-- Sau khi bấm **Tiếp tục**:
-  - Lần lượt gọi `_openSingleFromParsed` cho từng `ParsedQuickEntry` đã chọn.
-  - Mỗi lần sẽ:
-    - Gọi API lấy danh sách danh mục để map `suggestedCategoryName` → `categoryId`.
-    - Mở `AddEntryModal` **prefill sẵn** số tiền, danh mục, ghi chú.
-    - User kiểm tra, chỉnh lại nếu cần, bấm Lưu → call API tạo giao dịch.
-  - Nếu user hủy ở giữa, chuỗi dừng lại.
-
-Khi demo, bạn có thể:
-1. Bấm nút mic.
-2. Nói 2–3 giao dịch liên tiếp.
-3. Cho giảng viên xem sheet “Xem lại các giao dịch”.
-4. Chọn 1–2 giao dịch → Tiếp tục → show modal từng cái.
+Điểm nhấn kỹ thuật:
+- Header `X-User-Id` dùng để scope dữ liệu theo user.
+- Business rule quan trọng đặt ở backend (ví dụ không cho chi vượt số dư ví).
 
 ---
 
-### 8. Dashboard & thống kê nhanh
+## 6) Mapping tính năng với code thực tế
 
-**File quan trọng**:
-- `lib/src/features/dashboard/dashboard_screen.dart`
-- Các widget:
-  - `total_balance_card.dart`
-  - `recent_transactions_list.dart`
-  - `quick_action_buttons.dart`
+## 6.1 Auth
+- FE: `lib/src/features/auth/*`
+- BE: `controller/AuthController.java`, `service/AuthService.java`
+- Endpoint: `/api/auth/login`, `/register`, `/verify-account`, `/forgot-password`, `/reset-password`
 
-**Chức năng & demo**:
-- **Tổng số dư**: hiển thị tổng tài sản = sum(balance các ví).
-- **Giao dịch gần đây**: 5–10 giao dịch mới nhất.
-- **Quick actions**:
-  - Thêm giao dịch mới.
-  - Nhảy đến báo cáo / quản lý ví / danh mục.
+## 6.2 Transaction/Entry
+- FE: `lib/src/features/transactions/*`
+- BE: `controller/FinancialEntryController.java`, `service/FinancialEntryService.java`
+- Endpoint: `/api/entries`
+- Rule: tạo/sửa/xóa entry sẽ cập nhật balance account tương ứng.
 
-Giải thích: Dashboard cho người dùng **cái nhìn 1 màn hình** về tình hình tài chính hiện tại.
+## 6.3 AI Assistant
+- FE: `lib/src/features/ai/ai_assistant_screen.dart`
+- BE: `controller/AiAssistantController.java`, `service/AiAssistantService.java`
+- Endpoint: `/api/ai/assistant`, `/api/ai/history`
+- Có pipeline hybrid: rule-based + Gemini.
 
----
-
-### 9. Báo cáo & biểu đồ (Reports)
-
-**File quan trọng**:
-- `lib/src/features/reports/report_screen.dart`
-- Widgets:
-  - `expenses_pie_chart.dart`
-  - `report_summary_card.dart`
-  - `report_period_selector.dart`
-  - `category_breakdown_list.dart`
-
-**Chức năng & demo**:
-- Chọn **khoảng thời gian**: tháng / năm / custom.
-- Biểu đồ **pie chart** theo danh mục:
-  - Màu sắc theo `CategoryColors`.
-  - Tỷ lệ phần trăm chi tiêu từng danh mục.
-- **Danh sách breakdown**:
-  - Tên danh mục, tổng chi tiêu, phần trăm.
-- Giải thích: Người dùng có thể trả lời câu hỏi “Tháng này mình chi nhiều nhất vào đâu?”.
+## 6.4 Core services parser (điểm cộng khi demo)
+- `clipboard_parser.dart`: parse text ngân hàng thành gợi ý giao dịch.
+- `receipt_ocr_parser.dart`: parse text OCR hóa đơn.
+- `natural_language_parser.dart`: parse câu nói thành nhiều giao dịch.
+- `note_tag_parser.dart`: tách `#tag`, `@mention`.
+- `export_service.dart`: xuất PDF/Excel.
 
 ---
 
-### 10. Cài đặt & cá nhân hoá
+## 7) Cách chạy project khi demo
 
-**File quan trọng**:
-- `lib/src/features/settings/settings_screen.dart`
-- `lib/src/core/theme/theme_provider.dart`
-- `lib/src/core/theme/app_theme.dart`
+## 7.1 Backend
+```bash
+cd Finance_Backend
+mvn spring-boot:run
+```
 
-**Chức năng & demo**:
-- **Đổi theme Light/Dark**:
-  - Switch “Chế độ tối” → cập nhật `themeModeProvider`.
-- **Quản lý danh mục** như đã trình bày ở trên.
-- **Thông tin nhóm**:
-  - Show dialog `About` với tên app, version, thông tin nhóm, thành viên.
+Yêu cầu:
+- PostgreSQL running
+- DB theo config `Finance_Backend/src/main/resources/application.properties`
+- Port backend: `8080`
 
----
+## 7.2 Frontend
+```bash
+cd prm393_finance_project
+flutter pub get
+flutter run -d chrome
+```
 
-### 11. AI Assistant (text)
+Mobile:
+```bash
+flutter run -d android
+```
 
-**File quan trọng**:
-- Frontend:
-  - `lib/src/features/ai/ai_assistant_screen.dart`
-  - `lib/src/core/models/ai_assistant_response.dart`
-  - `lib/src/core/network/finance_api_client.dart` – `askAssistant`
-- Backend:
-  - `AiAssistantController`, `AiAssistantService`
-  - Sử dụng thư viện `google-genai` (Gemini)
-
-**Chức năng & demo**:
-- Màn chat với AI:
-  - Nhập câu hỏi như:
-    - “Tháng này mình chi nhiều cho ăn uống không?”
-    - “Gợi ý cách tiết kiệm tiền từ dữ liệu chi tiêu của mình.”
-  - Backend gọi Gemini model (`ai.gemini.model=gemini-flash-latest`) và trả câu trả lời.
-
-Giải thích: Đây là phần mở rộng thông minh, giúp người dùng nhận gợi ý / giải thích về thói quen chi tiêu.
+Lưu ý:
+- Kiểm tra `lib/src/core/constants/api_constants.dart` để đảm bảo `baseUrl` đúng môi trường demo.
 
 ---
 
-### 12. Cách chạy project khi demo
+## 8) Q&A mẫu (thường gặp)
 
-1. **Chạy backend**:
-   - Mở terminal tại `Finance_Backend`:
-   - Chạy:
-     - `mvn spring-boot:run`
-   - Đảm bảo PostgreSQL đang chạy, DB `finance_db` sẵn sàng (config trong `application.properties`).
-2. **Chạy frontend Flutter**:
-   - Mở terminal tại `PRM393_Finance_Project`:
-   - Chạy:
-     - `flutter pub get`
-     - `flutter run -d chrome` (hoặc Android/emulator).
-3. Đảm bảo `ApiConstants.baseUrl` trỏ đúng tới backend (VD: `http://192.168.x.x:8081`).
+### Q1: Vì sao chọn Riverpod?
+Vì quản lý state rõ dependency, dễ test và scale hơn khi nhiều màn/feature.
 
-Khi demo, bạn có thể đi theo thứ tự:
-1. Đăng ký / đăng nhập.
-2. Tạo ví.
-3. Tạo danh mục.
-4. Thêm giao dịch thủ công.
-5. Dùng **Nhập nhanh bằng giọng nói** để thêm nhanh nhiều giao dịch.
-6. Xem Dashboard.
-7. Xem Báo cáo.
-8. Vào Cài đặt: đổi theme, quản lý danh mục.
-9. Thử AI Assistant.
+### Q2: Vì sao phải responsive bằng 2 kiểu menu?
+Desktop cần side menu để tận dụng không gian ngang; mobile cần bottom bar để thao tác một tay nhanh.
 
-Như vậy, giảng viên sẽ thấy rõ đầy đủ **nghiệp vụ tài chính**, **kiến trúc full-stack**, và **các tính năng nổi bật** của project. 
+### Q3: Vì sao business rule ở backend?
+Để mọi client đều tuân thủ cùng luật dữ liệu, tránh sai lệch nếu chỉ check ở frontend.
+
+### Q4: AI có ổn định không?
+Hệ thống dùng hybrid: AI mạnh ở hiểu ngôn ngữ tự nhiên, rule-based fallback khi không chắc.
+
+---
+
+## 9) Checklist trước khi vào lớp
+
+- Backend đã chạy ổn định.
+- Frontend gọi đúng base URL.
+- Có sẵn tài khoản test và dữ liệu mẫu.
+- Mở sẵn các file cần giải thích:
+  - `pubspec.yaml`
+  - `lib/src/layout/main_layout.dart`
+  - `README.md`
+  - `PROJECT_STRUCTURE.md`
+- Chuẩn bị 1 câu AI demo, 1 luồng tạo giao dịch nhanh bằng voice/text.
 
