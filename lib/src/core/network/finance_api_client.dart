@@ -196,7 +196,6 @@ class FinanceApiClient {
   Future<List<CategoryModel>> getCategories() async {
     final res = await http.get(
       Uri.parse('$_base${ApiConstants.categoriesPath}?t=${DateTime.now().millisecondsSinceEpoch}'),
-      headers: _userHeaders,
     );
     if (res.statusCode != 200)
       throw Exception('Failed to load categories: ${res.statusCode}');

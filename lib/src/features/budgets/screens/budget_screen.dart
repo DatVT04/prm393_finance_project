@@ -30,8 +30,6 @@ class _PlanningScreenState extends ConsumerState<PlanningScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Access context.locale to ensure this widget rebuilds on locale change
-    final localeSuffix = context.locale.toString();
     return Scaffold(
       appBar: AppBar(
         title: Text('planning_title'.tr()),

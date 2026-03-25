@@ -155,6 +155,7 @@ class _MainLayoutState extends State<MainLayout> {
             children: [
               Scaffold(
                 body: IndexedStack(
+                  key: ValueKey('main_stack_$localeSuffix'),
                   index: _selectedIndex,
                   children: _screens,
                 ),
@@ -232,6 +233,7 @@ class _MainLayoutState extends State<MainLayout> {
                 const VerticalDivider(thickness: 1, width: 1),
                 Expanded(
                   child: IndexedStack(
+                    key: ValueKey('main_stack_desktop_$localeSuffix'),
                     index: _selectedIndex,
                     children: _screens,
                   ),

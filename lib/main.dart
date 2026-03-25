@@ -45,13 +45,6 @@ class FinanceApp extends ConsumerWidget {
     final currentLocale = context.locale.languageCode;
     FinanceApiClient.setLanguage(currentLocale);
 
-    // Update the localeProvider so that other providers (e.g. categoriesProvider) know the language changed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ref.read(localeProvider) != currentLocale) {
-        ref.read(localeProvider.notifier).state = currentLocale;
-      }
-    });
-
     final appState = context.watch<AppState>();
     final userIdAsync = ref.watch(currentUserIdProvider);
 
