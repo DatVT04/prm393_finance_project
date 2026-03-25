@@ -1,265 +1,184 @@
-# 🎯 Hướng dẫn Demo Code - Toàn Dự Án (PRM393 Finance Project)
+# Demo Full Project (Updated theo code hiện tại)
 
-## 📋 Mục lục
-1. [Chuẩn bị trước khi demo](#chuẩn-bị-trước-khi-demo)
-2. [Luồng demo chi tiết (đính kèm code thực tế từ dự án)](#luồng-demo-chi-tiết-đính-kèm-code-thực-tế-từ-dự-án)
-3. [Các điểm cần highlight & Q&A](#các-điểm-cần-highlight)
+Tài liệu này là bản script đầy đủ để demo với thầy theo đúng mã nguồn đã update của cả frontend và backend.
 
 ---
 
-## 🚀 Chuẩn bị trước khi demo
+## 1. Bối cảnh & mục tiêu thuyết trình (45 giây)
 
-### 1. Kiểm tra môi trường & chạy project
+### Lời mở đầu mẫu
+"Nhóm em xây dựng hệ thống quản lý tài chính cá nhân full-stack.  
+Frontend dùng Flutter đa nền tảng, backend dùng Spring Boot + PostgreSQL.  
+Điểm nhấn kỹ thuật là responsive layout thật, business rule xử lý ở backend, và AI assistant để nhập liệu/phân tích tài chính."
+
+### 4 điểm phải chứng minh trong buổi demo
+1. FE + BE chạy end-to-end thật.
+2. Responsive thật trên Web/Desktop và Mobile.
+3. Nghiệp vụ tài chính đầy đủ (auth, ví, danh mục, giao dịch, ngân sách, báo cáo).
+4. Có AI + parser thông minh, không chỉ CRUD cơ bản.
+
+---
+
+## 2. Chuẩn bị trước buổi demo
+
+## 2.1 Chạy backend
 ```bash
+cd Finance_Backend
+mvn spring-boot:run
+```
+
+Kiểm tra nhanh:
+- `application.properties` có PostgreSQL đúng.
+- Server chạy port `8080`.
+
+## 2.2 Chạy frontend
+```bash
+cd prm393_finance_project
 flutter pub get
-flutter run
+flutter run -d chrome
 ```
-- **Khuyến nghị:** Demo trên **Windows** (dễ show responsive), hoặc Android/Web đều được.
 
-### 2. Chuẩn bị
-- **Mở sẵn trong IDE:**  
-  - `lib/main.dart` (entry point)
-  - `lib/src/layout/main_layout.dart`
-  - `lib/src/features/transactions/transaction_screen.dart`
+Chạy mobile:
+```bash
+flutter run -d android
+```
+
+## 2.3 Kiểm tra kết nối FE-BE
+- Mở `lib/src/core/constants/api_constants.dart`.
+- Đảm bảo `baseUrl` đúng với backend đang chạy/deploy.
 
 ---
 
-## 🛠️ Luồng demo chi tiết (Đính kèm code thực tế từng phần)
+## 3. Kịch bản demo theo timeline (12 phút)
 
-### 1️⃣. Giới thiệu nhanh (30 giây)
-**Lời thoại mẫu:**  
-"Chào thầy & các bạn, nhóm em demo app quản lý tài chính cá nhân, kiến trúc chia theo module feature để dễ maintain, mở rộng."
+## 0:00-1:00 - Giới thiệu kiến trúc
+- FE: Flutter, module theo `lib/src/features/*`.
+- BE: Spring Boot controller/service/repository.
+- DB: PostgreSQL.
+- AI: endpoint `/api/ai/assistant`.
 
-- 🏆 App Flutter chạy đa nền tảng (Windows/Web/Mobile)
-- 📦 Code tổ chức theo `lib/src/features/*` (mỗi màn hình là 1 feature)
+## 1:00-3:00 - Demo responsive bắt buộc
+Thao tác:
+1. Mở app ở Web/Desktop.
+2. Mở app ở Mobile.
+3. Đổi tab ở cả hai môi trường.
+4. Resize web để thấy rẽ nhánh layout.
 
-**Cấu trúc thư mục đã setup trong dự án:**
-```plaintext
-lib/
- └─ src/
-     ├─ features/
-     │   ├─ transactions/
-     │   │   └─ transaction_screen.dart
-     │   ├─ dashboard/
-     │   ├─ reports/
-     │   └─ settings/
-     ├─ layout/
-     │   └─ main_layout.dart
-     └─ core/
-         ├─ constants/
-         └─ theme/
-```
+File giải thích:
+- `lib/src/layout/main_layout.dart`
 
----
+Nói khi demo:
+- Mobile dùng `NavigationBar` + FAB AI kéo thả.
+- Desktop/Web dùng `NavigationRail`.
+- Rẽ nhánh bằng `LayoutBuilder` và breakpoint trong `AppConstants`.
 
-### 2️⃣. Màn hình chính (không cần đăng nhập)
-- **Thao tác:** Chạy app → vào luôn **MainLayout** (Dashboard).
-- **Giải thích:** App tập trung vào quản lý chi tiêu, kiểm soát thu chi – không có tài khoản, mật khẩu hay nạp/chuyển tiền.
-- **Trích code thực tế (`lib/main.dart`):**
-```dart
-home: const MainLayout(),
-```
+## 3:00-8:00 - Demo nghiệp vụ chính
 
----
+### A) Auth
+- Register -> verify account -> login.
+- FE dùng response lưu `userId`; BE dùng header `X-User-Id` để tách dữ liệu user.
 
-### 3️⃣. Demo Navigation + Responsive
+### B) Accounts + Categories
+- Tạo ví mới, tạo danh mục mới.
+- Nói rule backend: ví có giao dịch thì xóa có thể bị chặn (bảo toàn dữ liệu).
 
-#### 2.1 Tính năng Navigation
-- **Thao tác:** Nhấn các tab: Dashboard, Transactions, Reports, Settings...
-- **Giải thích:** `main_layout.dart` gom và điều hướng các màn chính.
-- **Điểm nhấn:** App quản lý chi tiêu thuần túy, kiến trúc clean.
-- **Trích code thực tế `lib/src/layout/main_layout.dart` (chỉ đoạn navigation, có chú thích):**
-```dart
-// Biến lưu tab (index) hiện tại đang được chọn
-int _currentIndex = 0;
+### C) Transactions
+- Thêm giao dịch chi/thu.
+- Sửa và xóa giao dịch.
+- Lọc theo ngày/tag.
+- Nói điểm kỹ thuật: backend `FinancialEntryService` cập nhật lại `account.balance` khi create/update/delete.
 
-// Danh sách các screen chính của app, mỗi tab ứng với 1 màn hình
-final List<Widget> _screens = [
-  DashboardScreen(),
-  TransactionScreen(),
-  ReportsScreen(),
-  SettingsScreen(),
-];
+### D) Planning/Budget
+- Tạo budget hoặc income target.
+- Giải thích đây là phần kế hoạch tài chính, không chỉ tracking giao dịch.
 
-@override
-Widget build(BuildContext context) {
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      // Kiểm tra nếu chiều rộng lớn hơn 800, dùng NavigationRail (giao diện dạng sidebar - desktop/tablet)
-      if (constraints.maxWidth > 800) {
-        return Row(
-          children: [
-            // Sidebar navigation (dọc bên trái)
-            NavigationRail(
-              selectedIndex: _currentIndex, // tab đang active
-              onDestinationSelected: (int index) {
-                // Khi chọn tab mới: cập nhật index qua setState
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              destinations: const [
-                // Các icon/tab của sidebar
-                NavigationRailDestination(
-                  icon: Icon(Icons.dashboard),
-                  label: Text('Dashboard'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.swap_horiz),
-                  label: Text('Transactions'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.pie_chart),
-                  label: Text('Reports'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.settings),
-                  label: Text('Settings'),
-                ),
-              ],
-            ),
-            // Hiển thị nội dung màn hình tương ứng tab chọn
-            Expanded(child: _screens[_currentIndex]),
-          ],
-        );
-      } else {
-        // Nếu màn hình nhỏ (<800), dùng BottomNavigationBar (mobile/web nhỏ)
-        return Scaffold(
-          body: _screens[_currentIndex], // nội dung tab hiện tại
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex, // tab đang active
-            onTap: (int index) {
-              // Khi click tab: cập nhật index
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            items: const [
-              // Các item/tab ở dưới đáy màn hình (bottom navigation)
-              BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Dashboard"),
-              BottomNavigationBarItem(icon: Icon(Icons.swap_horiz), label: "Transactions"),
-              BottomNavigationBarItem(icon: Icon(Icons.pie_chart), label: "Reports"),
-              BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
-            ],
-          ),
-        );
-      }
-    }
-  );
-}
-```
-/*
-Giải thích tổng thể:
-- Code check kích thước màn hình, nếu rộng thì show navigation dạng Sidebar (NavigationRail), nếu hẹp thì show dạng BottomNavigationBar (mobile).
-- Mỗi navigation (sidebar hoặc bottom) khi chọn sẽ gọi setState để đổi tab, cập nhật _currentIndex, app sẽ hiện screen tương ứng.
-- Các màn hình chính được ngăn cách rõ ràng (Dashboard/Transactions/Reports/Settings), mỗi màn hình là một Widget riêng, đúng hướng clean architecture.
-*/
+## 8:00-10:00 - Demo AI + parser thông minh
 
-#### 2.2 Responsive (kéo dãn cửa sổ)
-- **Thao tác:** Resize cửa sổ/thay đổi kích thước web để show navigation tự chuyển (bottom bar ↔ side bar...)
-- **Giải thích:** Code responsive nằm trong `main_layout.dart` (xem đoạn trên)
+### A) AI Assistant
+- Mở `ai_assistant_screen`.
+- Hỏi: "Tổng chi tháng này bao nhiêu?", "Cho mình gợi ý tiết kiệm."
+- Nói backend `AiAssistantService` xử lý hybrid: rule-based + Gemini.
+
+### B) Parser nhanh
+- Voice/text quick entry (`natural_language_parser.dart`).
+- Clipboard parser (`clipboard_parser.dart`).
+- OCR parser (`receipt_ocr_parser.dart`).
+
+## 10:00-11:00 - Show tài liệu team
+- Mở `README.md`, `PROJECT_STRUCTURE.md`.
+- Nói rõ workflow chuẩn hóa: setup, branch/commit convention, organization.
+
+## 11:00-12:00 - Chốt và Q&A
+- Chốt giá trị: scalable architecture + real business rules + practical features.
 
 ---
 
-### 4️⃣. Demo tính năng chính
+## 4. Danh sách file cần mở theo thứ tự đề xuất
 
-> Tuỳ project bạn làm đến đâu: chỉ cần demo flow/happy path chính.
-
-#### 4.1 Dashboard
-- Show tổng quan (Overview nếu có).
-- **Nếu chưa có gì đặc sắc thì demo hiển thị widget đơn giản hoặc stats tổng.**
-```dart
-// Ví dụ (lib/src/features/dashboard/dashboard_screen.dart)
-Card(
-  margin: EdgeInsets.all(16),
-  child: ListTile(
-    title: Text("Tổng số dư"),
-    subtitle: Text("20.000.000 đ"),
-  ),
-)
-```
-
-#### 4.2 Transactions
-- Thêm, hiển thị list giao dịch, lọc, trạng thái trống...
-- **Điểm nhấn:** Có format tiền/ngày (`intl`).
-- **Trích code ví dụ thực tế cho hiển thị format (lib/src/features/transactions/transaction_screen.dart):**
-```dart
-import 'package:intl/intl.dart';
-
-ListView.builder(
-  itemCount: transactions.length,
-  itemBuilder: (context, index) {
-    final t = transactions[index];
-    return ListTile(
-      leading: Icon(Icons.monetization_on),
-      title: Text(t.title),
-      subtitle: Text(DateFormat('dd/MM/yyyy').format(t.date)),
-      trailing: Text(
-        NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(t.amount),
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal),
-      ),
-    );
-  },
-);
-
-// Nếu rỗng:
-if (transactions.isEmpty) {
-  return Center(child: Text("Chưa có giao dịch nào..."));
-}
-```
-
-#### 4.3 Reports
-- Show charts/thống kê nếu có.
-- **Trích code thực tế (nếu dùng fl_chart cho PieChart):**
-```dart
-// lib/src/features/reports/reports_screen.dart
-PieChart(
-  PieChartData(sections: [
-    PieChartSectionData(value: 60, title: "Ăn uống"),
-    PieChartSectionData(value: 40, title: "Mua sắm"),
-  ]),
-)
-```
-
-#### 4.4 Settings
-- Show tuỳ chọn: theme, language, profile...
-```dart
-// lib/src/features/settings/settings_screen.dart
-SwitchListTile(
-  title: Text("Giao diện tối"),
-  value: isDark,
-  onChanged: (value) { ... },
-),
-DropdownButton(
-  value: currentLang,
-  items: [...],
-  onChanged: (val) { ... },
-)
-```
+1. `pubspec.yaml`
+2. `lib/src/layout/main_layout.dart`
+3. `lib/src/core/constants/api_constants.dart`
+4. `lib/src/core/network/finance_api_client.dart`
+5. `lib/src/core/services/natural_language_parser.dart`
+6. `lib/src/core/services/clipboard_parser.dart`
+7. `lib/src/core/services/receipt_ocr_parser.dart`
+8. `Finance_Backend/src/main/java/com/example/finance_backend/controller/AuthController.java`
+9. `Finance_Backend/src/main/java/com/example/finance_backend/service/FinancialEntryService.java`
+10. `Finance_Backend/src/main/java/com/example/finance_backend/service/AiAssistantService.java`
+11. `README.md`
+12. `PROJECT_STRUCTURE.md`
 
 ---
 
-## 💡 Các điểm cần highlight & Q&A
+## 5. Ý chính phải nói ở từng file
 
-### A. Các file code cần biết/thầy hỏi
-- `lib/main.dart`: Home là MainLayout (màn chính).
-- `lib/src/features/transactions/`: ghi nhận, quản lý giao dịch thu chi.
-- `lib/src/layout/main_layout.dart`: navigation chính, code responsive.
+## 5.1 `pubspec.yaml`
+- Vì sao dùng `riverpod`, `fl_chart`, `http`, `speech_to_text`, `excel/pdf`.
+- Dự án hướng tới production-like feature set, không chỉ demo UI.
 
-### B. Giải thích ngắn:
-- **Không có login?**  
-  App tập trung nghiệp vụ quản lý tài chính, kiểm soát chi tiêu – không phải app ngân hàng.
-- **Không nạp/chuyển tiền?**  
-  Chỉ ghi nhận thu chi, note, thống kê – người dùng tự quản lý số liệu.
-- **Vì sao chia feature?**  
-  Độc lập, dễ maintain, dễ chia task team.
+## 5.2 `main_layout.dart`
+- `LayoutBuilder` + breakpoint.
+- `IndexedStack` giữ state tab.
+- Mobile vs Desktop navigation.
+- FAB AI có drag + persist bằng `SharedPreferences`.
+
+## 5.3 `finance_api_client.dart`
+- Tầng API tập trung (singleton).
+- Header `X-User-Id`.
+- Mapping endpoint đầy đủ cho auth/accounts/entries/ai/budget.
+
+## 5.4 `api_constants.dart`
+- Tập trung toàn bộ endpoint path.
+- Đổi môi trường nhanh, tránh hard-code URL rải rác.
+
+## 5.5 Backend service/controller
+- `AuthService`: verify account, reset password, Google login.
+- `FinancialEntryService`: check số dư và cập nhật balance nhất quán.
+- `AiAssistantService`: pipeline intent/entity/handler + history.
 
 ---
 
-## ⏰ Gợi ý timeline demo
+## 6. Q&A nâng cao (trả lời ngắn gọn)
 
-- 0:00–1:00 Giới thiệu (app quản lý chi tiêu, không login)
-- 1:00–4:00 Navigation + Responsive
-- 4:00–10:00 Transactions/Reports/Dashboard/Settings
-- 10:00–12:00 Q&A
+### "Tại sao không để rule ở frontend?"
+Frontend có thể bị bypass; rule ở backend mới đảm bảo dữ liệu nhất quán cho mọi client.
+
+### "Vì sao dùng header X-User-Id?"
+Đây là cách đơn giản, phù hợp phạm vi môn học để scope dữ liệu theo user trước khi nâng cấp JWT đầy đủ.
+
+### "AI có sai không?"
+Có thể sai nếu input mơ hồ, nên hệ thống dùng hybrid + confirmation flow để giảm lỗi trước khi ghi DB.
+
+### "Responsive khác adaptive thế nào?"
+Dự án đang làm responsive theo kích thước runtime bằng `LayoutBuilder`, đồng thời thay đổi pattern navigation theo thiết bị.
+
+---
+
+## 7. Checklist trước giờ demo
+
+- Backend đang chạy ổn.
+- FE gọi đúng `baseUrl`.
+- Có data mẫu trong tài khoản test.
+- Đã chuẩn bị 1 câu prompt AI và 1 câu voice quick entry.
+- Mở sẵn tab các file quan trọng để chuyển nhanh.
 
