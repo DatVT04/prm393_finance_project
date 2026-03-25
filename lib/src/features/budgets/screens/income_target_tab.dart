@@ -117,7 +117,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
                       final cat =
                           cats.where((c) => c.id == b.categoryId).firstOrNull;
                       return _buildTargetCard(
-                          b, earned, cat?.name ?? 'Unknown');
+                          b, earned, cat?.displayName.tr() ?? 'Unknown');
                     },
                   ),
                   loading: () =>
@@ -253,7 +253,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${NumberFormat("#,###").format(earned)} / ${NumberFormat("#,###").format(b.amount)} đ',
+                  '${NumberFormat("#,###", context.locale.toString()).format(earned)} / ${NumberFormat("#,###", context.locale.toString()).format(b.amount)} đ',
                   style: TextStyle(fontWeight: FontWeight.bold, color: color),
                 ),
                 Text(
@@ -266,7 +266,7 @@ class _IncomeTargetTabState extends ConsumerState<IncomeTargetTab> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  '🎉 ${'achieved'.tr()} ${'over_target'.tr()} ${NumberFormat("#,###").format(earned - b.amount)} đ',
+                  '🎉 ${'achieved'.tr()} ${'over_target'.tr()} ${NumberFormat("#,###", context.locale.toString()).format(earned - b.amount)} đ',
                   style: const TextStyle(
                       color: Colors.green,
                       fontSize: 13,

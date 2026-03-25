@@ -6,11 +6,13 @@ import 'package:prm393_finance_project/src/core/models/financial_entry_model.dar
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 
 final apiClientProvider = Provider<FinanceApiClient>((ref) => FinanceApiClient());
+final localeProvider = StateProvider<String>((ref) => 'vi');
 
 final categoriesRefreshProvider = StateProvider<int>((ref) => 0);
 
 final categoriesProvider = FutureProvider<List<CategoryModel>>((ref) async {
   ref.watch(categoriesRefreshProvider);
+  ref.watch(localeProvider); // Watch locale to refetch when it changes
   final client = ref.watch(apiClientProvider);
   return client.getCategories();
 });

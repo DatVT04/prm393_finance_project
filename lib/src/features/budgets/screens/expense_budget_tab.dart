@@ -115,7 +115,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
                       final spent = _getSpentAmount(b.categoryId, entries);
                       final cat =
                           cats.where((c) => c.id == b.categoryId).firstOrNull;
-                      return _buildBudgetCard(b, spent, cat?.name ?? 'Unknown');
+                      return _buildBudgetCard(b, spent, cat?.displayName.tr() ?? 'Unknown');
                     },
                   ),
                   loading: () =>
@@ -249,7 +249,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${NumberFormat("#,###").format(spent)} / ${NumberFormat("#,###").format(b.amount)} đ',
+                  '${NumberFormat("#,###", context.locale.toString()).format(spent)} / ${NumberFormat("#,###", context.locale.toString()).format(b.amount)} đ',
                   style: TextStyle(fontWeight: FontWeight.bold, color: color),
                 ),
                 Text(
@@ -262,7 +262,7 @@ class _ExpenseBudgetTabState extends ConsumerState<ExpenseBudgetTab> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  '⚠️ ${'over_budget'.tr()} ${NumberFormat("#,###").format(spent - b.amount)} đ',
+                  '⚠️ ${'over_budget'.tr()} ${NumberFormat("#,###", context.locale.toString()).format(spent - b.amount)} đ',
                   style: const TextStyle(
                       color: Colors.red,
                       fontSize: 13,
