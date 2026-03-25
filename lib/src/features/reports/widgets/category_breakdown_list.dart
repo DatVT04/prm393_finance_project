@@ -34,7 +34,7 @@ class CategoryBreakdownList extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: entries.length,
-          separatorBuilder: (_, __) => Divider(height: 32, color: Colors.grey.shade100),
+          separatorBuilder: (_, __) => Divider(height: 32, color: Theme.of(context).dividerColor),
           itemBuilder: (context, index) {
             final e = entries[index].value;
             final percent = total > 0 ? e.totalAmount / total : 0.0;
@@ -71,10 +71,10 @@ class CategoryBreakdownList extends StatelessWidget {
                         children: [
                           Text(
                             e.displayName.tr(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
-                              color: Color(0xFF2D3243),
+                              color: Theme.of(context).textTheme.titleMedium?.color,
                             ),
                           ),
                           Text(
@@ -94,7 +94,7 @@ class CategoryBreakdownList extends StatelessWidget {
                             height: 8,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: Theme.of(context).dividerColor.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),

@@ -17,7 +17,7 @@ class ReportPeriodSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Theme.of(context).brightness == Brightness.light ? Colors.grey[200] : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
@@ -54,7 +54,7 @@ class ReportPeriodSelector extends StatelessWidget {
         child: Text(
           key.tr(),
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[700],
+            color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.light ? Colors.grey[700] : Colors.white70),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 14,
           ),

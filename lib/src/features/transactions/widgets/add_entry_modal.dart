@@ -16,6 +16,7 @@ import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/core/models/financial_entry_model.dart';
 import 'package:prm393_finance_project/src/core/network/finance_api_client.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import '../providers/finance_providers.dart';
 
 /// Optional prefill from AI Quick Entry (OCR, voice, clipboard).
@@ -488,7 +489,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 SegmentedButton<String>(
                   segments: [
                     ButtonSegment(
@@ -519,7 +520,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                     });
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 TextFormField(
                   controller: _amountController,
                   decoration: InputDecoration(
@@ -540,7 +541,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 categoriesAsync.when(
                   data: (list) {
                     final items = list
@@ -568,15 +569,25 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                       value: selectedValue,
                       decoration: InputDecoration(
                         labelText: 'category_label'.tr(),
-                        prefixIcon: const Icon(Icons.category),
                         border: const OutlineInputBorder(),
                       ),
                       items: items
                           .map(
                             (c) => DropdownMenuItem<int>(
                               value: c.id,
-                              child: Text(
-                                (c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'other') ? c.name.tr() : c.name,
+                              child: Row(
+                                children: [
+                                  IconUtils.buildIcon(
+                                    c.iconName,
+                                    categoryName: c.name,
+                                    color: IconUtils.getColor(c.colorHex),
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    (c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'other') ? c.name.tr() : c.name,
+                                  ),
+                                ],
                               ),
                             ),
                           )
@@ -590,7 +601,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                       const Center(child: CircularProgressIndicator()),
                   error: (_, __) => Text('error_loading_categories'.tr()),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 ref
                     .watch(allAccountsProvider)
                     .when(
@@ -636,7 +647,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                           const Center(child: CircularProgressIndicator()),
                       error: (_, __) => Text('error_loading_accounts'.tr()),
                     ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 TextFormField(
                   controller: _noteController,
                   decoration: InputDecoration(
@@ -648,7 +659,7 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
                   maxLines: 3,
                   maxLength: 500,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
                   children: [

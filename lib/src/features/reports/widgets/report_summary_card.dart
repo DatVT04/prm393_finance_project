@@ -17,16 +17,16 @@ class ReportSummaryCard extends StatelessWidget {
     context.locale;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
+        boxShadow: Theme.of(context).brightness == Brightness.light ? [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
-        ],
-        border: Border.all(color: Colors.grey.shade100),
+        ] : [],
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -45,7 +45,7 @@ class ReportSummaryCard extends StatelessWidget {
               VerticalDivider(
                 width: 32,
                 thickness: 1,
-                color: Colors.grey.shade100,
+                color: Theme.of(context).dividerColor,
                 indent: 8,
                 endIndent: 8,
               ),
@@ -90,7 +90,7 @@ class ReportSummaryCard extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: Theme.of(context).textTheme.bodySmall?.color,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),

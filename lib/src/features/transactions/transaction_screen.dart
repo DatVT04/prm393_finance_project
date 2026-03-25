@@ -229,7 +229,18 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                 ...list.map(
                                   (c) => DropdownMenuItem<int?>(
                                     value: c.id,
-                                    child: Text(c.displayName.tr()),
+                                    child: Row(
+                                      children: [
+                                        IconUtils.buildIcon(
+                                          c.iconName,
+                                          categoryName: c.name,
+                                          color: IconUtils.getColor(c.colorHex),
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(c.displayName.tr()),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
