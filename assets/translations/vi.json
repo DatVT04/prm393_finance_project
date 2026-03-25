@@ -167,6 +167,7 @@
   "pass_mismatch": "Mật khẩu không khớp",
   "update": "Cập nhật",
   "pass_updated_msg": "Đổi mật khẩu thành công",
+  "new_pass_same_as_old": "Mật khẩu mới phải khác mật khẩu cũ",
   "subject_label": "Môn học",
   "group_label": "Nhóm",
   "members_label": "Thành viên",

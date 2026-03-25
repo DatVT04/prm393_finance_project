@@ -347,6 +347,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: (v) => formKey.currentState?.validate(),
                 validator: (v) =>
                     v == null || v.isEmpty ? 'old_pass_required'.tr() : null,
               ),
@@ -360,9 +362,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'new_pass_required'.tr();
                   if (v.length < 6) return 'min_6_chars'.tr();
+                  if (v == oldPassCtrl.text) return 'new_pass_same_as_old'.tr();
                   return null;
                 },
               ),
@@ -376,6 +380,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (v) =>
                     v != newPassCtrl.text ? 'pass_mismatch'.tr() : null,
               ),

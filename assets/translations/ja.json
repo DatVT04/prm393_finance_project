@@ -167,6 +167,7 @@
     "pass_mismatch": "パスワードが一致しません",
     "update": "更新",
     "pass_updated_msg": "パスワードを更新しました",
+    "new_pass_same_as_old": "New password must be different from the old one",
     "subject_label": "科目",
     "group_label": "グループ",
     "members_label": "メンバー",
