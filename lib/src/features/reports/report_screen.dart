@@ -7,6 +7,7 @@ import 'package:prm393_finance_project/src/core/models/financial_entry_model.dar
 import 'package:prm393_finance_project/src/core/services/export_service.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
 import '../transactions/providers/finance_providers.dart';
+import 'models/category_report_data.dart';
 import 'widgets/category_breakdown_list.dart';
 import 'widgets/expenses_pie_chart.dart';
 import 'widgets/report_period_selector.dart';
@@ -48,12 +49,27 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     }).toList();
   }
 
-  Map<String, double> _categoryTotals(List<FinancialEntryModel> list, String type) {
-    final map = <String, double>{};
+  Map<String, CategoryReportData> _categoryTotals(List<FinancialEntryModel> list, String type) {
+    final map = <String, CategoryReportData>{};
     for (final e in list) {
       if (e.type != type) continue;
       final name = e.categoryName ?? 'other'.tr();
-      map[name] = (map[name] ?? 0) + e.amount;
+      if (!map.containsKey(name)) {
+        map[name] = CategoryReportData(
+          name: name,
+          totalAmount: e.amount,
+          iconName: e.categoryIconName,
+          colorHex: e.categoryColorHex,
+        );
+      } else {
+        final existing = map[name]!;
+        map[name] = CategoryReportData(
+          name: name,
+          totalAmount: existing.totalAmount + e.amount,
+          iconName: existing.iconName ?? e.categoryIconName,
+          colorHex: existing.colorHex ?? e.categoryColorHex,
+        );
+      }
     }
     return map;
   }

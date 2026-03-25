@@ -1,12 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
+import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
+import '../models/category_report_data.dart';
 
 class ExpensesPieChart extends StatefulWidget {
   const ExpensesPieChart({super.key, this.data = const {}});
 
-  final Map<String, double> data;
+  final Map<String, CategoryReportData> data;
 
   @override
   State<ExpensesPieChart> createState() => _ExpensesPieChartState();
@@ -65,8 +66,8 @@ class _ExpensesPieChartState extends State<ExpensesPieChart> {
                 (i) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Indicator(
-                    color: CategoryColors.get(entries[i].key),
-                    text: entries[i].key,
+                    color: IconUtils.getColor(entries[i].value.colorHex),
+                    text: entries[i].value.displayName,
                     isSquare: true,
                   ),
                 ),
@@ -78,15 +79,15 @@ class _ExpensesPieChartState extends State<ExpensesPieChart> {
     );
   }
 
-  List<PieChartSectionData> _buildSections(List<MapEntry<String, double>> entries, double total) {
+  List<PieChartSectionData> _buildSections(List<MapEntry<String, CategoryReportData>> entries, double total) {
     const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
     return List.generate(entries.length, (i) {
       final isTouched = i == touchedIndex;
-      final value = total > 0 ? (entries[i].value / total * 100) : 0.0;
+      final value = total > 0 ? (entries[i].value.totalAmount / total * 100) : 0.0;
       final radius = isTouched ? 60.0 : 50.0;
       return PieChartSectionData(
-        color: CategoryColors.get(entries[i].key),
-        value: entries[i].value,
+        color: IconUtils.getColor(entries[i].value.colorHex),
+        value: entries[i].value.totalAmount,
         title: '${value.toStringAsFixed(0)}%',
         radius: radius,
         titleStyle: TextStyle(

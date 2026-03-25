@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
-import 'package:prm393_finance_project/src/core/constants/category_colors.dart';
+import '../models/category_report_data.dart';
 
 class CategoryBreakdownList extends StatelessWidget {
   const CategoryBreakdownList({super.key, this.data = const {}});
 
-  final Map<String, double> data;
+  final Map<String, CategoryReportData> data;
 
   @override
   Widget build(BuildContext context) {
     final entries = data.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final total = entries.fold<double>(0, (s, e) => s + e.value);
+      ..sort((a, b) => b.value.totalAmount.compareTo(a.value.totalAmount));
+    final total = entries.fold<double>(0, (s, e) => s + e.value.totalAmount);
 
     if (entries.isEmpty) {
       return const SizedBox.shrink();
@@ -32,10 +32,10 @@ class CategoryBreakdownList extends StatelessWidget {
           itemCount: entries.length,
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
-            final e = entries[index];
-            final percent = total > 0 ? e.value / total : 0.0;
-            final color = CategoryColors.get(e.key);
-            final amountStr = '${(e.value).toStringAsFixed(0).replaceAllMapped(
+            final e = entries[index].value;
+            final percent = total > 0 ? e.totalAmount / total : 0.0;
+            final color = IconUtils.getColor(e.colorHex);
+            final amountStr = '${(e.totalAmount).toStringAsFixed(0).replaceAllMapped(
                   RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                   (m) => '${m[1]},',
                 )} đ';
@@ -48,8 +48,8 @@ class CategoryBreakdownList extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: IconUtils.buildIcon(
-                    null,
-                    categoryName: e.key,
+                    e.iconName,
+                    categoryName: e.name,
                     color: color,
                     size: 20,
                   ),
@@ -63,7 +63,7 @@ class CategoryBreakdownList extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            (e.key.toLowerCase() == 'khác' || e.key.toLowerCase() == 'other') ? e.key.tr() : e.key, 
+                            e.displayName, 
                             style: const TextStyle(fontWeight: FontWeight.w600)
                           ),
                           Text(amountStr, style: const TextStyle(fontWeight: FontWeight.bold)),
