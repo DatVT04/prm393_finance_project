@@ -264,6 +264,32 @@ class _AddEntryModalState extends ConsumerState<AddEntryModal> {
       }
       return;
     }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          ToastNotification.show(
+            context,
+            'Quyền truy cập vị trí bị từ chối.',
+            status: ToastStatus.error,
+          );
+        }
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        ToastNotification.show(
+          context,
+          'Vui lòng vào Cài đặt để cấp quyền vị trí cho ứng dụng.',
+          status: ToastStatus.error,
+        );
+      }
+      return;
+    }
     try {
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
