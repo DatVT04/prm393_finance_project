@@ -282,5 +282,14 @@
     "remove": "削除",
     "selected_dates": "選択された日付",
     "no_dates_selected": "日付が選択されていません。",
-    "date_already_added": "この日付はすでにリストにあります。"
+    "date_already_added": "この日付はすでにリストにあります。",
+    "add_account_title": "ウォレット/アカウントを追加",
+    "edit_account_title": "ウォレット/アカウントを編集",
+    "account_name_label": "アカウント名",
+    "account_name_hint": "例：現金、ATM...",
+    "initial_balance_label": "初期残高",
+    "choose_icon": "アイコンを選択",
+    "choose_color": "色を選択",
+    "save_account": "アカウントを保存",
+    "name_required": "アカウント名を入力してください"
 }

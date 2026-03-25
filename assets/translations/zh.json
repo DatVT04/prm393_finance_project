@@ -282,5 +282,14 @@
   "remove": "删除",
   "selected_dates": "已选日期",
   "no_dates_selected": "尚未选择日期。",
-  "date_already_added": "此日期已在列表中。"
+  "date_already_added": "此日期已在列表中。",
+  "add_account_title": "添加钱包/账户",
+  "edit_account_title": "编辑钱包/账户",
+  "account_name_label": "账户名称",
+  "account_name_hint": "例如：现金，ATM...",
+  "initial_balance_label": "初始余额",
+  "choose_icon": "选择图标",
+  "choose_color": "选择颜色",
+  "save_account": "保存账户",
+  "name_required": "请输入账户名称"
 }

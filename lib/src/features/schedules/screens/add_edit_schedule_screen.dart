@@ -297,8 +297,10 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
                           // Category
                           categoriesAsync.when(
                             data: (list) {
+                              // Ensure current selected id exists in list, or add it if missing (e.g. deleted)
+                              bool exists = list.any((c) => c.id == _selectedCategoryId);
                               return DropdownButtonFormField<int>(
-                                value: _selectedCategoryId,
+                                value: exists ? _selectedCategoryId : null,
                                 decoration: InputDecoration(
                                   labelText: 'category_label'.tr(),
                                   icon: Container(
@@ -310,23 +312,32 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
                                     child: const Icon(Icons.category, color: Colors.orange, size: 20),
                                   ),
                                   border: const UnderlineInputBorder(),
+                                  errorText: (!exists && _selectedCategoryId != null) ? 'category_not_found'.tr() : null,
                                 ),
                                 icon: const Icon(Icons.arrow_drop_down_rounded, size: 28),
-                                items: list.map((c) => DropdownMenuItem(
-                                  value: c.id,
-                                  child: Row(
-                                    children: [
-                                      IconUtils.buildIcon(
-                                        c.iconName,
-                                        categoryName: c.name,
-                                        size: 20,
-                                        color: IconUtils.getColor(c.colorHex),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(c.displayName.tr(), style: const TextStyle(fontSize: 15)),
-                                    ],
-                                  ),
-                                )).toList(),
+                                items: [
+                                  ...list.map((c) => DropdownMenuItem(
+                                    value: c.id,
+                                    child: Row(
+                                      children: [
+                                        IconUtils.buildIcon(
+                                          c.iconName,
+                                          categoryName: c.name,
+                                          size: 20,
+                                          color: IconUtils.getColor(c.colorHex),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(c.displayName.tr(), style: const TextStyle(fontSize: 15)),
+                                      ],
+                                    ),
+                                  )),
+                                  if (!exists && _selectedCategoryId != null)
+                                    DropdownMenuItem(
+                                      value: _selectedCategoryId,
+                                      enabled: false,
+                                      child: Text('deleted_label'.tr(), style: const TextStyle(color: Colors.red)),
+                                    ),
+                                ],
                                 onChanged: (v) => setState(() => _selectedCategoryId = v),
                               );
                             },
@@ -341,8 +352,9 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
                           // Account
                           accountsAsync.when(
                             data: (list) {
+                              bool exists = list.any((a) => a.id == _selectedAccountId);
                               return DropdownButtonFormField<int>(
-                                value: _selectedAccountId,
+                                value: exists ? _selectedAccountId : null,
                                 decoration: InputDecoration(
                                   labelText: 'account_label'.tr(),
                                   icon: Container(
@@ -354,13 +366,22 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
                                     child: const Icon(Icons.account_balance_wallet, color: Colors.green, size: 20),
                                   ),
                                   border: const UnderlineInputBorder(),
+                                  errorText: (!exists && _selectedAccountId != null) ? 'account_not_found'.tr() : null,
                                 ),
                                 icon: const Icon(Icons.arrow_drop_down_rounded, size: 28),
                                 isExpanded: true,
-                                items: list.map((a) => DropdownMenuItem(
-                                  value: a.id,
-                                  child: Text('${a.name} (${CurrencyFormatter.format(context, a.balance)})', style: const TextStyle(fontSize: 15), overflow: TextOverflow.ellipsis),
-                                )).toList(),
+                                items: [
+                                  ...list.map((a) => DropdownMenuItem(
+                                    value: a.id,
+                                    child: Text('${a.name} (${CurrencyFormatter.format(context, a.balance)})', style: const TextStyle(fontSize: 15), overflow: TextOverflow.ellipsis),
+                                  )),
+                                  if (!exists && _selectedAccountId != null)
+                                    DropdownMenuItem(
+                                      value: _selectedAccountId,
+                                      enabled: false,
+                                      child: Text('deleted_label'.tr(), style: const TextStyle(color: Colors.red)),
+                                    ),
+                                ],
                                 onChanged: (v) => setState(() => _selectedAccountId = v),
                               );
                             },

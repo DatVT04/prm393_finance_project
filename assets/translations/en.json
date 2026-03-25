@@ -284,5 +284,16 @@
   "remove": "Remove",
   "selected_dates": "Selected Dates",
   "no_dates_selected": "No dates selected yet.",
-  "date_already_added": "This date is already in the list."
+  "date_already_added": "This date is already in the list.",
+  "add_account_title": "Add Wallet / Account",
+  "edit_account_title": "Edit Wallet / Account",
+  "account_name_label": "Account Name",
+  "account_name_hint": "Example: Cash, ATM...",
+  "initial_balance_label": "Initial Balance",
+  "choose_icon": "Choose Icon",
+  "choose_color": "Choose Color",
+  "save_account": "Save Account",
+  "name_required": "Please enter account name",
+  "category_not_found": "Category deleted or not found",
+  "account_not_found": "Wallet deleted or not found"
 }

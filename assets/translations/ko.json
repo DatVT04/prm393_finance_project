@@ -282,5 +282,14 @@
   "remove": "삭제",
   "selected_dates": "선택된 날짜",
   "no_dates_selected": "선택된 날짜가 없습니다.",
-  "date_already_added": "이 날짜는 이미 목록에 있습니다."
+  "date_already_added": "이 날짜는 이미 목록에 있습니다.",
+  "add_account_title": "지갑/계좌 추가",
+  "edit_account_title": "지갑/계좌 수정",
+  "account_name_label": "계좌 이름",
+  "account_name_hint": "예: 현금, ATM...",
+  "initial_balance_label": "초기 잔액",
+  "choose_icon": "아이콘 선택",
+  "choose_color": "색상 선택",
+  "save_account": "계좌 저장",
+  "name_required": "계좌 이름을 입력하세요"
 }

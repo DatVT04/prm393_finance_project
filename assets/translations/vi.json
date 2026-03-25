@@ -284,5 +284,16 @@
   "remove": "Xóa",
   "selected_dates": "Các ngày đã chọn",
   "no_dates_selected": "Chưa chọn ngày nào.",
-  "date_already_added": "Ngày này đã có trong danh sách."
+  "date_already_added": "Ngày này đã có trong danh sách.",
+  "add_account_title": "Thêm ví / tài khoản",
+  "edit_account_title": "Chỉnh sửa ví / tài khoản",
+  "account_name_label": "Tên ví / tài khoản",
+  "account_name_hint": "Ví dụ: Tiền mặt, ATM...",
+  "initial_balance_label": "Số dư ban đầu",
+  "choose_icon": "Chọn biểu tượng",
+  "choose_color": "Chọn màu sắc",
+  "save_account": "Lưu tài khoản",
+  "name_required": "Vui lòng nhập tên ví",
+  "category_not_found": "Danh mục đã bị xóa hoặc không tồn tại",
+  "account_not_found": "Ví đã bị xóa hoặc không tồn tại"
 }
