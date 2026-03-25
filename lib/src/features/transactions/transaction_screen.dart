@@ -120,7 +120,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
     return list.where((e) {
       final note = (e.note ?? '').toLowerCase();
-      final category = (e.categoryName ?? '').toLowerCase();
+      final category = e.categoryDisplayName.tr().toLowerCase();
       return note.contains(q) || category.contains(q);
     }).toList();
   }
@@ -229,7 +229,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                 ...list.map(
                                   (c) => DropdownMenuItem<int?>(
                                     value: c.id,
-                                    child: Text(c.name),
+                                    child: Text(c.displayName.tr()),
                                   ),
                                 ),
                               ],
@@ -239,7 +239,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                   if (v == null) {
                                     _selectedCategoryName = null;
                                   } else {
-                                    _selectedCategoryName = list.firstWhere((c) => c.id == v).name;
+                                    _selectedCategoryName = list.firstWhere((c) => c.id == v).displayName.tr();
                                   }
                                 });
                               },
@@ -486,7 +486,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               ),
             ),
             title: Text(
-              e.categoryName ?? 'other'.tr(),
+              e.categoryDisplayName.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             subtitle: (e.note != null && e.note!.isNotEmpty)

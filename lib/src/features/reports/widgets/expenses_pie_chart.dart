@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import '../models/category_report_data.dart';
@@ -67,7 +68,7 @@ class _ExpensesPieChartState extends State<ExpensesPieChart> {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Indicator(
                     color: IconUtils.getColor(entries[i].value.colorHex),
-                    text: entries[i].value.displayName,
+                    text: entries[i].value.displayName.tr(),
                     isSquare: true,
                   ),
                 ),

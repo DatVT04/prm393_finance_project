@@ -63,7 +63,7 @@ class CategoryBreakdownList extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            e.displayName, 
+                            e.displayName.tr(), 
                             style: const TextStyle(fontWeight: FontWeight.w600)
                           ),
                           Text(amountStr, style: const TextStyle(fontWeight: FontWeight.bold)),

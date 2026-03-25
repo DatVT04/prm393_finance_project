@@ -27,7 +27,7 @@ class _CategoryManagementScreenState
       builder: (ctx) => AlertDialog(
         title: Text('delete_category_title'.tr()),
         content: Text(
-          'delete_category_msg'.tr(args: [category.name]),
+          'delete_category_msg'.tr(args: [category.displayName.tr()]),
         ),
         actions: [
           TextButton(
@@ -181,7 +181,7 @@ class _CategoryManagementScreenState
                     ),
                   ),
                   title: Text(
-                    (c.name.toLowerCase() == 'khác' || c.name.toLowerCase() == 'other') ? c.name.tr() : c.name,
+                    c.displayName.tr(),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Column(

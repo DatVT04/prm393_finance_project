@@ -79,4 +79,12 @@ class FinancialEntryModel {
       if (source != null && source!.isNotEmpty) 'source': source,
     };
   }
+
+  String get categoryDisplayName {
+    final name = categoryName ?? 'other';
+    if (name.toLowerCase() == 'khác' || name.toLowerCase() == 'other') {
+      return 'other'; // Returns the translation key
+    }
+    return name;
+  }
 }

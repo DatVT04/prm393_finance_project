@@ -34,4 +34,11 @@ class CategoryModel {
       if (colorHex != null && colorHex!.isNotEmpty) 'colorHex': colorHex,
     };
   }
+
+  String get displayName {
+    if (name.toLowerCase() == 'khác' || name.toLowerCase() == 'other') {
+      return 'other'; // Returns the translation key
+    }
+    return name;
+  }
 }

@@ -53,7 +53,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     final map = <String, CategoryReportData>{};
     for (final e in list) {
       if (e.type != type) continue;
-      final name = e.categoryName ?? 'other'.tr();
+      final name = e.categoryDisplayName;
       if (!map.containsKey(name)) {
         map[name] = CategoryReportData(
           name: name,

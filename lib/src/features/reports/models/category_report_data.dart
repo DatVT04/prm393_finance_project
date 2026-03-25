@@ -13,5 +13,5 @@ class CategoryReportData {
     this.colorHex,
   });
 
-  String get displayName => (name.toLowerCase() == 'khác' || name.toLowerCase() == 'other') ? name.tr() : name;
+  String get displayName => (name.toLowerCase() == 'khác' || name.toLowerCase() == 'other') ? 'other' : name;
 }
