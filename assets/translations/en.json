@@ -296,5 +296,8 @@
   "save_account": "Save Account",
   "name_required": "Please enter account name",
   "category_not_found": "Category deleted or not found",
-  "account_not_found": "Wallet deleted or not found"
+  "account_not_found": "Wallet deleted or not found",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "choose_image_source": "Choose image source"
 }

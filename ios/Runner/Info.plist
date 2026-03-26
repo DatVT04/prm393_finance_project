@@ -34,6 +34,10 @@
 	<string>Ứng dụng cần sử dụng micro để nhập liệu bằng giọng nói.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Ứng dụng cần sử dụng tính năng nhận diện giọng nói để chuyển giọng nói thành văn bản.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ứng dụng cần sử dụng máy ảnh để chụp ảnh hóa đơn.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ứng dụng cần truy cập thư viện ảnh để chọn ảnh hóa đơn.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

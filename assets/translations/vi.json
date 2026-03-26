@@ -296,5 +296,8 @@
   "save_account": "Lưu tài khoản",
   "name_required": "Vui lòng nhập tên ví",
   "category_not_found": "Danh mục đã bị xóa hoặc không tồn tại",
-  "account_not_found": "Ví đã bị xóa hoặc không tồn tại"
+  "account_not_found": "Ví đã bị xóa hoặc không tồn tại",
+  "camera": "Máy ảnh",
+  "gallery": "Bộ sưu tập",
+  "choose_image_source": "Chọn nguồn ảnh"
 }
