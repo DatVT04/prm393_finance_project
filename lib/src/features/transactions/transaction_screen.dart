@@ -95,13 +95,16 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     if (_dateFilter == 'all') return list;
 
     final now = DateTime.now();
+    if (_dateFilter == 'today') {
+      return list.where((e) =>
+          e.transactionDate.year == now.year &&
+          e.transactionDate.month == now.month &&
+          e.transactionDate.day == now.day).toList();
+    }
     if (_dateFilter == 'this_month') {
       return list.where((e) =>
           e.transactionDate.year == now.year &&
           e.transactionDate.month == now.month).toList();
-    }
-    if (_dateFilter == 'this_year') {
-      return list.where((e) => e.transactionDate.year == now.year).toList();
     }
     if (_dateFilter == 'day' && _customDate != null) {
       return list.where((e) =>
@@ -147,6 +150,10 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Explicitly watch the locale to ensure the widget rebuilds and remeasures
+    // when the language is changed in settings.
+    context.locale;
+
     final categoriesAsync = ref.watch(categoriesWithRefreshProvider);
     final categories = categoriesAsync.valueOrNull ?? const <CategoryModel>[];
     final entriesAsync = ref.watch(entriesWithRefreshProvider);
@@ -230,15 +237,19 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                         const SizedBox(width: 8),
                         _buildDateFilterChip('this_month'),
                         const SizedBox(width: 8),
-                        _buildDateFilterChip('this_year'),
+                        _buildDateFilterChip('today'),
                         const SizedBox(width: 8),
                         ChoiceChip(
+                          key: ValueKey('day_${context.locale}'),
                           label: Text(
                             _customDate != null
                                 ? DateFormat('dd/MM/yyyy', context.locale.toString()).format(_customDate!)
                                 : 'day'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
-                          avatar: const Icon(Icons.calendar_today, size: 18),
+                          labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          avatar: const Icon(Icons.calendar_today, size: 16),
                           selected: _dateFilter == 'day',
                           onSelected: (_) => _pickCustomDate(),
                         ),
@@ -443,7 +454,15 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   Widget _buildDateFilterChip(String label) {
     final isSelected = _dateFilter == label;
     return ChoiceChip(
-      label: Text(label.tr()),
+      // Use a key that includes the locale to force the chip to compute its size from scratch
+      // when the language changes, preventing truncation or incorrect measurements.
+      key: ValueKey('${label}_${context.locale}'),
+      label: Text(
+        label.tr(),
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       selected: isSelected,
       onSelected: (_) {
         setState(() {
