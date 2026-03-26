@@ -256,6 +256,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                           ),
                           labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                           padding: const EdgeInsets.symmetric(horizontal: 4),
+                          showCheckmark: false,
                           avatar: const Icon(Icons.calendar_today, size: 16),
                           selected: _dateFilter == 'day',
                           onSelected: (_) => _pickCustomDate(),
@@ -473,6 +474,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       ),
       labelPadding: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.symmetric(horizontal: 4),
+      showCheckmark: false,
       selected: isSelected,
       onSelected: (_) {
         setState(() {
