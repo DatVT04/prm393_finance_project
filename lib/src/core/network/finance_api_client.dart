@@ -52,6 +52,9 @@ class FinanceApiClient {
     if (_userId != null) 'X-User-Id': _userId.toString(),
   };
 
+  /**
+   * Đăng nhập người dùng bằng email và mật khẩu. Trả về thông tin người dùng và token.
+   */
   Future<Map<String, dynamic>> login(String email, String password) async {
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.authPath}/login'),
@@ -71,6 +74,9 @@ class FinanceApiClient {
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
+  /**
+   * Xác thực tài khoản qua mã code gửi về email.
+   */
   Future<void> verifyAccount(String email, String code) async {
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.authPath}/verify-account?email=$email&code=$code'),
@@ -80,6 +86,9 @@ class FinanceApiClient {
     }
   }
 
+  /**
+   * Gửi lại mã xác thực tới email người dùng.
+   */
   Future<void> resendVerificationCode(String email) async {
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.authPath}/resend-verification-code?email=$email'),
@@ -89,6 +98,9 @@ class FinanceApiClient {
     }
   }
 
+  /**
+   * Đăng nhập hoặc đăng ký nhanh bằng Google Account.
+   */
   Future<Map<String, dynamic>> googleLogin(String email, String? displayName) async {
     final res = await http.post(
       Uri.parse('$_base${ApiConstants.authPath}/google-login'),
@@ -407,6 +419,10 @@ class FinanceApiClient {
       throw Exception('Failed to delete entry: ${res.statusCode}');
   }
 
+  /**
+   * Phương thức chính để gửi câu hỏi/yêu cầu tới Trợ lý AI.
+   * Chấp nhận tin nhắn văn bản, ID hội thoại, ID ví, ngôn ngữ và ảnh base64.
+   */
   Future<AiAssistantResponse> askAssistant(
     String message, {
     String? conversationId,
@@ -443,6 +459,9 @@ class FinanceApiClient {
     return list.map((e) => BudgetModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /**
+   * Lấy lịch sử tất cả các tin nhắn chat của AI Assistant từ server.
+   */
   Future<List<Map<String, dynamic>>> getAiHistory() async {
     final res = await http.get(
       Uri.parse('$_base/api/ai/history'),
@@ -453,6 +472,9 @@ class FinanceApiClient {
     return list.cast<Map<String, dynamic>>();
   }
 
+  /**
+   * Xóa sạch lịch sử chat của AI trên server.
+   */
   Future<void> clearAiHistory() async {
     final res = await http.delete(
       Uri.parse('$_base/api/ai/history'),

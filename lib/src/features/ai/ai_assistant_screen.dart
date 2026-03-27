@@ -115,6 +115,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     super.dispose();
   }
 
+  /**
+   * Phương thức gửi tin nhắn chính.
+   * Chấp nhận văn bản thô hoặc tin nhắn mẫu (preset), và ảnh nếu có.
+   */
   Future<void> _sendMessage({String? preset, String? imagePath, String? base64Image}) async {
     if (_sending) return;
     final text = (preset ?? _inputController.text).trim();
@@ -133,6 +137,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     _scrollToBottom();
 
     try {
+      // Gọi API gửi tới Backend
       final res = await ref.read(apiClientProvider).askAssistant(
         text,
         conversationId: _conversationId,
@@ -142,8 +147,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       if (res.conversationId != null && res.conversationId!.isNotEmpty) {
         _conversationId = res.conversationId;
       }
+      // Cập nhật phản hồi thực tế từ AI
       _replacePending(res);
       _persistChat();
+
+      // Nếu AI báo cần chọn tài khoản để hoàn tất giao dịch
       if (res.needsAccountSelection) {
         _pendingMessageForAccount = text;
         if (mounted) {
@@ -163,6 +171,10 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     }
   }
 
+  /**
+   * Chọn ảnh từ thư viện hoặc chụp ảnh mới.
+   * Ảnh sau đó được chuyển sang Base64 và gửi cho AI.
+   */
   Future<void> _pickImage() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -208,18 +220,23 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     _sendMessage(preset: '', imagePath: image.path, base64Image: base64Image);
   }
 
+  /**
+   * Thay thế tin nhắn "đang xử lý" bằng phản hồi thật từ server.
+   * Đồng thời kích hoạt làm mới (refresh) dữ liệu nếu AI có thay đổi Database.
+   */
   void _replacePending(AiAssistantResponse res) {
     if (!mounted) return;
     setState(() {
       _messages.removeWhere((m) => m.pending && m.role == _ChatRole.assistant);
       _messages.add(_ChatMessage.assistant(res.reply ?? ''));
     });
+    // Nếu AI báo có thay đổi (thêm/sửa/xóa), refresh các Provider liên quan
     if (res.refreshRequired || (res.intent.toUpperCase() == 'INSERT' && (res.createdCount ?? 0) > 0)) {
       refreshEntries(ref);
       refreshAccounts(ref);
-      refreshBudgets(ref); // Refresh planning data
-      refreshSchedules(ref); // Refresh recurring transactions
-      refreshCategories(ref); // Refresh categories
+      refreshBudgets(ref);
+      refreshSchedules(ref);
+      refreshCategories(ref);
       ref.invalidate(entriesWithRefreshProvider);
     }
   }
@@ -235,6 +252,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     });
   }
 
+  /**
+   * Bắt đầu nhận diện giọng nói tiếng Việt/Anh và điền vào ô nhập liệu.
+   */
   void _startListening() async {
     final available = await _speech.initialize(
       onStatus: (status) {
@@ -271,11 +291,17 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     );
   }
 
+  /**
+   * Dừng nhận diện giọng nói.
+   */
   void _stopListening() async {
     await _speech.stop();
     if (mounted) setState(() => _listening = false);
   }
 
+  /**
+   * Hiển thị danh sách ví để người dùng chọn khi AI yêu cầu làm rõ tài khoản.
+   */
   Future<void> _promptAccountSelection() async {
     if (_pendingMessageForAccount == null || _pendingMessageForAccount!.isEmpty) return;
     List<AccountModel> accounts = [];
