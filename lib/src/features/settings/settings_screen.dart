@@ -297,14 +297,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ===== ABOUT =====
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: Text('group_info'.tr()),
-              subtitle: Text('prm_finance_subtitle'.tr()),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                _showAboutDialog();
-              },
+            child: Stack(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: Text('group_info'.tr()),
+                  subtitle: Text('prm_finance_subtitle'.tr()),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    _showAboutDialog();
+                  },
+                ),
+                Positioned(
+                  left: 4,
+                  bottom: 4,
+                  child: IconButton(
+                    icon: Icon(Icons.vpn_key_outlined, 
+                      size: 16, 
+                      color: theme.colorScheme.primary.withOpacity(0.3)
+                    ),
+                    onPressed: _showAiKeyDialog,
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    tooltip: 'AI Gemini API Key',
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -535,6 +554,127 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const Text('- Nguyễn Văn Sỹ'),
         const Text('- Vũ Tiến Đạt'),
       ],
+    );
+  }
+
+  // ===== AI KEY DIALOG =====
+  void _showAiKeyDialog() async {
+    final theme = Theme.of(context);
+    final controller = TextEditingController();
+    bool isSaving = false;
+    bool hasKey = false;
+    
+    // Initial status check
+    try {
+      hasKey = await ref.read(apiClientProvider).getAiApiKeyStatus();
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: Colors.blue),
+              const SizedBox(width: 8),
+              Text('Gemini API Key'.tr()),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ai_key_dialog_desc'.tr(args: [hasKey ? 'active_key'.tr() : 'inactive_key'.tr()]),
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 16),
+              if (!hasKey) ...[
+                TextField(
+                  controller: controller,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'API Key',
+                    hintText: 'api_key_hint'.tr(),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ] else ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'personal_key_in_use'.tr(),
+                          style: const TextStyle(color: Colors.green, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Text(
+                'ai_key_note'.tr(),
+                style: theme.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+          actions: [
+            if (hasKey)
+              TextButton(
+                onPressed: isSaving ? null : () async {
+                  setDialogState(() => isSaving = true);
+                  try {
+                    await ref.read(apiClientProvider).deleteAiApiKey();
+                    if (!mounted) return;
+                    Navigator.pop(ctx);
+                    ToastNotification.show(context, 'api_key_deleted'.tr());
+                  } catch (e) {
+                    setDialogState(() => isSaving = false);
+                    ToastNotification.show(context, 'Lỗi: $e', status: ToastStatus.error);
+                  }
+                },
+                child: Text('delete'.tr(), style: const TextStyle(color: Colors.red)),
+              ),
+            TextButton(
+              onPressed: isSaving ? null : () => Navigator.pop(ctx),
+              child: Text('cancel'.tr()),
+            ),
+            if (!hasKey)
+              ElevatedButton(
+                onPressed: isSaving ? null : () async {
+                  final key = controller.text.trim();
+                  if (key.isEmpty) return;
+                  setDialogState(() => isSaving = true);
+                  try {
+                    await ref.read(apiClientProvider).saveAiApiKey(key);
+                    if (!mounted) return;
+                    Navigator.pop(ctx);
+                    ToastNotification.show(context, 'api_key_saved'.tr(), status: ToastStatus.success);
+                  } catch (e) {
+                    setDialogState(() => isSaving = false);
+                    ToastNotification.show(context, 'Lỗi: $e', status: ToastStatus.error);
+                  }
+                },
+                child: isSaving
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text('save'.tr()),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

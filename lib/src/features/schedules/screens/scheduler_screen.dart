@@ -7,6 +7,7 @@ import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dar
 import 'package:prm393_finance_project/src/shared/utils/currency_formatter.dart';
 
 import 'add_edit_schedule_screen.dart';
+import 'package:prm393_finance_project/src/shared/utils/schedule_utils.dart';
 
 class SchedulerScreen extends ConsumerWidget {
   const SchedulerScreen({super.key});
@@ -24,6 +25,55 @@ class SchedulerScreen extends ConsumerWidget {
   }
 
   Future<void> _enableSchedule(WidgetRef ref, BuildContext context, ScheduleModel schedule) async {
+    final now = DateTime.now();
+    // Check if the current scheduled date is in the past
+    final scheduledDate = schedule.nextRun ?? schedule.startDate;
+    if (!scheduledDate.isAfter(now)) {
+      final nextValidDate = ScheduleUtils.calculateNextValidDate(schedule, now);
+      
+      if (!context.mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('schedule_in_past_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: Text('schedule_in_past_body'.tr(args: [
+            DateFormat('dd/MM/yyyy HH:mm').format(scheduledDate),
+            DateFormat('dd/MM/yyyy HH:mm').format(nextValidDate),
+          ])),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('cancel'.tr()),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text('update_and_enable'.tr()),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      try {
+        // First update the schedule with the new date
+        final updatedSchedule = schedule.copyWith(nextRun: nextValidDate);
+        await ref.read(apiClientProvider).updateSchedule(schedule.id!, updatedSchedule);
+        
+        // Then enable it
+        await ref.read(apiClientProvider).enableSchedule(schedule.id!);
+        
+        refreshSchedules(ref);
+        if (!context.mounted) return;
+        ToastNotification.show(context, 'schedule_enabled_success'.tr());
+      } catch (e) {
+        if (!context.mounted) return;
+        ToastNotification.show(context, 'Error: $e', status: ToastStatus.error);
+      }
+      return;
+    }
+
     try {
       await ref.read(apiClientProvider).enableSchedule(schedule.id!);
       refreshSchedules(ref);

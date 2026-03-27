@@ -537,6 +537,33 @@ class FinanceApiClient {
     if (res.statusCode != 204 && res.statusCode != 200) throw Exception('Failed to delete schedule');
   }
 
+  Future<void> saveAiApiKey(String key) async {
+    final res = await http.post(
+      Uri.parse('$_base/api/ai/config/key'),
+      headers: _userHeaders,
+      body: jsonEncode({'apiKey': key}),
+    );
+    if (res.statusCode != 200) throw Exception('Lỗi lưu API Key');
+  }
+
+  Future<void> deleteAiApiKey() async {
+    final res = await http.delete(
+      Uri.parse('$_base/api/ai/config/key'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 204 && res.statusCode != 200) throw Exception('Lỗi xóa API Key');
+  }
+
+  Future<bool> getAiApiKeyStatus() async {
+    final res = await http.get(
+      Uri.parse('$_base/api/ai/config/key/status'),
+      headers: _userHeaders,
+    );
+    if (res.statusCode != 200) return false;
+    final data = jsonDecode(res.body);
+    return data['hasCustomKey'] ?? false;
+  }
+
   static String _dateStr(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }

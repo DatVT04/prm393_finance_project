@@ -299,5 +299,16 @@
   "account_not_found": "Wallet deleted or not found",
   "camera": "Camera",
   "gallery": "Gallery",
-  "choose_image_source": "Choose image source"
+  "choose_image_source": "Choose image source",
+  "ai_key_dialog_desc": "API Status: {}. You can add your personal Gemini API Key to use when the system is rate-limited.",
+  "active_key": "Custom Key Set",
+  "inactive_key": "Using Default Key",
+  "personal_key_in_use": "Using your personal API Key",
+  "ai_key_note": "Note: This API Key will be prioritized. If it fails, the system will fallback to the default key.",
+  "api_key_saved": "Personal API Key saved",
+  "api_key_deleted": "Personal API Key deleted",
+  "api_key_hint": "Enter your Gemini API Key...",
+  "schedule_in_past_title": "Upcoming Schedule in Past",
+  "schedule_in_past_body": "The schedule for {} has already passed. Would you like to update it to the next occurrence ({}) and re-enable it?",
+  "update_and_enable": "Update & Enable"
 }

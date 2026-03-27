@@ -218,6 +218,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       refreshEntries(ref);
       refreshAccounts(ref);
       refreshBudgets(ref); // Refresh planning data
+      refreshSchedules(ref); // Refresh recurring transactions
+      refreshCategories(ref); // Refresh categories
       ref.invalidate(entriesWithRefreshProvider);
     }
   }

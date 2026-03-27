@@ -299,5 +299,16 @@
   "account_not_found": "Ví đã bị xóa hoặc không tồn tại",
   "camera": "Máy ảnh",
   "gallery": "Bộ sưu tập",
-  "choose_image_source": "Chọn nguồn ảnh"
+  "choose_image_source": "Chọn nguồn ảnh",
+  "ai_key_dialog_desc": "Trạng thái API: {}. Bạn có thể thêm Gemini API Key cá nhân để sử dụng khi hệ thống quá tải.",
+  "active_key": "Đã thiết lập Key riêng",
+  "inactive_key": "Đang dùng Key mặc định",
+  "personal_key_in_use": "Đang sử dụng API Key cá nhân của bạn",
+  "ai_key_note": "Lưu ý: API Key này sẽ được ưu tiên sử dụng. Nếu gặp lỗi, hệ thống sẽ tự động thử lại với Key mặc định.",
+  "api_key_saved": "Đã lưu API Key cá nhân",
+  "api_key_deleted": "Đã xóa API Key cá nhân",
+  "api_key_hint": "Nhập Gemini API Key của bạn...",
+  "schedule_in_past_title": "Lịch trình trong quá khứ",
+  "schedule_in_past_body": "Lịch trình cho ngày {} đã trôi qua. Bạn có muốn cập nhật đến ngày tiếp theo ({}) và kích hoạt lại không?",
+  "update_and_enable": "Cập nhật & Kích hoạt"
 }
