@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prm393_finance_project/src/core/models/schedule_model.dart';
+import 'package:prm393_finance_project/src/core/models/category_model.dart';
 import 'package:prm393_finance_project/src/features/transactions/providers/finance_providers.dart';
 import 'package:prm393_finance_project/src/core/utils/icon_utils.dart';
 import 'package:prm393_finance_project/src/shared/widgets/toast_notification.dart';
