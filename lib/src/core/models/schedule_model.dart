@@ -11,6 +11,7 @@ class ScheduleModel {
   final String repeatType;
   final String? repeatConfig;
   final DateTime? nextRun;
+  final String? type; // INCOME, EXPENSE
   final bool isActive;
 
   ScheduleModel({
@@ -24,6 +25,7 @@ class ScheduleModel {
     required this.repeatType,
     this.repeatConfig,
     this.nextRun,
+    this.type,
     this.isActive = true,
   });
 
@@ -39,6 +41,7 @@ class ScheduleModel {
       repeatType: json['repeatType'] ?? 'NONE',
       repeatConfig: json['repeatConfig'],
       nextRun: json['nextRun'] != null ? DateTime.parse(json['nextRun']) : null,
+      type: json['type'],
       isActive: json['isActive'] ?? true,
     );
   }
@@ -55,6 +58,7 @@ class ScheduleModel {
       'repeatType': repeatType,
       if (repeatConfig != null) 'repeatConfig': repeatConfig,
       if (nextRun != null) 'nextRun': nextRun!.toIso8601String(),
+      if (type != null) 'type': type,
       'isActive': isActive,
     };
   }
@@ -70,6 +74,7 @@ class ScheduleModel {
     String? repeatType,
     String? repeatConfig,
     DateTime? nextRun,
+    String? type,
     bool? isActive,
   }) {
     return ScheduleModel(
@@ -83,6 +88,7 @@ class ScheduleModel {
       repeatType: repeatType ?? this.repeatType,
       repeatConfig: repeatConfig ?? this.repeatConfig,
       nextRun: nextRun ?? this.nextRun,
+      type: type ?? this.type,
       isActive: isActive ?? this.isActive,
     );
   }

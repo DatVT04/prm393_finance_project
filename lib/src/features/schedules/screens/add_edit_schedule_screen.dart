@@ -54,6 +54,8 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
   String _repeatType = 'NONE';
   List<DateTime> _customDates = [];
 
+  String _selectedType = 'EXPENSE';
+  bool _typeDetermined = false;
   bool _isLoading = false;
 
   final List<String> _repeatTypes = ['NONE', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'CUSTOM'];
@@ -69,6 +71,16 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
         _noteController.text = s.note ?? '';
         _selectedAccountId = s.accountId;
         _selectedCategoryId = s.categoryId;
+        if (s.type != null) {
+          _selectedType = s.type!;
+        } else {
+          // If type is null (old data), try to find it from categories
+          final allCats = ref.read(categoriesProvider).value;
+          if (allCats != null) {
+            final cat = allCats.firstWhere((c) => c.id == s.categoryId, orElse: () => allCats.first);
+            _selectedType = cat.type ?? 'EXPENSE';
+          }
+        }
         _startDate = s.startDate;
         _repeatType = s.repeatType;
         
@@ -83,6 +95,21 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
         setState(() {});
       }
     });
+  }
+
+  void _updateTypeFromCategory(List<CategoryModel> categories) {
+    if (_typeDetermined) return;
+    if (widget.scheduleToEdit != null && widget.scheduleToEdit!.type == null) {
+       final cat = categories.where((c) => c.id == _selectedCategoryId).firstOrNull;
+       if (cat != null && cat.type != null) {
+         _typeDetermined = true;
+         setState(() {
+           _selectedType = cat.type!;
+         });
+       }
+    } else if (widget.scheduleToEdit != null && widget.scheduleToEdit!.type != null) {
+       _typeDetermined = true;
+    }
   }
 
   @override
@@ -158,6 +185,7 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
         startDate: _startDate,
         repeatType: _repeatType,
         repeatConfig: repeatConfig,
+        type: _selectedType,
       );
 
       if (widget.scheduleToEdit == null) {
@@ -206,6 +234,12 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
     final accountsAsync = ref.watch(accountsProvider);
     final theme = Theme.of(context);
     final locale = context.locale.toString();
+
+    ref.listen(categoriesProvider, (prev, next) {
+      if (next.hasValue && next.value != null) {
+        _updateTypeFromCategory(next.value!);
+      }
+    });
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -262,6 +296,38 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
 
                     // DETAILS
                     _buildSectionHeader('schedule_details'.tr(), Icons.info_outline, theme),
+                    SegmentedButton<String>(
+                      segments: [
+                        ButtonSegment(
+                          value: 'EXPENSE',
+                          label: Text('expense_short'.tr()),
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                        ButtonSegment(
+                          value: 'INCOME',
+                          label: Text('income_short'.tr()),
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                      ],
+                      selected: {_selectedType},
+                      onSelectionChanged: (val) {
+                        final newType = val.first;
+                        setState(() {
+                          _selectedType = newType;
+                          // Optional: Clear selection or find first category of new type
+                          final categories = ref.read(categoriesProvider).value;
+                          if (categories != null) {
+                            final filtered = categories.where((c) => c.type == _selectedType).toList();
+                            if (filtered.isNotEmpty) {
+                              if (!filtered.any((c) => c.id == _selectedCategoryId)) {
+                                _selectedCategoryId = filtered.first.id;
+                              }
+                            }
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
                         color: theme.cardColor,
@@ -297,8 +363,11 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
                           // Category
                           categoriesAsync.when(
                             data: (list) {
+                              // Filter by type
+                              final filteredList = list.where((c) => c.type == _selectedType).toList();
+                              
                               // Ensure current selected id exists in list, or add it if missing (e.g. deleted)
-                              bool exists = list.any((c) => c.id == _selectedCategoryId);
+                              bool exists = filteredList.any((c) => c.id == _selectedCategoryId);
                               return DropdownButtonFormField<int>(
                                 value: exists ? _selectedCategoryId : null,
                                 decoration: InputDecoration(
@@ -316,7 +385,7 @@ class _AddEditScheduleScreenState extends ConsumerState<AddEditScheduleScreen> {
                                 ),
                                 icon: const Icon(Icons.arrow_drop_down_rounded, size: 28),
                                 items: [
-                                  ...list.map((c) => DropdownMenuItem(
+                                  ...filteredList.map((c) => DropdownMenuItem(
                                     value: c.id,
                                     child: Row(
                                       children: [
